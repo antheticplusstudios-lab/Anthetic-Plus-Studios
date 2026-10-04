@@ -9,6 +9,14 @@ import { Label } from "@/components/ui/label";
 import { AnimatePresence, motion } from "@/components/motion";
 import { supabase } from "@/integrations/supabase/client";
 
+function getAuthRedirectUrl() {
+  // Production uses the canonical Vercel origin. Local development falls back
+  // to the current browser origin when VITE_APP_URL is not configured.
+  const configured = import.meta.env.VITE_APP_URL?.trim().replace(/\/$/, "");
+  const origin = configured || window.location.origin;
+  return `${origin}/auth/callback`;
+}
+
 export function AuthPanel({
   initialMode = "signin",
   onDone,
@@ -35,7 +43,7 @@ export function AuthPanel({
         : await supabase.auth.signUp({
             email,
             password,
-            options: { emailRedirectTo: window.location.origin },
+            options: { emailRedirectTo: getAuthRedirectUrl() },
           });
     setBusy(false);
     if (result.error) {
@@ -50,17 +58,17 @@ export function AuthPanel({
     onDone?.();
   };
 
-  const google = async () => {
+  const oauth = async (provider: "google" | "discord") => {
     setMessage("");
-    // Supabase's own OAuth flow: requires Google to be enabled as a provider
-    // in the Supabase dashboard (Authentication → Providers). This always
-    // redirects the browser away and back — there is no in-place token case.
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin },
+      provider,
+      options: { redirectTo: getAuthRedirectUrl() },
     });
     if (error) setMessage(error.message);
   };
+
+  const google = () => oauth("google");
+  const discord = () => oauth("discord");
 
   if (sent) {
     return (
@@ -125,10 +133,15 @@ export function AuthPanel({
         ))}
       </div>
 
-      <Button variant="outline" className="mt-5 w-full" onClick={google} type="button">
-        <span className="text-lg font-extrabold text-primary">G</span>
-        Continue with Google
-      </Button>
+      <div className="mt-5 grid grid-cols-2 gap-3">
+        <Button variant="outline" className="w-full" onClick={google} type="button">
+          <span className="text-lg font-extrabold text-primary">G</span>
+          Google
+        </Button>
+        <Button variant="outline" className="w-full" onClick={discord} type="button">
+          <span className="text-sm font-black">Discord</span>
+        </Button>
+      </div>
 
       <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
         <span className="h-px flex-1 bg-border" />

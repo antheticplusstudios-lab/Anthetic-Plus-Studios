@@ -39,8 +39,18 @@ function AuthPage() {
           <AuthPanel
             initialMode={mode ?? "signin"}
             onDone={() => {
-              if (redirect) window.location.replace(redirect);
-              else void navigate({ to: "/dashboard" });
+              if (redirect) {
+                try {
+                  const target = new URL(redirect, window.location.origin);
+                  if (target.origin === window.location.origin) {
+                    window.location.replace(`${target.pathname}${target.search}${target.hash}`);
+                    return;
+                  }
+                } catch {
+                  // Fall through to the dashboard for malformed/external redirects.
+                }
+              }
+              void navigate({ to: "/dashboard" });
             }}
           />
         </motion.section>

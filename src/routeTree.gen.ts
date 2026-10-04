@@ -19,6 +19,7 @@ import { Route as StatusRouteImport } from './routes/status'
 import { Route as WidgetDotjsRouteImport } from './routes/widget[.]js'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AutomationsIndexRouteImport } from './routes/automations.index'
 import { Route as AutomationsSlugRouteImport } from './routes/automations.$slug'
 import { Route as CheckoutIndexRouteImport } from './routes/checkout.index'
@@ -118,6 +119,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AutomationsIndexRoute = AutomationsIndexRouteImport.update({
   id: '/automations/',
@@ -413,12 +419,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assistant': typeof AssistantRoute
   '/assistant.js': typeof AssistantDotjsRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/widget.js': typeof WidgetDotjsRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/automations/$slug': typeof AutomationsSlugRoute
   '/automations/': typeof AutomationsIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
@@ -474,10 +481,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assistant': typeof AssistantRoute
   '/assistant.js': typeof AssistantDotjsRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/widget.js': typeof WidgetDotjsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/automations/$slug': typeof AutomationsSlugRoute
   '/automations': typeof AutomationsIndexRoute
   '/checkout': typeof CheckoutIndexRoute
@@ -535,12 +543,13 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/assistant': typeof AssistantRoute
   '/assistant.js': typeof AssistantDotjsRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/widget.js': typeof WidgetDotjsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/automations/$slug': typeof AutomationsSlugRoute
   '/automations/': typeof AutomationsIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
@@ -604,6 +613,7 @@ export interface FileRouteTypes {
     | '/widget.js'
     | '/admin'
     | '/dashboard'
+    | '/auth/callback'
     | '/automations/$slug'
     | '/automations/'
     | '/checkout/'
@@ -663,6 +673,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/status'
     | '/widget.js'
+    | '/auth/callback'
     | '/automations/$slug'
     | '/automations'
     | '/checkout'
@@ -725,6 +736,7 @@ export interface FileRouteTypes {
     | '/widget.js'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/auth/callback'
     | '/automations/$slug'
     | '/automations/'
     | '/checkout/'
@@ -782,7 +794,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AssistantRoute: typeof AssistantRoute
   AssistantDotjsRoute: typeof AssistantDotjsRoute
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   SecurityRoute: typeof SecurityRoute
   StatusRoute: typeof StatusRoute
   WidgetDotjsRoute: typeof WidgetDotjsRoute
@@ -870,6 +882,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/automations/': {
       id: '/automations/'
@@ -1342,12 +1361,22 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AssistantRoute: AssistantRoute,
   AssistantDotjsRoute: AssistantDotjsRoute,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   SecurityRoute: SecurityRoute,
   StatusRoute: StatusRoute,
   WidgetDotjsRoute: WidgetDotjsRoute,
