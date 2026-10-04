@@ -1,0 +1,12 @@
+- All AI calls go through routeChat() in src/lib/llm-router.server.ts (active llm_api_keys by priority, cooldown/failover — no external gateway fallback), logged to llm_requests — one canonical provider path.
+- Widget runtime resolves only client_automations by script_token; served at /widget.js from src/lib/widget-runtime.ts — Gen 1 automation_instances is retired for widgets.
+- Orders are created only via the place_order() RPC which prices from product_prices — never trust browser totals.
+
+- TypeScript keeps the uploaded strict config except noPropertyAccessFromIndexSignature (off), because that rule only forces bracket-notation style and flags ~240 safe property reads.
+- Schema fixes to the four live databases are kept as dated SQL files in docs/database-bootstrap/migrations/ and applied via psql, because these databases are managed outside this repository.
+- The homepage voice agent and the text assistant share one brain: src/assistant/assistant.service.server.ts (runAssistant/confirmAction), exposed only via src/lib/assistant-agent.functions.ts, so voice and text always execute the same tools and return the same server results.
+- Assistant tools are registered in src/assistant/assistant.tools.server.ts; each declares an access level and sideEffect flag, and authorization is re-checked server-side right before execution using rbac.server + the middleware's tenant context.
+- Side-effecting assistant tools never run on the first turn: they return an HMAC-signed, user-bound PendingAction (key derived from ANTHETICPLUS_DB3_MASTER_KEY) and execute only via confirmAssistantAction, which writes an audit_logs row (metadata.actionId also blocks replays) — no new tables needed.
+- Assistant model calls go through assistant.provider.server.ts, which wraps routeChat(), so the provider can change without touching UI or tools.
+- Speech uses the browser Web Speech API (src/voice/*) with no business logic; the voice loop only drives the shared assistant session hook.
+- vite.config.ts uses the standard Vite + TanStack Start + Nitro + Tailwind + React + tsconfig-paths plugins directly; no Lovable build dependency is required.

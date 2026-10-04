@@ -1,0 +1,1 @@
+CREATE TYPE public.probe_kind AS ENUM ('a','b');

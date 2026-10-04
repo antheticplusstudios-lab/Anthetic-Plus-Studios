@@ -1,0 +1,69 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790319505653,
+      "tag": "0000_initial_platform_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790319531259,
+      "tag": "0001_lock_down_function_execute",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790319560490,
+      "tag": "0002_transcript_evaluations_and_system_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790396408843,
+      "tag": "0003_platform_v2_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790401630771,
+      "tag": "0004_stage1_gen2_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790402847662,
+      "tag": "0005_stage2_admin_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790403122369,
+      "tag": "0006_place_order_restriction_check",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790404540431,
+      "tag": "0007_probe_enum",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790426673144,
+      "tag": "0008_llm_api_keys_more_providers",
+      "breakpoints": true
+    }
+  ]
+}

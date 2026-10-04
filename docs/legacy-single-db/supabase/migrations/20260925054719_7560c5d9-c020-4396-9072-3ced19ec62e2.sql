@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.has_role(uuid,app_role), public.is_admin(uuid), public.is_staff(uuid), public.owns_automation(uuid), public.validate_promo(text), public.handle_new_user(), public.touch_updated_at() FROM anon, public;
+REVOKE EXECUTE ON FUNCTION public.handle_new_user(), public.touch_updated_at() FROM authenticated;
