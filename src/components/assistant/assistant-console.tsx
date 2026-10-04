@@ -5,26 +5,18 @@ import { Link } from "@tanstack/react-router";
 import { AlertCircle, CheckCircle2, Loader2, Mic, MicOff, Send, ShieldAlert, Square, Volume2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import MagicMarble from "@/components/magic-marble";
+import { VoiceOrb } from "@/components/assistant/voice-orb";
 import { cn } from "@/lib/utils";
 import { getAssistantConfig } from "@/lib/assistant-agent.functions";
 import { useAssistantSession, type ChatEntry } from "@/assistant/use-assistant-session";
 import { useVoiceLoop, type VoiceState } from "@/voice/use-voice-loop";
 
 const STATE_LABEL: Record<VoiceState, string> = {
-  idle: "Tap the mic to talk",
+  idle: "Ready to talk",
   listening: "Listening…",
   processing: "Thinking…",
   speaking: "Speaking…",
   error: "Voice unavailable",
-};
-
-const PALETTE: Record<VoiceState, string[]> = {
-  idle: ["#FF0000", "#FFFF00", "#00FF80", "#5252E0", "#CCCCCC"],
-  listening: ["#00E5FF", "#3B82F6", "#22C55E", "#38BDF8", "#FFFFFF"],
-  processing: ["#3B82F6", "#06B6D4", "#EC4899", "#00E5FF", "#FFFFFF"],
-  speaking: ["#FF0000", "#FF7A00", "#FFFF00", "#FB7185", "#FFFFFF"],
-  error: ["#EF4444", "#F97316", "#B91C1C", "#FCA5A5", "#FFFFFF"],
 };
 
 function Outcome({ a }: { a: NonNullable<ChatEntry["actions"]>[number] }) {
@@ -53,6 +45,7 @@ export function AssistantConsole({ variant = "compact" }: { variant?: "compact" 
   const [speakReplies, setSpeakReplies] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
   const voiceActive = voice.state === "listening" || voice.state === "processing" || voice.state === "speaking";
   const enabled = config?.enabled !== false;
   const voiceAllowed = enabled && config?.voiceEnabled !== false && voice.supported.input;
@@ -75,20 +68,36 @@ export function AssistantConsole({ variant = "compact" }: { variant?: "compact" 
     session.cancel();
   };
 
+  const toggleVoice = () => {
+    if (voiceActive || session.busy) {
+      stopAll();
+      return;
+    }
+    if (!voiceAllowed) return;
+    void voice.start();
+  };
+
   const displayState: VoiceState = voiceActive ? voice.state : session.busy ? "processing" : voice.state;
-  const ringTone = voice.muted ? "ring-red-500/90" : displayState === "speaking" ? "ring-green-500/90" : "ring-white/90";
+  const orbExpanded = voiceActive || Boolean(voice.interim);
 
   return (
-    <div className={cn("flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-xl", variant === "full" ? "h-[calc(100vh-10rem)] min-h-[560px]" : "h-[620px]")}>
-      <div className="relative flex shrink-0 flex-col items-center gap-3 border-b border-border px-5 pb-4 pt-5">
-        <div className={cn("h-28 w-28 rounded-full p-1 ring-4 ring-offset-2 ring-offset-card transition-all duration-300", ringTone, voice.muted && "shadow-[0_0_28px_rgba(239,68,68,0.55)]", displayState === "speaking" && !voice.muted && "shadow-[0_0_28px_rgba(34,197,94,0.45)]")} aria-label={voice.muted ? "Voice assistant muted" : displayState === "speaking" ? "Voice assistant speaking" : "Voice assistant ready"}>
-          <MagicMarble palette={PALETTE[displayState]} speed={displayState === "processing" ? 12 : displayState === "speaking" ? 10 : 7} spin={8} />
-        </div>
-        <div className="flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold" role="status" aria-live="polite">
-          {displayState === "listening" ? <Mic className="h-3.5 w-3.5 text-primary" /> : displayState === "processing" ? <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> : displayState === "error" ? <AlertCircle className="h-3.5 w-3.5 text-destructive" /> : <Volume2 className="h-3.5 w-3.5 text-primary" />}
-          {enabled ? STATE_LABEL[displayState] : "Assistant offline"}
-        </div>
-        <div className="flex items-center gap-2">
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-xl",
+        variant === "full" ? "h-[calc(100vh-10rem)] min-h-[560px]" : "h-[620px]",
+      )}
+    >
+      <div className="relative shrink-0 border-b border-border p-3 sm:p-4">
+        <VoiceOrb
+          state={displayState}
+          muted={voice.muted}
+          entries={session.entries}
+          interim={voice.interim}
+          expanded={orbExpanded}
+          onToggle={toggleVoice}
+        />
+
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           {voiceActive || session.busy ? (
             <Button size="sm" variant="outline" onClick={stopAll}>
               <Square className="h-4 w-4" /> Stop
@@ -98,24 +107,31 @@ export function AssistantConsole({ variant = "compact" }: { variant?: "compact" 
               {voiceAllowed ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />} Talk
             </Button>
           )}
+
           <Button size="sm" variant="ghost" onClick={() => voice.toggleMute()} aria-pressed={voice.muted} disabled={!voice.supported.input}>
-            {voice.muted ? <MicOff className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />} {voice.muted ? "Unmute" : "Mute"}
+            {voice.muted ? <MicOff className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />}
+            {voice.muted ? "Unmute" : "Mute"}
           </Button>
+
           <Button size="sm" variant="ghost" onClick={() => setSpeakReplies((v) => !v)} aria-pressed={speakReplies} disabled={!voice.supported.output}>
             <Volume2 className="h-4 w-4" /> {speakReplies ? "Read replies: on" : "Read replies: off"}
           </Button>
         </div>
+
         {voice.error && (
-          <p className="max-w-sm text-center text-xs text-destructive" role="alert">
+          <p className="mt-2 text-center text-xs text-destructive" role="alert">
             {voice.error}
           </p>
         )}
       </div>
 
-      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-5 py-4 text-sm">
+      <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 text-sm">
         {session.entries.length === 0 && (
-          <p className="text-muted-foreground">{config?.welcomeMessage || "Hi! Ask me about our automations and pricing, or sign in for help with your account."}</p>
+          <p className="text-muted-foreground">
+            {config?.welcomeMessage || "Hi! Ask me about our automations and pricing, or sign in for help with your account."}
+          </p>
         )}
+
         {session.entries.map((e) =>
           e.role === "user" ? (
             <div key={e.id} className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-primary-foreground">
@@ -128,12 +144,19 @@ export function AssistantConsole({ variant = "compact" }: { variant?: "compact" 
             </div>
           ),
         )}
-        {voice.interim && <div className="ml-auto max-w-[85%] rounded-2xl bg-muted px-4 py-2 italic text-muted-foreground">{voice.interim}</div>}
+
+        {voice.interim && (
+          <div className="ml-auto max-w-[85%] rounded-2xl bg-muted px-4 py-2 italic text-muted-foreground">
+            {voice.interim}
+          </div>
+        )}
+
         {session.busy && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> Working on it…
           </div>
         )}
+
         {session.pending && (
           <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
             <p className="text-sm font-semibold">{session.pending.title}</p>
@@ -166,6 +189,7 @@ export function AssistantConsole({ variant = "compact" }: { variant?: "compact" 
             to check your account or send emails.
           </p>
         )}
+
         <form
           className="flex items-end gap-2"
           onSubmit={(ev) => {
