@@ -8,7 +8,7 @@ export type RouteResult = { reply: string; provider: string; model: string; toke
 type Opts = { automationId?: string | null; clientId?: string | null; maxTokens?: number; temperature?: number; provider?: string; keyLabel?: string; model?: string; jsonMode?: boolean };
 
 const ENDPOINT: Record<string, { url: string; model: string }> = {
-  groq: { url: "https://api.groq.com/openai/v1/chat/completions", model: "llama-3.1-8b-instant" },
+  groq: { url: "https://api.groq.com/openai/v1/chat/completions", model: "openai/gpt-oss-120b" },
   openrouter: { url: "https://openrouter.ai/api/v1/chat/completions", model: "openai/gpt-4o-mini" },
   openai: { url: "https://api.openai.com/v1/chat/completions", model: "gpt-4o-mini" },
   anthropic: { url: "https://api.anthropic.com/v1/messages", model: "claude-3-5-haiku-latest" },

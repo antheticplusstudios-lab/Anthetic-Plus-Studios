@@ -7,7 +7,7 @@ import { z } from "zod";
 import { ORDER_SELECT } from "@/lib/orders-schema";
 
 export const VOICE_AGENT_LABEL = "Homepage Voice Agent";
-const DEFAULT_MODEL = "llama-3.3-70b-versatile";
+const DEFAULT_MODEL = "openai/gpt-oss-120b";
 const DEFAULT_INACTIVITY_SECONDS = 60;
 const MAX_HISTORY = 10;
 const MAX_CONTEXT = 48_000;
