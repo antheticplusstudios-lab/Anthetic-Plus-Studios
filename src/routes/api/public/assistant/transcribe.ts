@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { jsonResponse, preflightFor, requestOrigin, resolveFromRequest } from "@/assistant/sites/site-http.server";
 import { loadAssistantSettings } from "@/assistant/assistant.settings.server";
-import { transcribeVoiceAudioData } from "@/lib/voice-transcription.functions";
+import { transcribeVoiceAudioData } from "@/server/voice-transcription.server";
 
 const body = z.object({
   site: z.string().max(40),
