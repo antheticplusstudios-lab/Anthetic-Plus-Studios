@@ -11,13 +11,18 @@ function clientId(ctx: ToolContext) {
 
 function fail(what: string, error: { message: string }) {
   console.error(`assistant ${what} read failed`, error.message);
-  return { ok: false as const, code: "failed" as const, message: `I couldn't load your ${what} right now.` };
+  return {
+    ok: false as const,
+    code: "failed" as const,
+    message: `I couldn't load your ${what} right now.`,
+  };
 }
 
 export const getAccountTool = defineTool({
   name: "get_account",
   label: "Account",
-  description: "Get the signed-in user's account profile: company, website, category, role and whether the profile is complete.",
+  description:
+    "Get the signed-in user's account profile: company, website, category, role and whether the profile is complete.",
   inputDoc: "{}",
   access: "member",
   sideEffect: false,
@@ -55,7 +60,9 @@ export const getSubscriptionsTool = defineTool({
   async execute(_i, ctx) {
     const { data, error } = await db2Admin
       .from("subscriptions")
-      .select("automation_id,plan_slug,status,renewal_at,expires_at,grace_period_end,cancel_at")
+      .select(
+        "id,order_id,product_type,plan_code,status,renewal_at,current_period_end,grace_period_end,cancelled_at",
+      )
       .eq("client_id", clientId(ctx))
       .order("created_at", { ascending: false })
       .limit(25);
@@ -73,21 +80,22 @@ export const getOrdersTool = defineTool({
   sideEffect: false,
   input: none,
   async execute(_i, ctx) {
-    const [orders, verifications] = await Promise.all([
-      db2Admin
-        .from("orders")
-        .select(ORDER_SELECT as "*")
-        .eq("client_id", clientId(ctx))
-        .order("created_at", { ascending: false })
-        .limit(15),
-      db2Admin
-        .from("payment_verifications")
-        .select("order_id,status,rejection_reason,created_at,verified_at")
-        .eq("client_id", clientId(ctx))
-        .order("created_at", { ascending: false })
-        .limit(15),
-    ]);
+    const orders = await db2Admin
+      .from("orders")
+      .select("*")
+      .eq("client_id", clientId(ctx))
+      .order("created_at", { ascending: false })
+      .limit(15);
     if (orders.error) return fail("orders", orders.error);
+    const orderIds = (orders.data ?? []).map((order) => order.id);
+    const verifications = orderIds.length
+      ? await db2Admin
+          .from("payment_verifications")
+          .select("order_id,status,notes,created_at,reviewed_at")
+          .in("order_id", orderIds)
+          .order("created_at", { ascending: false })
+          .limit(15)
+      : { data: [], error: null };
     if (verifications.error) return fail("orders", verifications.error);
     return {
       ok: true,
@@ -100,7 +108,8 @@ export const getOrdersTool = defineTool({
 export const getAutomationStatusTool = defineTool({
   name: "get_automation_status",
   label: "Automations",
-  description: "List the user's automations with run state, domain, expiry and whether reinstallation is required.",
+  description:
+    "List the user's automations with run state, domain, expiry and whether reinstallation is required.",
   inputDoc: "{}",
   access: "member",
   sideEffect: false,
@@ -108,7 +117,9 @@ export const getAutomationStatusTool = defineTool({
   async execute(_i, ctx) {
     const { data, error } = await db2Admin
       .from("client_automations")
-      .select("id,name,automation_type,domain_url,run_state,is_active,expires_at,renewal_at,requires_reinstallation")
+      .select(
+        "id,name,automation_type,domain_url,run_state,is_active,expires_at,renewal_at,requires_reinstallation",
+      )
       .eq("client_id", clientId(ctx))
       .order("created_at", { ascending: false })
       .limit(30);

@@ -13,12 +13,14 @@
 - [ ] Stage 7: Gen 1 database/table retirement and final generated-type cleanup after production cutover verification
 
 ## Voice Agent + AI Assistant rebuild (2026-10)
+
 - [x] Unified assistant brain, tool registry, signed confirmations, audit
 - [x] Homepage voice + text console, /assistant page
 - [ ] Live end-to-end tests (sign-in, tools, email, permissions) — blocked on project secrets
 - [ ] Optional: route the admin Control Center assistant through the unified brain (needs approval)
 
 ## Continuation build (2026-10-03)
+
 - [x] Restore uploaded baseline source into project
 - [x] Phase 1: AI Assistants menu entry + full per-site admin editor (Overview, Persona, Business, Services, Knowledge, Sources, Discovery, Tools, Voice, Analytics, Test Chat) on existing audited server RPCs
 - [ ] Phase 1: live preview test of admin editing — blocked on DB1–DB4 + auth secrets being added to this project
@@ -27,6 +29,7 @@
 - [ ] Phase 4: security audit, UX polish, full testing
 
 ## Phase 2 (in progress)
+
 - [x] Homepage no longer crashes when database keys are missing (catalog price fallback, safe signed-out client)
 - [x] DB2 migration file: lead_capture + kb_support types (2026-10-03_db2_automation_types.sql)
 - [x] DB4 migration file: executions/events/attempts, claim/finish/enqueue, fixed round-robin + reassign

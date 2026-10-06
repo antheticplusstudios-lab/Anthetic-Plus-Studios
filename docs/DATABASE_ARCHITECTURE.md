@@ -6,12 +6,12 @@ AntheticPlus uses four separate Supabase projects/Postgres databases. Do not col
 
 ## Ownership matrix
 
-| Database | Authoritative data | Primary runtime owner |
-|---|---|---|
-| DB1 `app_auth` | Auth identity, organizations/client IDs, roles, restrictions, staff controls, platform settings, audit/outbox | Supabase Auth + Vercel/FastAPI auth layer |
-| DB2 `app_billing` | Orders, subscriptions, automation lifecycle, installations, scripts, widget config, usage, health | FastAPI + billing/admin server functions |
-| DB3 `app_ai` | LLM provider pool, encrypted keys, AI config, prompts, RAG documents/chunks, vectors, cache, evaluations | FastAPI AI/RAG runtime |
-| DB4 `app_crm` | Clients, conversations, messages, leads, appointments, Round-Robin, workflows and execution history | FastAPI + CRM/workflow workers |
+| Database          | Authoritative data                                                                                            | Primary runtime owner                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| DB1 `app_auth`    | Auth identity, organizations/client IDs, roles, restrictions, staff controls, platform settings, audit/outbox | Supabase Auth + Vercel/FastAPI auth layer |
+| DB2 `app_billing` | Orders, subscriptions, automation lifecycle, installations, scripts, widget config, usage, health             | FastAPI + billing/admin server functions  |
+| DB3 `app_ai`      | LLM provider pool, encrypted keys, AI config, prompts, RAG documents/chunks, vectors, cache, evaluations      | FastAPI AI/RAG runtime                    |
+| DB4 `app_crm`     | Clients, conversations, messages, leads, appointments, Round-Robin, workflows and execution history           | FastAPI + CRM/workflow workers            |
 
 ## Canonical identifiers
 

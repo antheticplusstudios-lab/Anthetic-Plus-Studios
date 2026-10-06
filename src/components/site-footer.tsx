@@ -74,7 +74,9 @@ export function SiteFooter() {
           </div>
 
           <div className="space-y-3 text-sm">
-            <p className="text-xs font-bold uppercase tracking-widest text-foreground">Autonomous suite</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-foreground">
+              Autonomous suite
+            </p>
             <ul className="space-y-2 text-muted-foreground">
               {suite.map((s) => (
                 <li key={s.slug}>
@@ -96,7 +98,9 @@ export function SiteFooter() {
           </div>
 
           <div className="space-y-3 text-sm">
-            <p className="text-xs font-bold uppercase tracking-widest text-foreground">Trust &amp; governance</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-foreground">
+              Trust &amp; governance
+            </p>
             <ul className="space-y-2 text-muted-foreground">
               <li>
                 <Link to="/security" className="transition-colors hover:text-primary">
@@ -109,7 +113,11 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link to="/security" hash="isolation" className="transition-colors hover:text-primary">
+                <Link
+                  to="/security"
+                  hash="isolation"
+                  className="transition-colors hover:text-primary"
+                >
                   Tenant isolation
                 </Link>
               </li>
@@ -158,8 +166,9 @@ export function SiteFooter() {
 
         <div className="mt-12 flex flex-col gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>
-            &copy; {new Date().getFullYear()} <span className="font-semibold text-foreground">AntheticPlus Studios</span>{" "}
-            &middot; Founded by Smyight
+            &copy; {new Date().getFullYear()}{" "}
+            <span className="font-semibold text-foreground">AntheticPlus Studios</span> &middot;
+            Founded by Smyight
           </p>
           <p className="flex items-center gap-4">
             <span>

@@ -7,7 +7,13 @@ import { testReceptionist } from "@/lib/improvements.functions";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-export function TestChatPanel({ automationId, disabled }: { automationId: string; disabled?: boolean }) {
+export function TestChatPanel({
+  automationId,
+  disabled,
+}: {
+  automationId: string;
+  disabled?: boolean;
+}) {
   const ask = useServerFn(testReceptionist);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState("");
@@ -38,7 +44,11 @@ export function TestChatPanel({ automationId, disabled }: { automationId: string
     }
   };
 
-  const starters = ["What services do you offer?", "What are your opening hours?", "How do I book an appointment?"];
+  const starters = [
+    "What services do you offer?",
+    "What are your opening hours?",
+    "How do I book an appointment?",
+  ];
 
   return (
     <section className="mt-6 rounded-3xl border border-border bg-card p-6">
@@ -46,11 +56,19 @@ export function TestChatPanel({ automationId, disabled }: { automationId: string
         <div>
           <h2 className="text-lg font-extrabold">Test your receptionist</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Chat with your assistant before adding it to your site. Test chats aren't saved or counted.
+            Chat with your assistant before adding it to your site. Test chats aren't saved or
+            counted.
           </p>
         </div>
         {msgs.length > 0 && (
-          <Button size="sm" variant="ghost" onClick={() => { setMsgs([]); setErr(""); }}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setMsgs([]);
+              setErr("");
+            }}
+          >
             <RotateCcw /> Reset
           </Button>
         )}
@@ -93,7 +111,11 @@ export function TestChatPanel({ automationId, disabled }: { automationId: string
         <div ref={endRef} />
       </div>
 
-      {err && <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{err}</p>}
+      {err && (
+        <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {err}
+        </p>
+      )}
 
       <form
         className="mt-4 flex gap-2"

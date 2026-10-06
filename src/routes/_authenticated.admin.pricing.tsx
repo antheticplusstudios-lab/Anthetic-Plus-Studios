@@ -7,7 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { AdminPage, Loading, Panel, shortDate } from "@/components/admin-ui";
 import { usePricing, usePromos } from "@/hooks/use-admin";
-import { adminSavePricing, adminUpdatePromo, adminDeletePromo, adminCreatePromo } from "@/lib/admin-data.functions";
+import {
+  adminSavePricing,
+  adminUpdatePromo,
+  adminDeletePromo,
+  adminCreatePromo,
+} from "@/lib/admin-data.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/pricing")({ component: PricingPage });
 
@@ -41,8 +46,23 @@ function PlanCard({ plan }: { plan: Plan }) {
 
   const save = async () => {
     setSaving(true);
-    try { await adminSavePricing({ data: { slug: plan.slug, name, monthly_price: monthlyNum, yearly_price: yearly, yearly_discount_pct: discountNum, active, listed: true } }); }
-    catch (e) { setSaving(false); toast.error(e instanceof Error ? e.message : "Save failed"); return; }
+    try {
+      await adminSavePricing({
+        data: {
+          slug: plan.slug,
+          name,
+          monthly_price: monthlyNum,
+          yearly_price: yearly,
+          yearly_discount_pct: discountNum,
+          active,
+          listed: true,
+        },
+      });
+    } catch (e) {
+      setSaving(false);
+      toast.error(e instanceof Error ? e.message : "Save failed");
+      return;
+    }
     setSaving(false);
     toast.success("Pricing plan saved");
     void queryClient.invalidateQueries({ queryKey: ["admin", "pricing"] });
@@ -54,16 +74,21 @@ function PlanCard({ plan }: { plan: Plan }) {
       <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Plan name" />
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Monthly price</label>
+          <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            Monthly price
+          </label>
           <Input type="number" value={monthly} onChange={(e) => setMonthly(e.target.value)} />
         </div>
         <div>
-          <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Yearly discount %</label>
+          <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            Yearly discount %
+          </label>
           <Input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} />
         </div>
       </div>
       <p className="text-sm text-muted-foreground">
-        Yearly price: <span className="font-bold tabular-nums text-foreground">${yearly.toLocaleString()}</span>
+        Yearly price:{" "}
+        <span className="font-bold tabular-nums text-foreground">${yearly.toLocaleString()}</span>
       </p>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -84,13 +109,23 @@ function PromoRow({ promo }: { promo: Promo }) {
 
   const toggle = async (value: boolean) => {
     setActive(value);
-    try { await adminUpdatePromo({ data: { id: promo.id, active: value } }); void queryClient.invalidateQueries({ queryKey: ["admin", "promos"] }); }
-    catch (e) { setActive(!value); toast.error(e instanceof Error ? e.message : "Update failed"); }
+    try {
+      await adminUpdatePromo({ data: { id: promo.id, active: value } });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "promos"] });
+    } catch (e) {
+      setActive(!value);
+      toast.error(e instanceof Error ? e.message : "Update failed");
+    }
   };
 
   const remove = async () => {
-    try { await adminDeletePromo({ data: { id: promo.id } }); toast.success("Promo code removed"); void queryClient.invalidateQueries({ queryKey: ["admin", "promos"] }); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); }
+    try {
+      await adminDeletePromo({ data: { id: promo.id } });
+      toast.success("Promo code removed");
+      void queryClient.invalidateQueries({ queryKey: ["admin", "promos"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed");
+    }
   };
 
   return (
@@ -129,8 +164,19 @@ function CreatePromoForm() {
       return;
     }
     setSaving(true);
-    try { await adminCreatePromo({ data: { code: trimmed, percent_off: pct, expires_at: expiresAt ? new Date(expiresAt).toISOString() : null } }); }
-    catch (e) { setSaving(false); toast.error(e instanceof Error ? e.message : "Create failed"); return; }
+    try {
+      await adminCreatePromo({
+        data: {
+          code: trimmed,
+          percent_off: pct,
+          expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+        },
+      });
+    } catch (e) {
+      setSaving(false);
+      toast.error(e instanceof Error ? e.message : "Create failed");
+      return;
+    }
     setSaving(false);
     toast.success("Promo code created");
     setCode("");
@@ -142,7 +188,14 @@ function CreatePromoForm() {
   return (
     <div className="grid gap-3 rounded-xl border border-dashed border-border p-4 sm:grid-cols-[1fr_1fr_1fr_auto]">
       <Input placeholder="CODE" value={code} onChange={(e) => setCode(e.target.value)} />
-      <Input type="number" min={1} max={90} placeholder="% off" value={percentOff} onChange={(e) => setPercentOff(e.target.value)} />
+      <Input
+        type="number"
+        min={1}
+        max={90}
+        placeholder="% off"
+        value={percentOff}
+        onChange={(e) => setPercentOff(e.target.value)}
+      />
       <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
       <Button onClick={() => void create()} disabled={saving}>
         {saving ? "Creating…" : "Create promo"}
@@ -165,7 +218,10 @@ function PricingPage() {
       title="Global Pricing Configurator"
       subtitle="The live price matrix both storefronts read from, plus promo codes."
     >
-      <Panel title="Price matrix" description="Storefront prices and checkout totals come from this table in real time, so changes apply without redeploying.">
+      <Panel
+        title="Price matrix"
+        description="Storefront prices and checkout totals come from this table in real time, so changes apply without redeploying."
+      >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {planRows.map((plan) => (
             <PlanCard key={plan.slug} plan={plan} />
@@ -178,7 +234,9 @@ function PricingPage() {
           {promoRows.map((promo) => (
             <PromoRow key={promo.id} promo={promo} />
           ))}
-          {promoRows.length === 0 && <p className="text-sm text-muted-foreground">No promo codes yet.</p>}
+          {promoRows.length === 0 && (
+            <p className="text-sm text-muted-foreground">No promo codes yet.</p>
+          )}
           <CreatePromoForm />
         </div>
       </Panel>

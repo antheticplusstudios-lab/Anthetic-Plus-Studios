@@ -1,13 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { AdminPage, DataTable, Loading, Panel, StatCard, money, shortDate, timeAgo } from "@/components/admin-ui";
+import {
+  AdminPage,
+  DataTable,
+  Loading,
+  Panel,
+  StatCard,
+  money,
+  shortDate,
+  timeAgo,
+} from "@/components/admin-ui";
 import { getUserDetail } from "@/lib/command-center.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/clients/$id")({
   head: () => ({
     meta: [
       { title: "Client Detail — AntheticPlus Control Center" },
-      { name: "description", content: "Full account record: profile, roles, restrictions, orders, automations, usage, conversations and audit trail." },
+      {
+        name: "description",
+        content:
+          "Full account record: profile, roles, restrictions, orders, automations, usage, conversations and audit trail.",
+      },
       { property: "og:title", content: "Client Detail — AntheticPlus Control Center" },
       { property: "og:description", content: "Full account record for one AntheticPlus user." },
     ],
@@ -42,7 +55,9 @@ function ClientDetailPage() {
 
   return (
     <AdminPage
-      title={String(profile["company_name"] ?? profile["full_name"] ?? data.user.email ?? "Account")}
+      title={String(
+        profile["company_name"] ?? profile["full_name"] ?? data.user.email ?? "Account",
+      )}
       subtitle={`${data.user.email} · client ${profile["client_id"] ?? "—"} · ${data.origin.label}`}
       actions={
         <Link to="/admin/clients" className="text-sm font-semibold text-primary underline">
@@ -72,11 +87,15 @@ function ClientDetailPage() {
             <dt className="text-muted-foreground">Email confirmed</dt>
             <dd className="font-semibold">{data.user.emailConfirmed ? "Yes" : "No"}</dd>
             <dt className="text-muted-foreground">Roles</dt>
-            <dd className="font-semibold capitalize">{data.roles.length ? data.roles.join(", ") : "client"}</dd>
+            <dd className="font-semibold capitalize">
+              {data.roles.length ? data.roles.join(", ") : "client"}
+            </dd>
             <dt className="text-muted-foreground">Created</dt>
             <dd className="font-semibold">{shortDate(String(data.user.createdAt))}</dd>
             <dt className="text-muted-foreground">Last sign-in</dt>
-            <dd className="font-semibold">{data.user.lastSignIn ? timeAgo(String(data.user.lastSignIn)) : "never"}</dd>
+            <dd className="font-semibold">
+              {data.user.lastSignIn ? timeAgo(String(data.user.lastSignIn)) : "never"}
+            </dd>
             <dt className="text-muted-foreground">Signup origin</dt>
             <dd className="font-semibold">{data.origin.label}</dd>
             <dt className="text-muted-foreground">Phone</dt>
@@ -97,7 +116,12 @@ function ClientDetailPage() {
                 {a["requires_reinstallation"] ? " · reinstall" : ""}
               </span>,
               shortDate(a["expires_at"] as string | null),
-              <Link key="o" to="/admin/automations/$id" params={{ id: String(a["id"]) }} className="text-xs font-bold text-primary underline">
+              <Link
+                key="o"
+                to="/admin/automations/$id"
+                params={{ id: String(a["id"]) }}
+                className="text-xs font-bold text-primary underline"
+              >
                 Open
               </Link>,
             ])}
@@ -121,7 +145,10 @@ function ClientDetailPage() {
               {String(o["status"])}
               {o["rejection_reason"] ? ` · ${String(o["rejection_reason"])}` : ""}
             </span>,
-            String((o as unknown as { payment_methods?: { method_name?: string } }).payment_methods?.method_name ?? "—"),
+            String(
+              (o as unknown as { payment_methods?: { method_name?: string } }).payment_methods
+                ?.method_name ?? "—",
+            ),
             shortDate(o["created_at"] as string),
             shortDate(o["reviewed_at"] as string | null),
           ])}
@@ -146,20 +173,31 @@ function ClientDetailPage() {
           />
         </Panel>
         <Panel title="Knowledge & integrations">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Knowledge documents</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Knowledge documents
+          </p>
           <DataTable
             head={["Source", "Name", "Added"]}
-            rows={knowledge.map((k) => [String(k["source_type"]), String(k["source_name"] ?? "—"), shortDate(k["created_at"] as string)])}
+            rows={knowledge.map((k) => [
+              String(k["source_type"]),
+              String(k["source_name"] ?? "—"),
+              shortDate(k["created_at"] as string),
+            ])}
             empty="No knowledge documents."
           />
-          <p className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Integrations</p>
+          <p className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Integrations
+          </p>
           <DataTable
             head={["Provider", "Status", "Updated"]}
             rows={integrations.map((i) => [
               <span key="p" className="capitalize">
                 {String(i["provider"])}
               </span>,
-              <span key="s" className={i["status"] === "connected" ? "text-success" : "text-muted-foreground"}>
+              <span
+                key="s"
+                className={i["status"] === "connected" ? "text-success" : "text-muted-foreground"}
+              >
                 {i["status"] === "connected" ? "Connected" : "Pending provider credentials"}
               </span>,
               i["updated_at"] ? timeAgo(i["updated_at"] as string) : "—",

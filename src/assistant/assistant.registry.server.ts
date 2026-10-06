@@ -26,17 +26,22 @@ export function siteAllows(tool: { name: string; access: ToolAccess }, ctx: Tool
   if (!ctx.site.config.allowedTools.includes(tool.name)) return false;
   const meta = SITE_TOOL_CATALOG.find((t) => t.name === tool.name);
   if (!meta) return false;
-  if ((meta.firstPartyOnly || tool.access !== "public") && !SITES[ctx.site.id].firstParty) return false;
+  if ((meta.firstPartyOnly || tool.access !== "public") && !SITES[ctx.site.id].firstParty)
+    return false;
   return true;
 }
 
 export type ToolResult =
   | { ok: true; summary: string; data: unknown }
-  | { ok: false; code: "forbidden" | "invalid_input" | "not_configured" | "failed"; message: string };
+  | {
+      ok: false;
+      code: "forbidden" | "invalid_input" | "not_configured" | "failed";
+      message: string;
+    };
 
 export type ActionPreview = { title: string; fields: Array<{ label: string; value: string }> };
 
-export type AssistantTool<I = any> = {
+export type AssistantTool<I = unknown> = {
   name: string;
   /** Short label for UI chips. */
   label: string;
@@ -54,8 +59,21 @@ export type AssistantTool<I = any> = {
   execute: (input: I, ctx: ToolContext) => Promise<ToolResult>;
 };
 
+export type ErasedAssistantTool = {
+  name: string;
+  label: string;
+  description: string;
+  inputDoc: string;
+  access: ToolAccess;
+  sideEffect: boolean;
+  input: z.ZodTypeAny;
+  authorize?: (input: unknown, ctx: ToolContext) => Promise<string | null> | string | null;
+  preview?: (input: unknown, ctx: ToolContext) => ActionPreview;
+  execute: (input: unknown, ctx: ToolContext) => Promise<ToolResult>;
+};
+
 /** Returns a safe denial message, or null when the caller may use the tool. */
-export function checkAccess(tool: AssistantTool, ctx: ToolContext): string | null {
+export function checkAccess(tool: ErasedAssistantTool, ctx: ToolContext): string | null {
   if (!siteAllows(tool, ctx)) return "That isn't available on this website.";
   if (tool.access === "public") return null;
   if (!ctx.auth) return "Please sign in to use that.";
@@ -70,6 +88,21 @@ export function checkAccess(tool: AssistantTool, ctx: ToolContext): string | nul
   }
 }
 
-export function defineTool<I>(tool: AssistantTool<I>): AssistantTool<I> {
-  return tool;
+export function defineTool<I>(tool: AssistantTool<I>): ErasedAssistantTool {
+  return {
+    name: tool.name,
+    label: tool.label,
+    description: tool.description,
+    inputDoc: tool.inputDoc,
+    access: tool.access,
+    sideEffect: tool.sideEffect,
+    input: tool.input,
+    ...(tool.authorize
+      ? { authorize: (input, ctx) => tool.authorize?.(tool.input.parse(input), ctx) ?? null }
+      : {}),
+    ...(tool.preview
+      ? { preview: (input, ctx) => tool.preview!(tool.input.parse(input), ctx) }
+      : {}),
+    execute: (input, ctx) => tool.execute(tool.input.parse(input), ctx),
+  };
 }

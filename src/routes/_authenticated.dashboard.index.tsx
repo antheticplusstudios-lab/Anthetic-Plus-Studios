@@ -9,9 +9,15 @@ export const Route = createFileRoute("/_authenticated/dashboard/")({
   head: () => ({
     meta: [
       { title: "Dashboard — AntheticPlus Studios" },
-      { name: "description", content: "Your AntheticPlus automation overview, metrics and renewal countdown." },
+      {
+        name: "description",
+        content: "Your AntheticPlus automation overview, metrics and renewal countdown.",
+      },
       { property: "og:title", content: "AntheticPlus Client Dashboard" },
-      { property: "og:description", content: "Monitor automations, conversations, leads and renewals." },
+      {
+        property: "og:description",
+        content: "Monitor automations, conversations, leads and renewals.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -43,7 +49,11 @@ function DashboardOverview() {
   return (
     <div className="page-enter">
       <p className="text-sm font-bold text-primary">
-        {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+        {new Date().toLocaleDateString(undefined, {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })}
       </p>
       <h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">
         Welcome back{profile?.company_name ? `, ${profile.company_name}` : ""}.
@@ -71,7 +81,9 @@ function DashboardOverview() {
               <Clock className="h-4 w-4" />
               Days remaining
             </span>
-            <p className="mt-3 text-6xl font-extrabold leading-none tabular-nums sm:text-7xl">{soonest ?? 0}</p>
+            <p className="mt-3 text-6xl font-extrabold leading-none tabular-nums sm:text-7xl">
+              {soonest ?? 0}
+            </p>
             <p className="mt-3 text-sm text-muted-foreground">
               {soonest === undefined
                 ? "No active subscription. Submit a payment to start your countdown."
@@ -103,7 +115,9 @@ function DashboardOverview() {
           {!isLoading && instances.length === 0 && (
             <div className="rounded-2xl bg-muted/50 p-6 text-center">
               <p className="font-bold">No automations yet.</p>
-              <p className="mt-1 text-sm text-muted-foreground">Pick an AI teammate from the catalog to get started.</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Pick an AI teammate from the catalog to get started.
+              </p>
               <Button className="mt-4" asChild>
                 <Link to="/">Explore automations</Link>
               </Button>
@@ -120,7 +134,9 @@ function DashboardOverview() {
                   <p className="truncate font-bold">{meta?.name ?? item.automation_slug}</p>
                   <p className="truncate text-sm text-muted-foreground">{item.website_domain}</p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass(item.status)}`}>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass(item.status)}`}
+                >
                   {statusLabels[item.status] ?? item.status}
                 </span>
               </div>

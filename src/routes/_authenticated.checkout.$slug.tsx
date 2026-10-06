@@ -33,9 +33,15 @@ export const Route = createFileRoute("/_authenticated/checkout/$slug")({
   head: () => ({
     meta: [
       { title: "Complete Your Order — AntheticPlus Studios" },
-      { name: "description", content: "Configure and submit payment for your AntheticPlus automation." },
+      {
+        name: "description",
+        content: "Configure and submit payment for your AntheticPlus automation.",
+      },
       { property: "og:title", content: "AntheticPlus Automation Checkout" },
-      { property: "og:description", content: "Set up your automation and submit manual payment details." },
+      {
+        property: "og:description",
+        content: "Set up your automation and submit manual payment details.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -96,7 +102,8 @@ function Checkout() {
 
   const monthlyBase = priced?.price ?? item.price;
   const discountPct = priced?.yearlyDiscountPct ?? 20;
-  const monthly = plan === "yearly" ? Math.round(monthlyBase * (1 - discountPct / 100)) : monthlyBase;
+  const monthly =
+    plan === "yearly" ? Math.round(monthlyBase * (1 - discountPct / 100)) : monthlyBase;
   const subtotal = plan === "yearly" ? monthly * 12 : monthlyBase;
   const { amount: total, saved } = withDiscount(subtotal, promoPct);
   const set = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
@@ -153,31 +160,52 @@ function Checkout() {
   const submit = async () => {
     setBusy(true);
     setError("");
-    if (!user) { setError("Your session expired. Please sign in again."); setBusy(false); return; }
-    if (!domain) { setError("Add a valid website address before submitting."); setBusy(false); return; }
+    if (!user) {
+      setError("Your session expired. Please sign in again.");
+      setBusy(false);
+      return;
+    }
+    if (!domain) {
+      setError("Add a valid website address before submitting.");
+      setBusy(false);
+      return;
+    }
     try {
-      const method = await import("@/lib/client-platform.functions").then(({ getActivePaymentMethods }) => getActivePaymentMethods());
-      const selected = method.find((m: any) => m.method_name === form.method);
+      const method = await import("@/lib/client-platform.functions").then(
+        ({ getActivePaymentMethods }) => getActivePaymentMethods(),
+      );
+      const selected = method.find((m) => m.method_name === form.method);
       if (!selected) throw new Error("Selected payment method is unavailable.");
-      await submitOrder({ data: {
-        product: item.slug as "ai_receptionist" | "messaging_ai",
-        deliveryChannel: "web",
-        features: [form.context.slice(0, 500), form.instructions.slice(0, 500)].filter(Boolean),
-        fullName: user.user_metadata?.full_name || user.email?.split("@")[0] || "Customer",
-        company: form.company, email: form.email, country: "", target: form.website, plan,
-        paymentMethodId: selected.id, transactionId: form.transaction.trim(), senderName: form.sender.trim(),
-        proof: { transaction_id: form.transaction.trim(), sender_name: form.sender.trim() },
-        promoCode: promoOk ? promo.trim().toUpperCase() : undefined,
-      } });
+      await submitOrder({
+        data: {
+          product: item.slug as "ai_receptionist" | "messaging_ai",
+          deliveryChannel: "web",
+          features: [form.context.slice(0, 500), form.instructions.slice(0, 500)].filter(Boolean),
+          fullName: user.user_metadata?.full_name || user.email?.split("@")[0] || "Customer",
+          company: form.company,
+          email: form.email,
+          country: "",
+          target: form.website,
+          plan,
+          paymentMethodId: selected.id,
+          transactionId: form.transaction.trim(),
+          senderName: form.sender.trim(),
+          proof: { transaction_id: form.transaction.trim(), sender_name: form.sender.trim() },
+          promoCode: promoOk ? promo.trim().toUpperCase() : undefined,
+        },
+      });
       setDone(true);
       await queryClient.invalidateQueries();
       setTimeout(() => void navigate({ to: "/dashboard/payments" }), 2200);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not submit your order. Please try again.");
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const step1Ok = !!form.company.trim() && emailOk(form.email) && !!domain && !!form.category.trim();
+  const step1Ok =
+    !!form.company.trim() && emailOk(form.email) && !!domain && !!form.category.trim();
   const step2Ok = form.context.trim().length > 20;
   const canContinue = step === 1 ? step1Ok : step === 2 ? step2Ok : true;
   const canSubmit = !!form.transaction.trim() && !!form.sender.trim();
@@ -207,8 +235,8 @@ function Checkout() {
           </motion.div>
           <h1 className="mt-6 text-2xl font-extrabold">Order received</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            We're verifying your payment for {item.name}. You'll see the status update on your payments page in a
-            moment.
+            We're verifying your payment for {item.name}. You'll see the status update on your
+            payments page in a moment.
           </p>
         </motion.div>
       </div>
@@ -218,7 +246,12 @@ function Checkout() {
   const fields =
     step === 1 ? (
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Company name" value={form.company} onChange={(v) => set("company", v)} required={touched} />
+        <Field
+          label="Company name"
+          value={form.company}
+          onChange={(v) => set("company", v)}
+          required={touched}
+        />
         <Field
           label="Contact email"
           type="email"
@@ -234,7 +267,12 @@ function Checkout() {
           invalid={touched && !domain}
           hint={touched && !domain ? "Example: yourbusiness.com" : undefined}
         />
-        <Field label="Business category" value={form.category} onChange={(v) => set("category", v)} required={touched} />
+        <Field
+          label="Business category"
+          value={form.category}
+          onChange={(v) => set("category", v)}
+          required={touched}
+        />
         <p className="flex items-center gap-2 text-xs text-muted-foreground sm:col-span-2">
           <Lock className="h-3.5 w-3.5" />
           Your automation will be locked to <strong>{domain || "your domain"}</strong>.
@@ -277,7 +315,8 @@ function Checkout() {
     ) : step === 3 ? (
       <div className="grid gap-4 sm:grid-cols-2">
         {(["monthly", "yearly"] as const).map((p) => {
-          const perMonth = p === "yearly" ? Math.round(monthlyBase * (1 - discountPct / 100)) : monthlyBase;
+          const perMonth =
+            p === "yearly" ? Math.round(monthlyBase * (1 - discountPct / 100)) : monthlyBase;
           return (
             <motion.button
               type="button"
@@ -310,8 +349,8 @@ function Checkout() {
         <div className="rounded-3xl bg-secondary p-5">
           <p className="font-extrabold">Transfer instructions</p>
           <p className="mt-2 text-sm leading-6 text-secondary-foreground">
-            Send the exact order total to the AntheticPlus Studios business account, add your company name as the
-            transfer note, then submit the reference below for verification.
+            Send the exact order total to the AntheticPlus Studios business account, add your
+            company name as the transfer note, then submit the reference below for verification.
           </p>
           <p className="mt-3 text-2xl font-extrabold">{money(total)} USD</p>
         </div>
@@ -337,7 +376,12 @@ function Checkout() {
             onChange={(v) => set("transaction", v)}
             required={touched}
           />
-          <Field label="Sender name" value={form.sender} onChange={(v) => set("sender", v)} required={touched} />
+          <Field
+            label="Sender name"
+            value={form.sender}
+            onChange={(v) => set("sender", v)}
+            required={touched}
+          />
         </div>
       </div>
     );
@@ -385,9 +429,12 @@ function Checkout() {
               <StepSlide stepKey={step} direction={direction}>
                 <h2 className="mb-6 text-xl font-extrabold">
                   {
-                    ["Company profile", "Business context & AI instructions", "Billing plan", "Payment details"][
-                      step - 1
-                    ]
+                    [
+                      "Company profile",
+                      "Business context & AI instructions",
+                      "Billing plan",
+                      "Payment details",
+                    ][step - 1]
                   }
                 </h2>
                 {fields}
@@ -456,12 +503,22 @@ function Checkout() {
             <p className="mt-1 text-xs text-muted-foreground capitalize">{plan} billing</p>
 
             <div className="mt-5 space-y-2.5 text-sm">
-              <Row label={plan === "yearly" ? `${money(monthly)} × 12 months` : "Monthly subscription"} value={money(subtotal)} />
-              {promoPct ? <Row label={`Promo (${promoPct}% off)`} value={`− ${money(saved)}`} accent /> : null}
+              <Row
+                label={plan === "yearly" ? `${money(monthly)} × 12 months` : "Monthly subscription"}
+                value={money(subtotal)}
+              />
+              {promoPct ? (
+                <Row label={`Promo (${promoPct}% off)`} value={`− ${money(saved)}`} accent />
+              ) : null}
               <div className="my-3 h-px bg-border" />
               <div className="flex items-baseline justify-between">
                 <span className="font-bold">Total due now</span>
-                <motion.span key={total} initial={{ scale: 0.9, opacity: 0.4 }} animate={{ scale: 1, opacity: 1 }} className="text-2xl font-extrabold">
+                <motion.span
+                  key={total}
+                  initial={{ scale: 0.9, opacity: 0.4 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-2xl font-extrabold"
+                >
                   {money(total)}
                 </motion.span>
               </div>
@@ -476,7 +533,11 @@ function Checkout() {
                   placeholder="CODE"
                   className="h-10 rounded-xl"
                 />
-                <Button variant="outline" onClick={applyPromo} disabled={promoBusy || !promo.trim()}>
+                <Button
+                  variant="outline"
+                  onClick={applyPromo}
+                  disabled={promoBusy || !promo.trim()}
+                >
                   {promoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
                 </Button>
               </div>

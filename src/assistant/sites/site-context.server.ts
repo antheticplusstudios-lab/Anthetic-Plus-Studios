@@ -13,7 +13,9 @@ export function hostOf(raw: string | null | undefined): string {
   const s = (raw ?? "").trim();
   if (!s) return "";
   try {
-    return new URL(s.includes("://") ? s : `https://${s}`).hostname.replace(/^www\./, "").toLowerCase();
+    return new URL(s.includes("://") ? s : `https://${s}`).hostname
+      .replace(/^www\./, "")
+      .toLowerCase();
   } catch {
     return "";
   }
@@ -24,14 +26,20 @@ function matches(host: string, domain: string) {
   return !!host && !!root && (host === root || host.endsWith(`.${root}`));
 }
 
-export type SiteResolution = { ok: true; site: ResolvedSite } | { ok: false; code: "invalid_site" | "origin_mismatch" | "disabled"; message: string };
+export type SiteResolution =
+  | { ok: true; site: ResolvedSite }
+  | { ok: false; code: "invalid_site" | "origin_mismatch" | "disabled"; message: string };
 
 /**
  * @param claimed site id from the embed (untrusted)
  * @param origin  request Origin header (untrusted, used only for matching)
  * @param appHost host of this application (first-party)
  */
-export async function resolveSiteForOrigin(claimed: unknown, origin: string | null, appHost: string): Promise<SiteResolution> {
+export async function resolveSiteForOrigin(
+  claimed: unknown,
+  origin: string | null,
+  appHost: string,
+): Promise<SiteResolution> {
   if (!isSiteId(claimed)) return { ok: false, code: "invalid_site", message: "Unknown site." };
   const def = SITES[claimed];
   const config = await loadSiteConfig(claimed);
@@ -41,7 +49,12 @@ export async function resolveSiteForOrigin(claimed: unknown, origin: string | nu
   const allowed =
     (def.firstParty && firstPartyOrigin) ||
     [...def.domains, ...config.extraDomains].some((d) => matches(host, d));
-  if (!allowed) return { ok: false, code: "origin_mismatch", message: "This assistant isn't available on this website." };
+  if (!allowed)
+    return {
+      ok: false,
+      code: "origin_mismatch",
+      message: "This assistant isn't available on this website.",
+    };
   return { ok: true, site: { id: claimed, config } };
 }
 

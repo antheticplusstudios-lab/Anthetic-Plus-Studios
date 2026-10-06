@@ -11,9 +11,12 @@ const CAMERA_DIST = 2;
 const FIT_MARGIN = 1.18;
 const BASE_SPAN = SPHERE_R * 2 * FIT_MARGIN;
 const CAMERA_TILT = 0.22;
-const HDRI_URL = "https://cdn.jsdelivr.net/gh/pmndrs/drei-assets@master/hdri/empty_warehouse_01_1k.hdr";
-const HEIGHT_MAP_URL = "https://cdn.jsdelivr.net/gh/mattrossman/magic-marble-tutorial@master/public/noise.jpg";
-const DISPLACEMENT_MAP_URL = "https://cdn.jsdelivr.net/gh/mattrossman/magic-marble-tutorial@master/public/noise3D.jpg";
+const HDRI_URL =
+  "https://cdn.jsdelivr.net/gh/pmndrs/drei-assets@master/hdri/empty_warehouse_01_1k.hdr";
+const HEIGHT_MAP_URL =
+  "https://cdn.jsdelivr.net/gh/mattrossman/magic-marble-tutorial@master/public/noise.jpg";
+const DISPLACEMENT_MAP_URL =
+  "https://cdn.jsdelivr.net/gh/mattrossman/magic-marble-tutorial@master/public/noise3D.jpg";
 const PRESS_SCALE = 0.95;
 const PRESS_RATE = 14;
 const STEP_RATE = 2;
@@ -75,24 +78,37 @@ function settingsFor(cfg: Config) {
 const textureCache = new Map<string, THREE.Texture>();
 const texturePending = new Map<string, Promise<THREE.Texture | null>>();
 
-function loadTexture(url: string, loader: THREE.Loader = new THREE.TextureLoader()) {
+type TextureLoadStarter = (onLoad: (texture: THREE.Texture) => void, onError: () => void) => void;
+
+function loadTexture(
+  url: string,
+  startLoad: TextureLoadStarter = (onLoad, onError) => {
+    new THREE.TextureLoader().load(url, onLoad, undefined, onError);
+  },
+) {
   const cached = textureCache.get(url);
   if (cached) return Promise.resolve(cached);
   const pending = texturePending.get(url);
   if (pending) return pending;
   const request = new Promise<THREE.Texture | null>((resolve) => {
-    loader.setCrossOrigin?.("anonymous");
-    loader.load(url, (texture: any) => {
-      textureCache.set(url, texture);
-      resolve(texture);
-    }, undefined, () => resolve(null));
+    startLoad(
+      (texture) => {
+        textureCache.set(url, texture);
+        resolve(texture);
+      },
+      () => resolve(null),
+    );
   });
   texturePending.set(url, request);
   return request;
 }
 
 function patchMarbleShader(
-  shader: { vertexShader: string; fragmentShader: string; uniforms: any },
+  shader: {
+    vertexShader: string;
+    fragmentShader: string;
+    uniforms: Record<string, THREE.IUniform>;
+  },
   uniforms: Record<string, THREE.IUniform>,
 ) {
   shader.uniforms = { ...shader.uniforms, ...uniforms };
@@ -146,12 +162,15 @@ function patchMarbleShader(
       }
     void main() {`,
   );
-  shader.fragmentShader = shader.fragmentShader.replace(/vec4 diffuseColor.*;/, `
+  shader.fragmentShader = shader.fragmentShader.replace(
+    /vec4 diffuseColor.*;/,
+    `
     vec3 rayDir = normalize(v_dir);
     vec3 rayOrigin = v_pos;
     vec3 rgb = marchMarble(rayOrigin, rayDir);
     vec4 diffuseColor = vec4(rgb, 1.);
-  `);
+  `,
+  );
 }
 
 class MagicMarbleScene {
@@ -189,7 +208,18 @@ class MagicMarbleScene {
   private raycaster = new THREE.Raycaster();
   private pointer = new THREE.Vector2();
   private targetColor = new THREE.Color();
-  private uniforms: Record<"time" | "colorA" | "colorB" | "heightMap" | "displacementMap" | "iterations" | "depth" | "smoothing" | "displacement", THREE.IUniform> = {
+  private uniforms: Record<
+    | "time"
+    | "colorA"
+    | "colorB"
+    | "heightMap"
+    | "displacementMap"
+    | "iterations"
+    | "depth"
+    | "smoothing"
+    | "displacement",
+    THREE.IUniform
+  > = {
     time: { value: 0 },
     colorA: { value: new THREE.Color(0, 0, 0) },
     colorB: { value: new THREE.Color(1, 0, 0) },
@@ -220,7 +250,7 @@ class MagicMarbleScene {
 
     this.geometry = new THREE.SphereGeometry(SPHERE_R, SPHERE_SEGMENTS[0], SPHERE_SEGMENTS[1]);
     this.material = new THREE.MeshStandardMaterial({ roughness: 0.1 });
-    this.material.onBeforeCompile = (shader) => patchMarbleShader(shader as any, this.uniforms);
+    this.material.onBeforeCompile = (shader) => patchMarbleShader(shader, this.uniforms);
     this.material.customProgramCacheKey = () => "antheticplus-magic-marble";
 
     const mesh = new THREE.Mesh(this.geometry, this.material);
@@ -239,7 +269,9 @@ class MagicMarbleScene {
     const [heightMap, displacementMap, hdri] = await Promise.all([
       loadTexture(HEIGHT_MAP_URL),
       loadTexture(DISPLACEMENT_MAP_URL),
-      loadTexture(HDRI_URL, new RGBELoader()),
+      loadTexture(HDRI_URL, (onLoad, onError) => {
+        new RGBELoader().load(HDRI_URL, onLoad, undefined, onError);
+      }),
     ]);
     if (this.disposed) return;
     if (heightMap) {
@@ -261,7 +293,10 @@ class MagicMarbleScene {
   }
 
   private applyPalette(immediate: boolean) {
-    const palette = Array.isArray(this.cfg.palette) && this.cfg.palette.length ? this.cfg.palette : DEFAULTS.palette;
+    const palette =
+      Array.isArray(this.cfg.palette) && this.cfg.palette.length
+        ? this.cfg.palette
+        : DEFAULTS.palette;
     const next = palette[this.step % palette.length] || DEFAULTS.palette[0];
     try {
       this.targetColor.set(next as string);
@@ -279,7 +314,10 @@ class MagicMarbleScene {
   private hitsMarble(e: PointerEvent) {
     const rect = this.renderer.domElement.getBoundingClientRect();
     if (!rect.width || !rect.height) return false;
-    this.pointer.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+    this.pointer.set(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1,
+    );
     this.raycaster.setFromCamera(this.pointer, this.camera);
     return this.raycaster.intersectObject(this.group, true).length > 0;
   }
@@ -404,7 +442,11 @@ class MagicMarbleScene {
 
     const pitch = CAMERA_TILT + this.elevation;
     const ringR = Math.cos(pitch) * CAMERA_DIST;
-    this.camera.position.set(Math.sin(this.azimuth) * ringR, Math.sin(pitch) * CAMERA_DIST, Math.cos(this.azimuth) * ringR);
+    this.camera.position.set(
+      Math.sin(this.azimuth) * ringR,
+      Math.sin(pitch) * CAMERA_DIST,
+      Math.cos(this.azimuth) * ringR,
+    );
     this.camera.lookAt(0, 0, 0);
     this.renderer.render(this.scene, this.camera);
   }
@@ -460,8 +502,21 @@ export default function MagicMarble({
 }: MagicMarbleProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<MagicMarbleScene | null>(null);
-  const cfgRef = useRef<Config>(null as any);
-  cfgRef.current = { palette, core, depth, grain, softness, detail, polish, speed, spin, direction, drag, sizePercent };
+  const cfgRef = useRef<Config | null>(null);
+  cfgRef.current = {
+    palette,
+    core,
+    depth,
+    grain,
+    softness,
+    detail,
+    polish,
+    speed,
+    spin,
+    direction,
+    drag,
+    sizePercent,
+  };
 
   // When WebGL/Three.js cannot start (no WebGL, blocked GPU, lost context) we render a pure CSS/DOM orb instead
   // of leaving the voice-assistant area blank.
@@ -487,12 +542,21 @@ export default function MagicMarble({
       setFailed(true);
     }
     try {
-      scene = new MagicMarbleScene(container, cfgRef.current);
+      const initialConfig = cfgRef.current;
+      if (!initialConfig) return;
+      scene = new MagicMarbleScene(container, initialConfig);
       scene.setSize(container.clientWidth, container.clientHeight);
       scene.start();
     } catch (err) {
-      console.warn("MagicMarble: WebGL unavailable, using CSS fallback", err instanceof Error ? err.message : err);
-      try { scene?.dispose(); } catch { /* partially constructed scene */ }
+      console.warn(
+        "MagicMarble: WebGL unavailable, using CSS fallback",
+        err instanceof Error ? err.message : err,
+      );
+      try {
+        scene?.dispose();
+      } catch {
+        /* partially constructed scene */
+      }
       scene = null;
       setFailed(true);
       return;
@@ -506,10 +570,27 @@ export default function MagicMarble({
   }, []);
 
   useEffect(() => {
-    sceneRef.current?.updateConfig(cfgRef.current);
-  }, [palette, core, depth, grain, softness, detail, polish, speed, spin, direction, drag, sizePercent]);
+    const config = cfgRef.current;
+    if (config) sceneRef.current?.updateConfig(config);
+  }, [
+    palette,
+    core,
+    depth,
+    grain,
+    softness,
+    detail,
+    polish,
+    speed,
+    spin,
+    direction,
+    drag,
+    sizePercent,
+  ]);
 
-  const colors = (Array.isArray(palette) && palette.length ? palette : DEFAULTS.palette).slice(0, 5);
+  const colors = (Array.isArray(palette) && palette.length ? palette : DEFAULTS.palette).slice(
+    0,
+    5,
+  );
   const c0 = colors[0] ?? "#5252E0";
   const c1 = colors[1] ?? c0;
   const duration = `${Math.max(3, 24 / Math.max(1, speed))}s`;
@@ -519,7 +600,15 @@ export default function MagicMarble({
       ref={containerRef}
       role="img"
       aria-label="Animated glass marble voice assistant"
-      style={{ position: "relative", width: "100%", height: "100%", minWidth: 120, minHeight: 120, overflow: "hidden", ...style }}
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        minWidth: 120,
+        minHeight: 120,
+        overflow: "hidden",
+        ...style,
+      }}
     >
       {failed && (
         <>
@@ -531,7 +620,9 @@ export default function MagicMarble({
           <div
             className="mm-orb"
             style={{
-              position: "absolute", inset: "6%", borderRadius: "9999px",
+              position: "absolute",
+              inset: "6%",
+              borderRadius: "9999px",
               background: `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 22%), radial-gradient(circle at 50% 50%, ${c0} 0%, ${c1} 55%, #000 100%)`,
               boxShadow: `inset 0 0 28px rgba(255,255,255,0.25), 0 0 24px ${c0}66`,
               transition: "background 400ms ease, box-shadow 400ms ease",
@@ -542,7 +633,11 @@ export default function MagicMarble({
             <div
               className="mm-orb"
               style={{
-                position: "absolute", inset: "-20%", borderRadius: "9999px", opacity: 0.55, mixBlendMode: "screen",
+                position: "absolute",
+                inset: "-20%",
+                borderRadius: "9999px",
+                opacity: 0.55,
+                mixBlendMode: "screen",
                 background: `conic-gradient(from 0deg, transparent 0deg, ${c1} 90deg, transparent 180deg, ${c0} 270deg, transparent 360deg)`,
                 animation: `mm-spin ${duration} linear infinite`,
               }}

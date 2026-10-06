@@ -1,7 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { AppRole, Profile } from "@/lib/portal";
-import { getMyProfile, getMyAutomations, getMyOrders, getMyAccountContext } from "@/lib/client-platform.functions";
+import {
+  getMyProfile,
+  getMyAutomations,
+  getMyOrders,
+  getMyAccountContext,
+} from "@/lib/client-platform.functions";
 
 export function useCurrentUser() {
   return useQuery({

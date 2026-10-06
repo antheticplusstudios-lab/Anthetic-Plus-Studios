@@ -12,7 +12,10 @@ export const Route = createFileRoute("/_authenticated/dashboard/profile")({
   head: () => ({
     meta: [
       { title: "Profile Settings — AntheticPlus Studios" },
-      { name: "description", content: "Update your AntheticPlus company profile and target domain." },
+      {
+        name: "description",
+        content: "Update your AntheticPlus company profile and target domain.",
+      },
       { property: "og:title", content: "AntheticPlus Profile Settings" },
       { property: "og:description", content: "Manage company details used by your automations." },
       { property: "og:type", content: "website" },
@@ -33,7 +36,12 @@ function Page() {
   const { data: user } = useCurrentUser();
   const { data: profile } = useProfile();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ company_name: "", company_email: "", website_url: "", category: "" });
+  const [form, setForm] = useState({
+    company_name: "",
+    company_email: "",
+    website_url: "",
+    category: "",
+  });
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -57,7 +65,16 @@ function Page() {
     setBusy(true);
     setMessage("");
     try {
-      await updateMyProfile({ data: { full_name: profile?.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "Customer", ...form } });
+      await updateMyProfile({
+        data: {
+          full_name:
+            profile?.full_name ||
+            user.user_metadata?.full_name ||
+            user.email?.split("@")[0] ||
+            "Customer",
+          ...form,
+        },
+      });
     } catch (error) {
       setBusy(false);
       setMessage(error instanceof Error ? error.message : "Could not save profile.");
@@ -72,7 +89,8 @@ function Page() {
     <div className="page-enter">
       <h1 className="text-3xl font-extrabold">Profile Settings</h1>
       <p className="mt-2 text-muted-foreground">
-        Your target domain locks every automation you buy — the widget only runs on this exact website.
+        Your target domain locks every automation you buy — the widget only runs on this exact
+        website.
       </p>
       <section className="mt-8 max-w-2xl rounded-3xl border border-border bg-card p-6 shadow-sm">
         <div className="grid gap-5 sm:grid-cols-2">
@@ -100,7 +118,9 @@ function Page() {
             </span>
           )}
         </div>
-        {!complete && <p className="mt-3 text-sm text-muted-foreground">All four fields are required.</p>}
+        {!complete && (
+          <p className="mt-3 text-sm text-muted-foreground">All four fields are required.</p>
+        )}
         {message && <p className="mt-3 text-sm text-muted-foreground">{message}</p>}
       </section>
     </div>

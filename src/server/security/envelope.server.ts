@@ -4,7 +4,8 @@ function masterKey(): Buffer {
   const raw = process.env.ANTHETICPLUS_DB3_MASTER_KEY;
   if (!raw) throw new Error("Missing ANTHETICPLUS_DB3_MASTER_KEY");
   const key = Buffer.from(raw, "base64");
-  if (key.length !== 32) throw new Error("ANTHETICPLUS_DB3_MASTER_KEY must be 32 bytes encoded as base64");
+  if (key.length !== 32)
+    throw new Error("ANTHETICPLUS_DB3_MASTER_KEY must be 32 bytes encoded as base64");
   return key;
 }
 

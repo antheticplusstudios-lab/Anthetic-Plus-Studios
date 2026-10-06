@@ -24,14 +24,64 @@ export function isSiteId(v: unknown): v is SiteId {
 }
 
 /** Tools a site can be allowed to use. Account/action tools only ever work on the first-party site. */
-export const SITE_TOOL_CATALOG: Array<{ name: string; label: string; firstPartyOnly: boolean; description: string }> = [
-  { name: "search_site_knowledge", label: "Site knowledge search", firstPartyOnly: false, description: "Searches this site's approved knowledge only." },
-  { name: "get_pricing", label: "AntheticPlus pricing", firstPartyOnly: true, description: "Live AntheticPlus plan prices." },
-  { name: "get_account", label: "Account details", firstPartyOnly: true, description: "Signed-in user's own account." },
-  { name: "get_subscriptions", label: "Subscriptions", firstPartyOnly: true, description: "Signed-in user's own subscriptions." },
-  { name: "get_orders", label: "Orders", firstPartyOnly: true, description: "Signed-in user's own orders." },
-  { name: "get_automation_status", label: "Automation status", firstPartyOnly: true, description: "Signed-in user's own automations." },
-  { name: "retrieve_knowledge", label: "Automation knowledge", firstPartyOnly: true, description: "Knowledge of the user's own automations." },
-  { name: "send_email", label: "Send email", firstPartyOnly: true, description: "Sends email after explicit confirmation." },
-  { name: "platform_overview", label: "Platform overview (admin)", firstPartyOnly: true, description: "Admin-only platform summary." },
+export const SITE_TOOL_CATALOG: Array<{
+  name: string;
+  label: string;
+  firstPartyOnly: boolean;
+  description: string;
+}> = [
+  {
+    name: "search_site_knowledge",
+    label: "Site knowledge search",
+    firstPartyOnly: false,
+    description: "Searches this site's approved knowledge only.",
+  },
+  {
+    name: "get_pricing",
+    label: "AntheticPlus pricing",
+    firstPartyOnly: true,
+    description: "Live AntheticPlus plan prices.",
+  },
+  {
+    name: "get_account",
+    label: "Account details",
+    firstPartyOnly: true,
+    description: "Signed-in user's own account.",
+  },
+  {
+    name: "get_subscriptions",
+    label: "Subscriptions",
+    firstPartyOnly: true,
+    description: "Signed-in user's own subscriptions.",
+  },
+  {
+    name: "get_orders",
+    label: "Orders",
+    firstPartyOnly: true,
+    description: "Signed-in user's own orders.",
+  },
+  {
+    name: "get_automation_status",
+    label: "Automation status",
+    firstPartyOnly: true,
+    description: "Signed-in user's own automations.",
+  },
+  {
+    name: "retrieve_knowledge",
+    label: "Automation knowledge",
+    firstPartyOnly: true,
+    description: "Knowledge of the user's own automations.",
+  },
+  {
+    name: "send_email",
+    label: "Send email",
+    firstPartyOnly: true,
+    description: "Sends email after explicit confirmation.",
+  },
+  {
+    name: "platform_overview",
+    label: "Platform overview (admin)",
+    firstPartyOnly: true,
+    description: "Admin-only platform summary.",
+  },
 ];

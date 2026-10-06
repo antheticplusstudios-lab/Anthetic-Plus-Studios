@@ -4,8 +4,23 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { adminRevokeStaffInvite } from "@/lib/admin-data.functions";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DangerButton, DataTable, Field, Loading, Panel, TextField, shortDate, timeAgo } from "@/components/admin-ui";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DangerButton,
+  DataTable,
+  Field,
+  Loading,
+  Panel,
+  TextField,
+  shortDate,
+  timeAgo,
+} from "@/components/admin-ui";
 import {
   useAllProfiles,
   useAuditLog,
@@ -16,12 +31,9 @@ import {
 } from "@/hooks/use-admin";
 import { useCurrentUser, useRole } from "@/hooks/use-portal";
 
-
 export const Route = createFileRoute("/_authenticated/admin/team")({
   component: TeamManagement,
 });
-
-type AnyRow = any;
 
 const roleDescriptions: Record<string, string> = {
   partner: "Full control-center access, cannot wipe data or create other partners.",
@@ -46,14 +58,19 @@ function TeamManagement() {
 
   if (rolesLoading || invitesLoading || profilesLoading || auditLoading) return <Loading />;
 
-  const profileByUserId = new Map(profiles.map((p: AnyRow) => [p.user_id, p]));
+  const profileByUserId = new Map(profiles.map((p) => [p.user_id, p]));
 
   const cancelInvite = async (id: string) => {
-    try { await adminRevokeStaffInvite({ data: { id } }); toast.success("Invite revoked"); void queryClient.invalidateQueries({ queryKey: ["admin", "invites"] }); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "Could not revoke invite."); }
+    try {
+      await adminRevokeStaffInvite({ data: { id } });
+      toast.success("Invite revoked");
+      void queryClient.invalidateQueries({ queryKey: ["admin", "invites"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not revoke invite.");
+    }
   };
 
-  const peopleRows = roles.map((r: AnyRow) => {
+  const peopleRows = roles.map((r) => {
     const profile = profileByUserId.get(r.user_id);
     const isSelf = r.user_id === currentUser?.id;
     const isOwner = r.role === "owner";
@@ -71,7 +88,12 @@ function TeamManagement() {
         <DangerButton
           key="revoke"
           size="sm"
-          onClick={() => revokeStaff.mutate({ userId: r.user_id, role: r.role })}
+          onClick={() => {
+            const roleToRevoke = (
+              ["owner", "partner", "admin", "verifier", "client"] as const
+            ).find((candidate) => candidate === r.role);
+            if (roleToRevoke) revokeStaff.mutate({ userId: r.user_id, role: roleToRevoke });
+          }}
         >
           Revoke
         </DangerButton>
@@ -79,10 +101,13 @@ function TeamManagement() {
     ];
   });
 
-  const filteredAudit = auditLog.filter((a: AnyRow) => {
+  const filteredAudit = auditLog.filter((a) => {
     if (!filter.trim()) return true;
     const needle = filter.toLowerCase();
-    return a.action?.toLowerCase().includes(needle) || a.actor_email?.toLowerCase().includes(needle);
+    return (
+      a.action?.toLowerCase().includes(needle) ||
+      (a.actor_email ?? "").toLowerCase().includes(needle)
+    );
   });
 
   return (
@@ -98,7 +123,11 @@ function TeamManagement() {
         <Panel title="Invite staff" description="Partners can only be created by the Owner">
           <div className="grid gap-4">
             <Field label="Email">
-              <TextField value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" />
+              <TextField
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@company.com"
+              />
             </Field>
             <Field label="Role" hint={roleDescriptions[role]}>
               <Select value={role} onValueChange={(v) => setRole(v as typeof role)}>
@@ -118,7 +147,10 @@ function TeamManagement() {
                   toast.error("Enter an email address");
                   return;
                 }
-                inviteStaff.mutate({ email: email.trim(), role }, { onSuccess: () => setEmail("") });
+                inviteStaff.mutate(
+                  { email: email.trim(), role },
+                  { onSuccess: () => setEmail("") },
+                );
               }}
               disabled={inviteStaff.isPending}
             >
@@ -127,16 +159,23 @@ function TeamManagement() {
           </div>
 
           <div className="mt-6">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Pending invites</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              Pending invites
+            </p>
             <DataTable
               head={["Email", "Role", "Created", ""]}
-              rows={invites.map((i: AnyRow) => [
+              rows={invites.map((i) => [
                 i.email,
                 <span className="capitalize" key="r">
                   {i.role}
                 </span>,
                 shortDate(i.created_at),
-                <Button key="cancel" size="sm" variant="outline" onClick={() => void cancelInvite(i.id)}>
+                <Button
+                  key="cancel"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void cancelInvite(i.id)}
+                >
                   Cancel
                 </Button>,
               ])}
@@ -146,10 +185,13 @@ function TeamManagement() {
         </Panel>
 
         <Panel title="People with access">
-          <DataTable head={["Role", "Company", "Email", ""]} rows={peopleRows} empty="No staff roles assigned." />
+          <DataTable
+            head={["Role", "Company", "Email", ""]}
+            rows={peopleRows}
+            empty="No staff roles assigned."
+          />
         </Panel>
       </div>
-
 
       <Panel
         title="Audit trail (immutable)"
@@ -165,7 +207,7 @@ function TeamManagement() {
       >
         <DataTable
           head={["When", "Action", "Actor", "Target", "Details"]}
-          rows={filteredAudit.map((a: AnyRow) => [
+          rows={filteredAudit.map((a) => [
             timeAgo(a.created_at),
             a.action,
             a.actor_email,

@@ -13,7 +13,9 @@ export function Brand({ compact = false }: { compact?: boolean }) {
       />
       {!compact && (
         <span className="min-w-0 leading-none">
-          <span className="block truncate text-[15px] font-extrabold tracking-tight text-foreground">AntheticPlus</span>
+          <span className="block truncate text-[15px] font-extrabold tracking-tight text-foreground">
+            AntheticPlus
+          </span>
           <span className="mt-1 block truncate text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
             Studios
           </span>

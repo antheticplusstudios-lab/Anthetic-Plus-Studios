@@ -68,10 +68,15 @@ export function VoiceOrb({
   const active = state === "listening" || state === "processing" || state === "speaking";
 
   const icon =
-    state === "processing" ? <Loader2 className="h-5 w-5 animate-spin" /> :
-    muted ? <MicOff className="h-5 w-5" /> :
-    active ? <Square className="h-4 w-4" /> :
-    <Mic className="h-5 w-5" />;
+    state === "processing" ? (
+      <Loader2 className="h-5 w-5 animate-spin" />
+    ) : muted ? (
+      <MicOff className="h-5 w-5" />
+    ) : active ? (
+      <Square className="h-4 w-4" />
+    ) : (
+      <Mic className="h-5 w-5" />
+    );
 
   return (
     <div className="ap-orb-shell" data-state={state} data-expanded={expanded} data-muted={muted}>
@@ -96,16 +101,23 @@ export function VoiceOrb({
         <span className="ap-orb-ring" />
         <span className="ap-orb-core">
           <span className="ap-orb-wave" aria-hidden="true">
-            {Array.from({ length: 8 }, (_, i) => <i key={i} />)}
+            {Array.from({ length: 8 }, (_, i) => (
+              <i key={i} />
+            ))}
           </span>
           <span className="ap-orb-mic">{icon}</span>
         </span>
       </button>
       <div className="ap-orb-caption" role="status" aria-live="polite">
-        {state === "listening" ? <Mic className="h-3.5 w-3.5 text-primary" /> :
-          state === "processing" ? <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> :
-          state === "speaking" ? <Volume2 className="h-3.5 w-3.5 text-primary" /> :
-          <Sparkles className="h-3.5 w-3.5 text-primary" />}
+        {state === "listening" ? (
+          <Mic className="h-3.5 w-3.5 text-primary" />
+        ) : state === "processing" ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+        ) : state === "speaking" ? (
+          <Volume2 className="h-3.5 w-3.5 text-primary" />
+        ) : (
+          <Sparkles className="h-3.5 w-3.5 text-primary" />
+        )}
         <span>{muted ? "Microphone muted" : LABEL[state]}</span>
       </div>
     </div>

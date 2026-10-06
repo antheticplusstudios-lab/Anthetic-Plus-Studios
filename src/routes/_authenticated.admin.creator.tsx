@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Loading, Panel, StatusPill } from "@/components/admin-ui";
 import { useAllInstances, useProvisionAutomation } from "@/hooks/use-admin";
 import { hostFromUrl } from "@/lib/portal";
+import { adminListAutomations } from "@/lib/admin-data.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/creator")({
   component: AutomationCreator,
 });
-
-type AnyRow = any;
 
 const notReadyStatuses = ["pending_payment", "stopped", "revoked", "suspended"];
 
@@ -25,20 +24,31 @@ const blockedReasons: Record<string, string> = {
 function AutomationCreator() {
   const { data: instances = [], isLoading } = useAllInstances();
   const provision = useProvisionAutomation();
-  const [deployed, setDeployed] = useState<{ instanceId: string; clientId: string; snippet: string } | null>(null);
+  const [deployed, setDeployed] = useState<{
+    instanceId: string;
+    clientId: string;
+    snippet: string;
+  } | null>(null);
   const [copied, setCopied] = useState(false);
 
   if (isLoading) return <Loading />;
 
-  const readyToDeploy = instances.filter((i: AnyRow) => i.status === "paid" || i.status === "active");
-  const notReady = instances.filter((i: AnyRow) => notReadyStatuses.includes(i.status));
+  type AutomationSummary = Awaited<ReturnType<typeof adminListAutomations>>[number];
+  const readyToDeploy = instances.filter(
+    (i: AutomationSummary) => i.status === "paid" || i.status === "active",
+  );
+  const notReady = instances.filter((i: AutomationSummary) => notReadyStatuses.includes(i.status));
 
-  const handleDeploy = (instance: AnyRow) => {
+  const handleDeploy = (instance: AutomationSummary) => {
     provision.mutate(
       { automationId: instance.id },
       {
-        onSuccess: (result: any) => {
-          setDeployed({ instanceId: instance.id, clientId: result.clientId, snippet: result.snippet });
+        onSuccess: (result) => {
+          setDeployed({
+            instanceId: instance.id,
+            clientId: result.clientId,
+            snippet: `<script src="${window.location.origin}/widget.js" data-client-id="${result.clientId}" data-automation-id="${instance.id}" data-token="${result.scriptToken}" defer></script>`,
+          });
         },
       },
     );
@@ -51,8 +61,9 @@ function AutomationCreator() {
       <div>
         <h1 className="text-3xl font-extrabold tracking-tight">Automation Creator</h1>
         <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
-          Bind a client ID and a domain to the embed script in one click, flip the automation to Active and hand the
-          client the snippet. Provisioning requires the payment to be approved first — the server rejects otherwise.
+          Bind a client ID and a domain to the embed script in one click, flip the automation to
+          Active and hand the client the snippet. Provisioning requires the payment to be approved
+          first — the server rejects otherwise.
         </p>
       </div>
 
@@ -83,12 +94,17 @@ function AutomationCreator() {
         </Panel>
       )}
 
-      <Panel title="Ready to deploy" description="Paid or active instances awaiting a locked domain">
+      <Panel
+        title="Ready to deploy"
+        description="Paid or active instances awaiting a locked domain"
+      >
         {readyToDeploy.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">Nothing to deploy right now.</p>
+          <p className="py-6 text-center text-sm text-muted-foreground">
+            Nothing to deploy right now.
+          </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {readyToDeploy.map((instance: AnyRow) => (
+            {readyToDeploy.map((instance: AutomationSummary) => (
               <div key={instance.id} className="rounded-2xl border border-border bg-muted/30 p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -115,10 +131,12 @@ function AutomationCreator() {
 
       <Panel title="Not ready yet" description="Blocked by payment, status or account state">
         {notReady.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">Nothing blocked right now.</p>
+          <p className="py-6 text-center text-sm text-muted-foreground">
+            Nothing blocked right now.
+          </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {notReady.map((instance: AnyRow) => (
+            {notReady.map((instance: AutomationSummary) => (
               <div key={instance.id} className="rounded-2xl border border-border bg-muted/20 p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -127,7 +145,9 @@ function AutomationCreator() {
                   </div>
                   <StatusPill status={instance.status} />
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">{blockedReasons[instance.status] ?? "Blocked."}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {blockedReasons[instance.status] ?? "Blocked."}
+                </p>
               </div>
             ))}
           </div>
@@ -138,8 +158,8 @@ function AutomationCreator() {
         <p className="flex items-start gap-2 text-sm text-muted-foreground">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
           The widget only answers requests from the recorded domain. Example:{" "}
-          {readyToDeploy[0] ? hostFromUrl(readyToDeploy[0].website_domain) : "example.com"} — locking a mismatched
-          domain will silently disable the widget for visitors.
+          {readyToDeploy[0] ? hostFromUrl(readyToDeploy[0].website_domain) : "example.com"} —
+          locking a mismatched domain will silently disable the widget for visitors.
         </p>
         <p className="mt-3 text-xs text-muted-foreground">
           Need to review a pending payment first? Head to the{" "}

@@ -7,7 +7,11 @@ import { Stethoscope } from "lucide-react";
 import { AdminPage, Panel, StatusPill, timeAgo } from "@/components/admin-ui";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { diagnoseConversation, adminListDiagnosticConversations, adminListDiagnostics } from "@/lib/diagnostics.functions";
+import {
+  diagnoseConversation,
+  adminListDiagnosticConversations,
+  adminListDiagnostics,
+} from "@/lib/diagnostics.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/diagnostics")({
   head: () => ({ meta: [{ title: "Conversation Diagnostics — AntheticPlus" }] }),
@@ -44,7 +48,10 @@ function DiagnosticsPage() {
   }
 
   return (
-    <AdminPage title="Conversation Diagnostics" subtitle="Find out why an AI conversation failed and how to fix it.">
+    <AdminPage
+      title="Conversation Diagnostics"
+      subtitle="Find out why an AI conversation failed and how to fix it."
+    >
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Conversation" description="Pick a saved conversation or paste a transcript.">
           <div className="grid gap-3">
@@ -56,7 +63,8 @@ function DiagnosticsPage() {
               <option value="">Paste a transcript instead…</option>
               {(convs.data ?? []).map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.channel} · {c.status} · {c.customer_phone_or_id ?? "visitor"} · {timeAgo(c.created_at)}
+                  {c.channel} · {c.status} · {c.customer_phone_or_id ?? "visitor"} ·{" "}
+                  {timeAgo(c.created_at)}
                 </option>
               ))}
             </select>
@@ -68,7 +76,10 @@ function DiagnosticsPage() {
                 onChange={(e) => setTranscript(e.target.value)}
               />
             )}
-            <Button onClick={submit} disabled={busy || (!conversationId && transcript.trim().length < 20)}>
+            <Button
+              onClick={submit}
+              disabled={busy || (!conversationId && transcript.trim().length < 20)}
+            >
               <Stethoscope className="h-4 w-4" /> {busy ? "Analyzing…" : "Diagnose"}
             </Button>
           </div>
@@ -79,15 +90,21 @@ function DiagnosticsPage() {
               <StatusPill status={result.severity} />
               <div>
                 <h3 className="mb-1 font-bold">What went wrong</h3>
-                <p className="whitespace-pre-wrap text-muted-foreground">{result.what_went_wrong}</p>
+                <p className="whitespace-pre-wrap text-muted-foreground">
+                  {result.what_went_wrong}
+                </p>
               </div>
               <div>
                 <h3 className="mb-1 font-bold">Recommended fix</h3>
-                <p className="whitespace-pre-wrap text-muted-foreground">{result.recommended_fix}</p>
+                <p className="whitespace-pre-wrap text-muted-foreground">
+                  {result.recommended_fix}
+                </p>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Run a diagnosis to see the explanation here.</p>
+            <p className="text-sm text-muted-foreground">
+              Run a diagnosis to see the explanation here.
+            </p>
           )}
         </Panel>
       </div>
@@ -103,7 +120,9 @@ function DiagnosticsPage() {
               <p className="mt-3 whitespace-pre-wrap text-muted-foreground">{h.recommended_fix}</p>
             </details>
           ))}
-          {history.data?.length === 0 && <p className="text-sm text-muted-foreground">No diagnoses yet.</p>}
+          {history.data?.length === 0 && (
+            <p className="text-sm text-muted-foreground">No diagnoses yet.</p>
+          )}
         </div>
       </Panel>
     </AdminPage>

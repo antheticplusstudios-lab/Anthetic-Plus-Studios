@@ -9,7 +9,7 @@ export function widgetSource(apiBase: string, fallbackToken = "") {
 (function(){
   if (window.__antheticPlusWidget) return; window.__antheticPlusWidget = true;
   var GATEWAY = ${JSON.stringify(apiBase)};
-  var API = (GATEWAY ? GATEWAY.replace(/\/$/, "") + "/v1/widget" : "");
+  var API = (GATEWAY ? GATEWAY.replace(/\\/$/, "") + "/v1/widget" : "");
   if (!API) { console.error("[AntheticPlus] VITE_API_GATEWAY_URL is not configured"); return; }
   var me = document.currentScript || document.querySelector('script[data-token][src*="widget"]');
   var TOKEN = (me && me.getAttribute("data-token")) || ${JSON.stringify(fallbackToken)};
@@ -31,7 +31,7 @@ export function widgetSource(apiBase: string, fallbackToken = "") {
   var STATE_COLORS={idle:null,listening:"#00D9FF",thinking:"#8B5CF6",speaking:null,message:null,success:"#22C55E",handoff:"#F59E0B",error:"#EF4444",offline:"#6B7280"};
   var state="idle",open=false,busy=false,root,canvas,ctx,log,input,send,statusEl,frame;
 
-  function esc(v){return String(v).replace(/[&<>"']/g,function(c){return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]);});}
+  function esc(v){return String(v).replace(/[&<>"']/g,function(c){return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]);});}
   function hex(h){h=String(h||"").replace("#",""); if(h.length===3)h=h.split("").map(function(x){return x+x}).join(""); var n=parseInt(h,16); return [n>>16&255,n>>8&255,n&255];}
   function rgba(h,a){var c=hex(h);return "rgba("+c[0]+","+c[1]+","+c[2]+","+a+")";}
   function merge(a,b){var o={}; for(var k in a)o[k]=a[k]; for(var j in b||{})o[j]=b[j]; return o;}

@@ -55,11 +55,13 @@ export const assistantStatus = createServerFn({ method: "GET" })
 export const saveAssistantSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) =>
-    z.object({
-      keyValue: z.string().max(500).optional(),
-      model: z.string().max(160).optional(),
-      clearKey: z.boolean().optional(),
-    }).parse(input),
+    z
+      .object({
+        keyValue: z.string().max(500).optional(),
+        model: z.string().max(160).optional(),
+        clearKey: z.boolean().optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     assertOwner(context);
@@ -84,44 +86,95 @@ export const saveAssistantSettings = createServerFn({ method: "POST" })
         : await db3Admin.from("llm_api_keys").insert(payload);
       if (result.error) throw new Error(result.error.message);
     } else if (data.model?.trim() && current) {
-      const { error } = await db3Admin.from("llm_api_keys").update({ model: data.model.trim() }).eq("id", current.id);
+      const { error } = await db3Admin
+        .from("llm_api_keys")
+        .update({ model: data.model.trim() })
+        .eq("id", current.id);
       if (error) throw new Error(error.message);
     }
     await auditMutation(context, {
       action: "assistant.settings.updated",
       targetType: "llm_assistant",
-      after: { configured: !!(await assistantKey()), model: data.model?.trim() || current?.model || DEFAULT_MODEL },
+      after: {
+        configured: !!(await assistantKey()),
+        model: data.model?.trim() || current?.model || DEFAULT_MODEL,
+      },
     });
     const key = await assistantKey();
     return { configured: !!key, hint: key?.key_hint ?? "", model: key?.model ?? DEFAULT_MODEL };
   });
 
 async function snapshot() {
-  const [profiles, automations, orders, subscriptions, requests, conversations, plans] = await Promise.all([
-    db1Admin.from("profiles").select("id,client_id,company_name,website_url,category,profile_completed").limit(500),
-    db2Admin.from("client_automations").select("id,client_id,automation_type,name,domain_url,run_state,is_active,expires_at,requires_reinstallation,created_at").limit(500),
-    db2Admin.from("orders").select(ORDER_SELECT as "*").order("created_at", { ascending: false }).limit(100),
-    db2Admin.from("subscriptions").select("automation_id,status,plan_slug,expires_at,grace_period_end").limit(500),
-    db3Admin.from("llm_requests").select("automation_id,provider_key,model,status,tokens_in,tokens_out,created_at").order("created_at", { ascending: false }).limit(500),
-    db4Admin.from("conversations").select("automation_id,channel,status,created_at,last_message_at").order("created_at", { ascending: false }).limit(500),
-    db2Admin.from("pricing_plans").select("slug,monthly_price,yearly_price,active,listed").eq("active", true).limit(100),
-  ]);
-  for (const r of [profiles, automations, orders, subscriptions, requests, conversations, plans]) if ((r as any).error) throw new Error((r as any).error.message);
-  const subByAuto = new Map((subscriptions.data ?? []).map((x: any) => [x.automation_id, x]));
-  const price = new Map((plans.data ?? []).map((x: any) => [x.slug, Number(x.monthly_price)]));
+  const [profiles, automations, orders, subscriptions, requests, conversations, plans] =
+    await Promise.all([
+      db1Admin
+        .from("profiles")
+        .select("id,client_id,company_name,website_url,category,profile_completed")
+        .limit(500),
+      db2Admin
+        .from("client_automations")
+        .select(
+          "id,client_id,subscription_id,product_type,automation_type,name,domain_url,run_state,is_active,expires_at,requires_reinstallation,created_at",
+        )
+        .limit(500),
+      db2Admin
+        .from("orders")
+        .select(ORDER_SELECT as "*")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      db2Admin
+        .from("subscriptions")
+        .select("id,status,plan_code,current_period_end,grace_period_end")
+        .limit(500),
+      db3Admin
+        .from("llm_requests")
+        .select("automation_id,provider_key,model,status,tokens_in,tokens_out,created_at")
+        .order("created_at", { ascending: false })
+        .limit(500),
+      db4Admin
+        .from("conversations")
+        .select("automation_id,channel,status,created_at,last_message_at")
+        .order("created_at", { ascending: false })
+        .limit(500),
+      db2Admin
+        .from("pricing_plans")
+        .select("slug,monthly_price,yearly_price,active,listed")
+        .eq("active", true)
+        .limit(100),
+    ]);
+  for (const r of [profiles, automations, orders, subscriptions, requests, conversations, plans])
+    if (r.error) throw new Error(r.error.message);
+  const subById = new Map((subscriptions.data ?? []).map((x) => [x.id, x]));
+  const price = new Map((plans.data ?? []).map((x) => [x.slug, Number(x.monthly_price)]));
   const lines = [
     `TODAY: ${new Date().toISOString()}`,
     `Clients: ${(profiles.data ?? []).length}. Automations: ${(automations.data ?? []).length}. Conversations: ${(conversations.data ?? []).length}. Orders: ${(orders.data ?? []).length}.`,
-    `AI requests: ${(requests.data ?? []).length}. Estimated monthly run-rate from active automations: $${(automations.data ?? []).filter((a:any)=>a.run_state==='active'&&a.is_active).reduce((s:number,a:any)=>s+(price.get(a.automation_type)||0),0).toLocaleString('en-US')}.`,
+    `AI requests: ${(requests.data ?? []).length}. Estimated monthly run-rate from active automations: $${(
+      automations.data ?? []
+    )
+      .filter((a) => a.run_state === "active" && a.is_active)
+      .reduce((sum, a) => sum + (price.get(a.automation_type ?? a.product_type ?? "") || 0), 0)
+      .toLocaleString("en-US")}.`,
     "AUTOMATIONS:",
-    ...(automations.data ?? []).slice(0, 40).map((a: any) => {
-      const sub = subByAuto.get(a.id);
-      return `- ${a.id} | ${a.name || a.automation_type} | ${a.run_state} | ${a.domain_url} | ${sub?.status ?? "no_subscription"} | expires ${sub?.expires_at ?? a.expires_at ?? "—"} | reinstall ${!!a.requires_reinstallation}`;
+    ...(automations.data ?? []).slice(0, 40).map((a) => {
+      const sub = a.subscription_id ? subById.get(a.subscription_id) : undefined;
+      return `- ${a.id} | ${a.name || a.automation_type} | ${a.run_state} | ${a.domain_url} | ${sub?.status ?? "no_subscription"} | expires ${sub?.current_period_end ?? a.expires_at ?? "—"} | reinstall ${!!a.requires_reinstallation}`;
     }),
     "RECENT ORDERS:",
-    ...(orders.data ?? []).slice(0, 30).map((o: any) => `- ${o.order_id} | ${o.automation_type} | $${o.total_amount} | ${o.status} | ${o.created_at}`),
+    ...(orders.data ?? [])
+      .slice(0, 30)
+      .map(
+        (o) =>
+          `- ${o.order_number} | ${o.product_type ?? ""} | $${o.total_amount} | ${o.status} | ${o.created_at}`,
+      ),
     "RECENT AI FAILURES:",
-    ...(requests.data ?? []).filter((r:any)=>r.status !== "success").slice(0, 30).map((r:any) => `- ${r.provider_key}/${r.model} | ${r.status} | ${r.automation_id ?? "platform"} | ${r.created_at}`),
+    ...(requests.data ?? [])
+      .filter((r) => r.status !== "success")
+      .slice(0, 30)
+      .map(
+        (r) =>
+          `- ${r.provider_key}/${r.model} | ${r.status} | ${r.automation_id ?? "platform"} | ${r.created_at}`,
+      ),
   ];
   return lines.join("\n");
 }
@@ -132,21 +185,31 @@ export const askAssistant = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     assertAdmin(context);
     const key = await assistantKey();
-    if (!key) throw new Error("Add the Control Center Assistant key on the Infrastructure page first.");
+    if (!key)
+      throw new Error("Add the Control Center Assistant key on the Infrastructure page first.");
     const dataSnapshot = await snapshot();
-    const routed = await routeChat([
-      {
-        role: "system",
-        content: "You are the AntheticPlus Studios Control Center assistant. Use ONLY the supplied platform snapshot. Never invent names, amounts, dates or statuses. If the snapshot cannot answer the question, say so and identify the relevant Control Center area. Keep the response to 2-5 short sentences followed by up to 3 concise next actions.",
-      },
-      { role: "system", content: `PLATFORM SNAPSHOT\n${dataSnapshot}` },
-      { role: "user", content: data.question },
-    ], { maxTokens: 700, temperature: 0.2, clientId: context.tenant.clientId }, db3Admin);
+    const routed = await routeChat(
+      [
+        {
+          role: "system",
+          content:
+            "You are the AntheticPlus Studios Control Center assistant. Use ONLY the supplied platform snapshot. Never invent names, amounts, dates or statuses. If the snapshot cannot answer the question, say so and identify the relevant Control Center area. Keep the response to 2-5 short sentences followed by up to 3 concise next actions.",
+        },
+        { role: "system", content: `PLATFORM SNAPSHOT\n${dataSnapshot}` },
+        { role: "user", content: data.question },
+      ],
+      { maxTokens: 700, temperature: 0.2, clientId: context.tenant.clientId },
+      db3Admin,
+    );
     if (!routed) throw new Error("The configured AI providers are unavailable right now.");
     await auditMutation(context, {
       action: "assistant.query",
       targetType: "llm_assistant",
-      after: { provider: routed.provider, model: routed.model, question: data.question.slice(0, 200) },
+      after: {
+        provider: routed.provider,
+        model: routed.model,
+        question: data.question.slice(0, 200),
+      },
     });
     return { answer: routed.reply, model: routed.model, provider: routed.provider };
   });

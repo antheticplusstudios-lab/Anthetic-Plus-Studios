@@ -17,20 +17,55 @@ export type Profile = {
 };
 
 export type Instance = {
-  id: string; client_id: string; order_id: string | null; automation_type: string; automation_slug: string;
-  name: string; domain_url: string; website_domain: string; assigned_phone_number: string | null;
-  run_state: string; is_active: boolean; status: string; killed: boolean; requires_reinstallation: boolean;
-  widget_config: Record<string, unknown>; expires_at: string | null; renewal_at: string | null;
-  billing_plan: string; subscription_status: string | null; subscription_expires_at: string | null;
-  conversations_count: number; leads_count: number; business_context: string; system_prompt: string;
-  script_token: string; warning_sent: boolean; grace_days: number; created_at: string;
+  id: string;
+  client_id: string;
+  order_id: string | null;
+  automation_type: string;
+  automation_slug: string;
+  name: string;
+  domain_url: string;
+  website_domain: string;
+  assigned_phone_number: string | null;
+  run_state: string;
+  is_active: boolean;
+  status: string;
+  killed: boolean;
+  requires_reinstallation: boolean;
+  widget_config: Record<string, unknown>;
+  expires_at: string | null;
+  renewal_at: string | null;
+  billing_plan: string;
+  subscription_status: string | null;
+  subscription_expires_at: string | null;
+  conversations_count: number;
+  leads_count: number;
+  business_context: string;
+  system_prompt: string;
+  script_token: string;
+  warning_sent: boolean;
+  grace_days: number;
+  created_at: string;
 };
 
 export type Payment = {
-  id: string; order_id: string; automation_id: string | null; automation_slug: string; billing_plan: string;
-  amount: number; currency: string; payment_method: string; transaction_id: string; sender_name: string;
-  rejection_reason: string | null; payment_status: string; status: string; submitted_at: string; created_at: string; payment_id: string | null;
-  target_domain_url?: string; total_amount?: number;
+  id: string;
+  order_id: string;
+  automation_id: string | null;
+  automation_slug: string;
+  billing_plan: string;
+  amount: number;
+  currency: string;
+  payment_method: string;
+  transaction_id: string;
+  sender_name: string;
+  rejection_reason: string | null;
+  payment_status: string;
+  status: string;
+  submitted_at: string;
+  created_at: string;
+  payment_id: string | null;
+  target_domain_url?: string;
+  total_amount?: number;
 };
 
 export type AppRole = "client" | "verifier" | "partner" | "owner" | "admin";
@@ -48,8 +83,12 @@ export function daysRemaining(expiresAt: string | null) {
   return Math.max(0, Math.ceil(ms / 86_400_000));
 }
 
-export function isLive(instance: Instance) {
-  return (instance.status === "paid" || instance.status === "active") && !instance.killed && daysRemaining(instance.expires_at) > 0;
+export function isLive(instance: { status: string; killed: boolean; expires_at: string | null }) {
+  return (
+    (instance.status === "paid" || instance.status === "active") &&
+    !instance.killed &&
+    daysRemaining(instance.expires_at) > 0
+  );
 }
 
 export const statusLabels: Record<string, string> = {

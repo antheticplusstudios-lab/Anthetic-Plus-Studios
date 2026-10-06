@@ -8,7 +8,9 @@ import { decryptSecret } from "@/server/security/envelope.server";
 
 export class EmailNotConfiguredError extends Error {
   constructor() {
-    super("Email sending isn't set up yet. An owner can configure it under Admin → AI Voice Agent.");
+    super(
+      "Email sending isn't set up yet. An owner can configure it under Admin → AI Voice Agent.",
+    );
     this.name = "EmailNotConfiguredError";
   }
 }
@@ -57,10 +59,19 @@ async function readEmailConfig() {
 }
 
 function escapeHtml(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-export async function sendEmail(args: { to: string; subject: string; text: string; replyTo?: string | null }) {
+export async function sendEmail(args: {
+  to: string;
+  subject: string;
+  text: string;
+  replyTo?: string | null;
+}) {
   const cfg = await readEmailConfig();
   if (!cfg.enabled || cfg.provider !== "resend" || !cfg.key || !isValidEmail(cfg.fromEmail)) {
     throw new EmailNotConfiguredError();
@@ -72,7 +83,12 @@ export async function sendEmail(args: { to: string; subject: string; text: strin
     text: args.text,
     html: `<div style="font-family:Arial,sans-serif;line-height:1.6">${escapeHtml(args.text).replace(/\n/g, "<br>")}</div>`,
   };
-  const replyTo = args.replyTo && isValidEmail(args.replyTo) ? args.replyTo : isValidEmail(cfg.replyTo) ? cfg.replyTo : "";
+  const replyTo =
+    args.replyTo && isValidEmail(args.replyTo)
+      ? args.replyTo
+      : isValidEmail(cfg.replyTo)
+        ? cfg.replyTo
+        : "";
   if (replyTo) payload.reply_to = replyTo;
 
   let response: Response;
@@ -88,7 +104,11 @@ export async function sendEmail(args: { to: string; subject: string; text: strin
   }
   const json = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (!response.ok || !json.id) {
-    console.error("resend rejected email", response.status, String(json.message ?? "").slice(0, 200));
+    console.error(
+      "resend rejected email",
+      response.status,
+      String(json.message ?? "").slice(0, 200),
+    );
     throw new EmailDeliveryError(
       response.status === 422 || response.status === 400
         ? "The email provider rejected that message. Please check the recipient address."

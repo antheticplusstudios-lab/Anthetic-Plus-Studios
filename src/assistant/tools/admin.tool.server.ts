@@ -16,15 +16,22 @@ export const platformOverviewTool = defineTool({
       db1Admin.from("profiles").select("id", { count: "exact", head: true }),
       db2Admin.from("client_automations").select("run_state").limit(1000),
       db2Admin.from("orders").select("status").order("created_at", { ascending: false }).limit(200),
-      db3Admin.from("llm_requests").select("id", { count: "exact", head: true }).neq("status", "success"),
+      db3Admin
+        .from("llm_requests")
+        .select("id", { count: "exact", head: true })
+        .neq("status", "success"),
     ]);
     for (const r of [clients, automations, orders, aiFailures]) {
       if (r.error) {
         console.error("platform overview failed", r.error.message);
-        return { ok: false, code: "failed", message: "I couldn't load the platform overview right now." };
+        return {
+          ok: false,
+          code: "failed",
+          message: "I couldn't load the platform overview right now.",
+        };
       }
     }
-    const tally = (rows: any[] | null, key: string) =>
+    const tally = <Row extends Record<string, unknown>>(rows: Row[] | null, key: keyof Row) =>
       (rows ?? []).reduce<Record<string, number>>((acc, r) => {
         const k = String(r[key] ?? "unknown");
         acc[k] = (acc[k] ?? 0) + 1;

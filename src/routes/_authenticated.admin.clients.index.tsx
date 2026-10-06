@@ -13,9 +13,16 @@ export const Route = createFileRoute("/_authenticated/admin/clients/")({
   head: () => ({
     meta: [
       { title: "Users & Clients — AntheticPlus Control Center" },
-      { name: "description", content: "Unified directory of every AntheticPlus user, client, partner and staff member with moderation controls." },
+      {
+        name: "description",
+        content:
+          "Unified directory of every AntheticPlus user, client, partner and staff member with moderation controls.",
+      },
       { property: "og:title", content: "Users & Clients — AntheticPlus Control Center" },
-      { property: "og:description", content: "Unified directory of every AntheticPlus user with moderation controls." },
+      {
+        property: "og:description",
+        content: "Unified directory of every AntheticPlus user with moderation controls.",
+      },
     ],
   }),
   component: ClientsPage,
@@ -59,16 +66,27 @@ function ClientsPage() {
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const { data, isLoading, error } = useQuery({ queryKey: ["cc", "users"], queryFn: () => listUsers() });
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["cc", "users"],
+    queryFn: () => listUsers(),
+  });
 
   const users = useMemo(() => {
     const all = data?.users ?? [];
     const needle = q.trim().toLowerCase();
     return all.filter((u) => {
-      if (needle && !`${u.email} ${u.name} ${u.company} ${u.clientId} ${u.originDomain}`.toLowerCase().includes(needle)) return false;
-      if (tab === "clients") return u.roles.includes("client") || (!u.roles.length && u.automations > 0);
+      if (
+        needle &&
+        !`${u.email} ${u.name} ${u.company} ${u.clientId} ${u.originDomain}`
+          .toLowerCase()
+          .includes(needle)
+      )
+        return false;
+      if (tab === "clients")
+        return u.roles.includes("client") || (!u.roles.length && u.automations > 0);
       if (tab === "partners") return u.roles.includes("partner");
-      if (tab === "staff") return u.roles.some((r) => ["owner", "admin", "verifier", "support"].includes(r));
+      if (tab === "staff")
+        return u.roles.some((r) => ["owner", "admin", "verifier", "support"].includes(r));
       if (tab === "restricted") return u.status !== "active" || u.muted;
       return true;
     });
@@ -101,7 +119,11 @@ function ClientsPage() {
 
   const rows = users.map((u) => [
     <div key="who" className="min-w-0">
-      <Link to="/admin/clients/$id" params={{ id: u.id }} className="block truncate font-semibold hover:underline">
+      <Link
+        to="/admin/clients/$id"
+        params={{ id: u.id }}
+        className="block truncate font-semibold hover:underline"
+      >
         {u.email}
       </Link>
       <p className="truncate text-xs text-muted-foreground">{u.company || u.name || "—"}</p>
@@ -112,14 +134,22 @@ function ClientsPage() {
     <span key="roles" className="text-xs capitalize">
       {u.roles.length ? u.roles.join(", ") : "client"}
     </span>,
-    <span key="origin" className={cn("inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold", originTone(u.origin.kind))}>
+    <span
+      key="origin"
+      className={cn(
+        "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+        originTone(u.origin.kind),
+      )}
+    >
       {u.origin.label}
     </span>,
     <span
       key="status"
       className={cn(
         "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize",
-        u.status === "active" ? "border-success/40 text-success" : "border-destructive/50 text-destructive",
+        u.status === "active"
+          ? "border-success/40 text-success"
+          : "border-destructive/50 text-destructive",
       )}
     >
       {u.status}
@@ -146,33 +176,72 @@ function ClientsPage() {
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Users" value={all.length} />
-        <StatCard label="With automations" value={all.filter((u) => u.automations > 0).length} tone="good" />
-        <StatCard label="Restricted" value={all.filter((u) => u.status !== "active" || u.muted).length} tone="bad" />
-        <StatCard label="Partner-origin" value={all.filter((u) => u.origin.kind === "partner").length} />
+        <StatCard
+          label="With automations"
+          value={all.filter((u) => u.automations > 0).length}
+          tone="good"
+        />
+        <StatCard
+          label="Restricted"
+          value={all.filter((u) => u.status !== "active" || u.muted).length}
+          tone="bad"
+        />
+        <StatCard
+          label="Partner-origin"
+          value={all.filter((u) => u.origin.kind === "partner").length}
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         {TABS.map((t) => (
-          <Button key={t.key} size="sm" variant={tab === t.key ? "default" : "outline"} onClick={() => setTab(t.key)}>
+          <Button
+            key={t.key}
+            size="sm"
+            variant={tab === t.key ? "default" : "outline"}
+            onClick={() => setTab(t.key)}
+          >
             {t.label}
           </Button>
         ))}
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search email, company, client ID…" className="sm:max-w-xs" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search email, company, client ID…"
+          className="sm:max-w-xs"
+        />
       </div>
 
       <Panel title={`${users.length} user${users.length === 1 ? "" : "s"}`}>
         <DataTable
-          head={["User", "Client ID", "Roles", "Signup origin", "Status", "Automations", "Subscription", "Last activity", ""]}
+          head={[
+            "User",
+            "Client ID",
+            "Roles",
+            "Signup origin",
+            "Status",
+            "Automations",
+            "Subscription",
+            "Last activity",
+            "",
+          ]}
           rows={rows}
           empty="No users match this view."
         />
       </Panel>
 
       {target && (
-        <Panel title={`Moderate ${target.email}`} description="The reason is stored with the audit entry.">
+        <Panel
+          title={`Moderate ${target.email}`}
+          description="The reason is stored with the audit entry."
+        >
           <div className="flex flex-wrap gap-2">
             {ACTIONS.map((a) => (
-              <Button key={a.key} size="sm" variant={action === a.key ? "default" : "outline"} onClick={() => setAction(a.key)}>
+              <Button
+                key={a.key}
+                size="sm"
+                variant={action === a.key ? "default" : "outline"}
+                onClick={() => setAction(a.key)}
+              >
                 {a.label}
               </Button>
             ))}

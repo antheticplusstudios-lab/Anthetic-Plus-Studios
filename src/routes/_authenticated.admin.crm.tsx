@@ -16,12 +16,12 @@ const QUICK_TAGS = ["VIP", "Late-Payer", "Onboarding", "Renewal risk", "Enterpri
 
 type Profile = {
   id: string;
-  user_id?: string;
-  client_id?: string;
-  company_name: string;
-  company_email: string;
-  website_url: string;
-  category: string;
+  user_id?: string | null;
+  client_id?: string | null;
+  company_name: string | null;
+  company_email: string | null;
+  website_url: string | null;
+  category: string | null;
 };
 
 type Instance = { user_id: string; status: string; expires_at: string | null; killed: boolean };
@@ -52,16 +52,26 @@ function ClientCard({
       toast.error("That tag already exists for this client.");
       return;
     }
-    try { await adminAddCrmTag({ data: { clientId: (profile as any).client_id ?? profile.id, tag: trimmed } }); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "Could not add tag"); return; }
+    try {
+      await adminAddCrmTag({
+        data: { clientId: profile.client_id ?? profile.id, tag: trimmed },
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not add tag");
+      return;
+    }
     toast.success("Tag added");
     setTagInput("");
     void queryClient.invalidateQueries({ queryKey: ["admin", "tags"] });
   };
 
   const removeTag = async (id: string) => {
-    try { await adminRemoveCrmTag({ data: { id } }); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "Could not remove tag"); return; }
+    try {
+      await adminRemoveCrmTag({ data: { id } });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not remove tag");
+      return;
+    }
     toast.success("Tag removed");
     void queryClient.invalidateQueries({ queryKey: ["admin", "tags"] });
   };
@@ -70,13 +80,19 @@ function ClientCard({
     <div className="grid gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div>
         <p className="text-base font-extrabold">{profile.company_name || profile.company_email}</p>
-        {profile.website_url && <p className="text-xs text-muted-foreground">{profile.website_url}</p>}
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">{profile.category || "Uncategorized"}</p>
+        {profile.website_url && (
+          <p className="text-xs text-muted-foreground">{profile.website_url}</p>
+        )}
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+          {profile.category || "Uncategorized"}
+        </p>
         <p className="text-xs text-muted-foreground">{profile.company_email}</p>
       </div>
       <div className="flex items-center justify-between">
         <p className="text-xl font-extrabold tabular-nums">{money(revenue)}</p>
-        <p className="text-xs text-muted-foreground">{automationsCount} automations · {liveCount} live</p>
+        <p className="text-xs text-muted-foreground">
+          {automationsCount} automations · {liveCount} live
+        </p>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {tags.map((t) => (
@@ -119,17 +135,52 @@ function ClientCard({
 }
 
 function CrmPage() {
-  const { data, isLoading } = useQuery({ queryKey: ["admin", "crm"], queryFn: () => adminListCrm() });
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "crm"],
+    queryFn: () => adminListCrm(),
+  });
   const [search, setSearch] = useState("");
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return (data ?? []).filter(({ profile }: any) => !q || `${profile.company_name ?? ""} ${profile.website_url ?? ""} ${profile.company_email ?? ""}`.toLowerCase().includes(q));
+    return (data ?? []).filter(
+      ({ profile }) =>
+        !q ||
+        `${profile.company_name ?? ""} ${profile.website_url ?? ""} ${profile.company_email ?? ""}`
+          .toLowerCase()
+          .includes(q),
+    );
   }, [data, search]);
   if (isLoading) return <Loading />;
   return (
-    <AdminPage title="Client CRM & Tags" subtitle="One record per client with lifetime revenue, automation count and operational tags.">
-      <Panel title="Search"><Input placeholder="Search company name, website or email…" value={search} onChange={(e) => setSearch(e.target.value)} /></Panel>
-      {filtered.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">No clients match this search.</p> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{filtered.map((row:any) => <ClientCard key={row.profile.id} profile={row.profile} revenue={row.revenue} automationsCount={row.automationsCount} liveCount={row.liveCount} tags={row.tags} />)}</div>}
+    <AdminPage
+      title="Client CRM & Tags"
+      subtitle="One record per client with lifetime revenue, automation count and operational tags."
+    >
+      <Panel title="Search">
+        <Input
+          placeholder="Search company name, website or email…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </Panel>
+      {filtered.length === 0 ? (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          No clients match this search.
+        </p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((row) => (
+            <ClientCard
+              key={row.profile.id}
+              profile={row.profile}
+              revenue={row.revenue}
+              automationsCount={row.automationsCount}
+              liveCount={row.liveCount}
+              tags={row.tags}
+            />
+          ))}
+        </div>
+      )}
     </AdminPage>
   );
 }

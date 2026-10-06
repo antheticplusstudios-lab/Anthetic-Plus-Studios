@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { getMyProfile, getActivePaymentMethods, submitOrder } from "@/lib/client-platform.functions";
+import {
+  getMyProfile,
+  getActivePaymentMethods,
+  submitOrder,
+} from "@/lib/client-platform.functions";
 import {
   FIELD_LABEL,
   MESSAGING_BASE,
@@ -66,10 +70,10 @@ function OrderPage() {
     if (!p) return;
     setF((s) => ({
       ...s,
-      full_name: s.full_name || p.full_name,
-      company_name: s.company_name || p.company_name,
-      target: s.target || p.website_url,
-      email: s.email || p.company_email,
+      full_name: s.full_name || p.full_name || "",
+      company_name: s.company_name || p.company_name || "",
+      target: s.target || p.website_url || "",
+      email: s.email || p.company_email || "",
     }));
   }, [profile.data]);
   useEffect(() => {
@@ -95,27 +99,30 @@ function OrderPage() {
     true,
   ];
 
-  const toggle = (list: string[], k: string) => (list.includes(k) ? list.filter((x) => x !== k) : [...list, k]);
+  const toggle = (list: string[], k: string) =>
+    list.includes(k) ? list.filter((x) => x !== k) : [...list, k];
 
   async function submit() {
     if (!profile.data) return;
     setSubmitting(true);
     try {
-      await submitOrder({ data: {
-        product,
-        deliveryChannel: isRec ? f.channel : "web",
-        features: f.features,
-        fullName: f.full_name,
-        company: f.company_name,
-        email: f.email,
-        country: f.country,
-        target: f.target,
-        plan: "monthly",
-        paymentMethodId: f.methodId,
-        transactionId: String(f.proof.trx_id ?? f.proof.transaction_id ?? ""),
-        senderName: String(f.proof.sender_name ?? f.full_name),
-        proof: f.proof,
-      } });
+      await submitOrder({
+        data: {
+          product,
+          deliveryChannel: isRec ? f.channel : "web",
+          features: f.features,
+          fullName: f.full_name,
+          company: f.company_name,
+          email: f.email,
+          country: f.country,
+          target: f.target,
+          plan: "monthly",
+          paymentMethodId: f.methodId,
+          transactionId: String(f.proof.trx_id ?? f.proof.transaction_id ?? ""),
+          senderName: String(f.proof.sender_name ?? f.full_name),
+          proof: f.proof,
+        },
+      });
       await new Promise((r) => setTimeout(r, 900));
       void confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
       toast.success("Order submitted — we'll verify your payment shortly.");
@@ -130,7 +137,9 @@ function OrderPage() {
     return (
       <div className="mx-auto max-w-xl p-10 text-center">
         <h1 className="text-2xl font-bold">New orders are paused</h1>
-        <p className="mt-2 text-muted-foreground">Email antheticplusstudios@gmail.com and we'll reserve your spot.</p>
+        <p className="mt-2 text-muted-foreground">
+          Email antheticplusstudios@gmail.com and we'll reserve your spot.
+        </p>
       </div>
     );
 
@@ -164,10 +173,16 @@ function OrderPage() {
               <Input value={profile.data?.client_id ?? "…"} readOnly className="bg-muted" />
             </Field>
             <Field label="Full name">
-              <Input value={f.full_name} onChange={(e) => setF({ ...f, full_name: e.target.value })} />
+              <Input
+                value={f.full_name}
+                onChange={(e) => setF({ ...f, full_name: e.target.value })}
+              />
             </Field>
             <Field label="Company name">
-              <Input value={f.company_name} onChange={(e) => setF({ ...f, company_name: e.target.value })} />
+              <Input
+                value={f.company_name}
+                onChange={(e) => setF({ ...f, company_name: e.target.value })}
+              />
             </Field>
             <Field label={isRec ? "Target domain URL" : "Primary business social link or website"}>
               <Input
@@ -199,7 +214,10 @@ function OrderPage() {
           ) : (
             <div className="grid gap-3">
               {MESSAGING_CHANNELS.map((c) => (
-                <label key={c.key} className="flex items-center gap-3 rounded-xl border border-border p-4">
+                <label
+                  key={c.key}
+                  className="flex items-center gap-3 rounded-xl border border-border p-4"
+                >
                   <input
                     type="checkbox"
                     checked={f.msgChannels.includes(c.key)}
@@ -209,7 +227,8 @@ function OrderPage() {
                 </label>
               ))}
               <p className="text-sm text-muted-foreground">
-                ${MESSAGING_BASE}/mo includes one channel, +${MESSAGING_PER_EXTRA_CHANNEL} per extra channel.
+                ${MESSAGING_BASE}/mo includes one channel, +${MESSAGING_PER_EXTRA_CHANNEL} per extra
+                channel.
               </p>
             </div>
           ))}
@@ -236,10 +255,18 @@ function OrderPage() {
         {step === 3 && (
           <div className="grid gap-4">
             <Field label="Email">
-              <Input type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
+              <Input
+                type="email"
+                value={f.email}
+                onChange={(e) => setF({ ...f, email: e.target.value })}
+              />
             </Field>
             <Field label="Country">
-              <Input placeholder="Bangladesh" value={f.country} onChange={(e) => setF({ ...f, country: e.target.value })} />
+              <Input
+                placeholder="Bangladesh"
+                value={f.country}
+                onChange={(e) => setF({ ...f, country: e.target.value })}
+              />
             </Field>
           </div>
         )}
@@ -286,7 +313,11 @@ function OrderPage() {
         )}
 
         <div className="mt-6 flex justify-between">
-          <Button variant="outline" disabled={step === 0 || submitting} onClick={() => setStep(step - 1)}>
+          <Button
+            variant="outline"
+            disabled={step === 0 || submitting}
+            onClick={() => setStep(step - 1)}
+          >
             Back
           </Button>
           {step < 5 ? (

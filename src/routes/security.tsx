@@ -1,5 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Database, FileLock2, KeyRound, Lock, ScrollText, ServerCog, ShieldCheck, Users } from "lucide-react";
+import {
+  Database,
+  FileLock2,
+  KeyRound,
+  Lock,
+  ScrollText,
+  ServerCog,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { LiftCard, Reveal, StaggerGroup, StaggerItem } from "@/components/motion";
@@ -77,8 +86,8 @@ export default function SecurityPage() {
               Built so your customer data never leaves its lane
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
-              Every automation runs inside a tenant boundary enforced by the database, not by application code that can
-              be bypassed.
+              Every automation runs inside a tenant boundary enforced by the database, not by
+              application code that can be bypassed.
             </p>
           </Reveal>
         </section>
@@ -104,11 +113,26 @@ export default function SecurityPage() {
             <h2 className="text-2xl font-black tracking-tight">Data handling</h2>
             <dl className="mt-6 space-y-5 text-sm">
               {[
-                ["What we store", "Company profile, billing records, automation configuration, conversation transcripts and captured leads."],
-                ["What we never store", "Card numbers, bank credentials or provider API keys in plain text."],
-                ["Retention", "Transcripts and usage logs are retained while the subscription is active and removed on request."],
-                ["Your rights", "Export or deletion of all tenant data on request, fulfilled within 30 days."],
-                ["Sub-processors", "Managed cloud database and hosting, plus the AI inference providers powering replies."],
+                [
+                  "What we store",
+                  "Company profile, billing records, automation configuration, conversation transcripts and captured leads.",
+                ],
+                [
+                  "What we never store",
+                  "Card numbers, bank credentials or provider API keys in plain text.",
+                ],
+                [
+                  "Retention",
+                  "Transcripts and usage logs are retained while the subscription is active and removed on request.",
+                ],
+                [
+                  "Your rights",
+                  "Export or deletion of all tenant data on request, fulfilled within 30 days.",
+                ],
+                [
+                  "Sub-processors",
+                  "Managed cloud database and hosting, plus the AI inference providers powering replies.",
+                ],
               ].map(([term, desc]) => (
                 <div key={term} className="rounded-xl border border-border bg-background/60 p-4">
                   <dt className="font-bold text-foreground">{term}</dt>
@@ -125,8 +149,9 @@ export default function SecurityPage() {
               <FileLock2 className="h-5 w-5 text-primary" /> Audit log specification
             </h2>
             <p className="mt-3 text-sm text-muted-foreground">
-              Each entry records who acted, what they acted on, the exact time, and the details of the change. Updates
-              and deletions are blocked at the database level, so the history is permanent.
+              Each entry records who acted, what they acted on, the exact time, and the details of
+              the change. Updates and deletions are blocked at the database level, so the history is
+              permanent.
             </p>
             <ul className="mt-5 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
               {[
@@ -137,7 +162,10 @@ export default function SecurityPage() {
                 "assistant_query",
                 "database.wiped",
               ].map((a) => (
-                <li key={a} className="rounded-lg border border-border bg-card/60 px-3 py-2 font-mono text-xs">
+                <li
+                  key={a}
+                  className="rounded-lg border border-border bg-card/60 px-3 py-2 font-mono text-xs"
+                >
                   {a}
                 </li>
               ))}

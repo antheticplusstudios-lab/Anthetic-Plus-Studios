@@ -1,6 +1,14 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { DB1Database, DB2Database, DB3Database, DB4Database } from "./server-db.types";
 
 export type ServerDbName = "db1" | "db2" | "db3" | "db4";
+
+export type ServerDatabaseMap = {
+  db1: DB1Database;
+  db2: DB2Database;
+  db3: DB3Database;
+  db4: DB4Database;
+};
 
 type DbConfig = {
   urlKey: string;
@@ -20,50 +28,52 @@ function requireEnv(name: string): string {
   return value;
 }
 
-function makeClient(name: ServerDbName) {
+function makeClient<K extends ServerDbName>(name: K): SupabaseClient<ServerDatabaseMap[K]> {
   const cfg = CONFIG[name];
   const url = requireEnv(cfg.urlKey);
   const key = requireEnv(cfg.serviceKey);
-  return createClient(url, key, {
+  return createClient<ServerDatabaseMap[K]>(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
 
-const cache = new Map<ServerDbName, SupabaseClient<any>>();
+const cache = new Map<ServerDbName, unknown>();
 
-export function getDb(name: ServerDbName): SupabaseClient<any> {
-  let client = cache.get(name);
-  if (!client) {
-    client = makeClient(name);
-    cache.set(name, client);
-  }
+export function getDb<K extends ServerDbName>(name: K): SupabaseClient<ServerDatabaseMap[K]> {
+  const cached = cache.get(name);
+  if (cached) return cached as SupabaseClient<ServerDatabaseMap[K]>;
+
+  const client = makeClient(name);
+  cache.set(name, client);
   return client;
 }
 
-export const db1Admin = new Proxy({} as SupabaseClient<any>, {
+export const db1Admin = new Proxy({} as SupabaseClient<DB1Database>, {
   get(_target, prop, receiver) {
     return Reflect.get(getDb("db1"), prop, receiver);
   },
 });
 
-export const db2Admin = new Proxy({} as SupabaseClient<any>, {
+export const db2Admin = new Proxy({} as SupabaseClient<DB2Database>, {
   get(_target, prop, receiver) {
     return Reflect.get(getDb("db2"), prop, receiver);
   },
 });
 
-export const db3Admin = new Proxy({} as SupabaseClient<any>, {
+export const db3Admin = new Proxy({} as SupabaseClient<DB3Database>, {
   get(_target, prop, receiver) {
     return Reflect.get(getDb("db3"), prop, receiver);
   },
 });
 
-export const db4Admin = new Proxy({} as SupabaseClient<any>, {
+export const db4Admin = new Proxy({} as SupabaseClient<DB4Database>, {
   get(_target, prop, receiver) {
     return Reflect.get(getDb("db4"), prop, receiver);
   },
 });
 
-export function supabaseServiceClient(name: ServerDbName) {
+export function supabaseServiceClient<K extends ServerDbName>(
+  name: K,
+): SupabaseClient<ServerDatabaseMap[K]> {
   return getDb(name);
 }

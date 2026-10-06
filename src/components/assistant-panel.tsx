@@ -61,7 +61,8 @@ export function AssistantPanel() {
           <div className="rounded-2xl border border-foreground/30 bg-foreground/10 p-4">
             <p className="text-sm font-semibold text-foreground">No OpenRouter key yet</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Paste your key on the Infrastructure page and the assistant goes live for owners and partners.
+              Paste your key on the Infrastructure page and the assistant goes live for owners and
+              partners.
             </p>
             <Button size="sm" className="mt-3" asChild onClick={() => setOpen(false)}>
               <Link to="/admin/infrastructure">Open Infrastructure</Link>
@@ -97,13 +98,19 @@ export function AssistantPanel() {
                 </button>
               ))}
             </div>
-            <Button onClick={() => askNow(question)} disabled={ask.isPending || question.trim().length < 3} className="w-full">
+            <Button
+              onClick={() => askNow(question)}
+              disabled={ask.isPending || question.trim().length < 3}
+              className="w-full"
+            >
               {ask.isPending ? <Loader2 className="animate-spin" /> : <Send />}
               {ask.isPending ? "Reading your records" : "Ask"}
             </Button>
 
             {ask.error && (
-              <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{ask.error.message}</p>
+              <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
+                {ask.error.message}
+              </p>
             )}
 
             {answer && (
@@ -113,8 +120,12 @@ export function AssistantPanel() {
                 transition={{ duration: 0.35, ease: [0.22, 0.9, 0.2, 1] }}
                 className="rounded-2xl border border-border bg-muted/30 p-4"
               >
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{answer.text}</p>
-                <p className="mt-3 text-[11px] uppercase tracking-wide text-muted-foreground">via {answer.model}</p>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                  {answer.text}
+                </p>
+                <p className="mt-3 text-[11px] uppercase tracking-wide text-muted-foreground">
+                  via {answer.model}
+                </p>
               </motion.div>
             )}
           </div>

@@ -34,7 +34,11 @@ function num(v: unknown, min: number, max: number, fallback: number) {
 }
 
 export async function loadAssistantSettings(): Promise<AssistantSettings> {
-  const { data, error } = await db1Admin.from("platform_settings").select("value").eq("key", "voice_agent").maybeSingle();
+  const { data, error } = await db1Admin
+    .from("platform_settings")
+    .select("value")
+    .eq("key", "voice_agent")
+    .maybeSingle();
   if (error) throw new Error(`settings: ${error.message}`);
   const v = rec(data?.value);
   return {

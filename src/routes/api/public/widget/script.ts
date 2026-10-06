@@ -10,7 +10,11 @@ export const Route = createFileRoute("/api/public/widget/script")({
         const token = (url.searchParams.get("token") ?? "").replace(/[^a-f0-9]/gi, "").slice(0, 64);
         const base = (process.env["VITE_API_GATEWAY_URL"] ?? "").replace(/\/$/, "");
         return new Response(widgetSource(base, token), {
-          headers: { "Content-Type": "application/javascript; charset=utf-8", "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" },
+          headers: {
+            "Content-Type": "application/javascript; charset=utf-8",
+            "Cache-Control": "public, max-age=300",
+            "Access-Control-Allow-Origin": "*",
+          },
         });
       },
     },

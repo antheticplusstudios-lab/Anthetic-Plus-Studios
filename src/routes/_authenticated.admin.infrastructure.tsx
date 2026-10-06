@@ -32,8 +32,6 @@ export const Route = createFileRoute("/_authenticated/admin/infrastructure")({
   component: InfrastructurePage,
 });
 
-type AnyRow = any;
-
 function cooldownRemaining(value: string | null) {
   if (!value) return null;
   const ms = new Date(value).getTime() - Date.now();
@@ -78,12 +76,15 @@ function InfrastructurePage() {
 
   if (keysLoading || failoverLoading || promptsLoading) return <Loading />;
 
-  const draftFor = (row: AnyRow) => promptDrafts[row.key] ?? row.content ?? "";
+  const draftFor = (row: (typeof prompts)[number]) => promptDrafts[row.key] ?? row.content ?? "";
 
-  const savePrompt = async (row: AnyRow) => {
+  const savePrompt = async (row: (typeof prompts)[number]) => {
     setSavingKey(row.key);
-    try { await savePromptFn.mutateAsync({ key: row.key, content: draftFor(row) }); }
-    finally { setSavingKey(null); }
+    try {
+      await savePromptFn.mutateAsync({ key: row.key, content: draftFor(row) });
+    } finally {
+      setSavingKey(null);
+    }
   };
 
   const handleAddKey = () => {
@@ -128,7 +129,10 @@ function InfrastructurePage() {
         }
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="OpenRouter API key" hint="Paste a new key to replace it. Leave empty to keep the current one.">
+          <Field
+            label="OpenRouter API key"
+            hint="Paste a new key to replace it. Leave empty to keep the current one."
+          >
             <TextField
               type="password"
               autoComplete="off"
@@ -154,7 +158,10 @@ function InfrastructurePage() {
             <Button
               variant="outline"
               onClick={() =>
-                saveAssistant.mutate({ clearKey: true }, { onSuccess: () => toast.success("Assistant key removed") })
+                saveAssistant.mutate(
+                  { clearKey: true },
+                  { onSuccess: () => toast.success("Assistant key removed") },
+                )
               }
             >
               Remove key
@@ -173,7 +180,7 @@ function InfrastructurePage() {
           </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {keys.map((key: AnyRow) => {
+            {keys.map((key) => {
               const remaining = cooldownRemaining(key.cooldown_until);
               return (
                 <div key={key.id} className="rounded-2xl border border-border bg-muted/20 p-4">
@@ -192,23 +199,35 @@ function InfrastructurePage() {
                     <span className="tabular-nums">Requests: {key.request_count}</span>
                     <span className="tabular-nums">Errors: {key.error_count}</span>
                     <span>Used {timeAgo(key.last_used_at)}</span>
-                    {remaining && <span className="font-bold text-destructive">Cooldown: {remaining}</span>}
+                    {remaining && (
+                      <span className="font-bold text-destructive">Cooldown: {remaining}</span>
+                    )}
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <Switch
                       checked={key.enabled}
-                      onCheckedChange={(enabled: boolean) => updateKey.mutate({ id: key.id, enabled })}
+                      onCheckedChange={(enabled: boolean) =>
+                        updateKey.mutate({ id: key.id, enabled })
+                      }
                     />
                     <span className="text-xs font-semibold text-muted-foreground">
                       {key.enabled ? "Enabled" : "Disabled"}
                     </span>
                     {!key.is_primary && (
-                      <Button size="sm" variant="outline" onClick={() => updateKey.mutate({ id: key.id, makePrimary: true })}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateKey.mutate({ id: key.id, makePrimary: true })}
+                      >
                         Make primary
                       </Button>
                     )}
                     {remaining && (
-                      <Button size="sm" variant="outline" onClick={() => updateKey.mutate({ id: key.id, clearCooldown: true })}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateKey.mutate({ id: key.id, clearCooldown: true })}
+                      >
                         Clear cooldown
                       </Button>
                     )}
@@ -226,10 +245,19 @@ function InfrastructurePage() {
       <Panel title="Add a key" description="Values are stored server-side and never shown again">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Label">
-            <TextField value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Groq — primary" />
+            <TextField
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder="e.g. Groq — primary"
+            />
           </Field>
           <Field label="Key">
-            <TextField type="password" value={keyValue} onChange={(e) => setKeyValue(e.target.value)} placeholder="gsk_..." />
+            <TextField
+              type="password"
+              value={keyValue}
+              onChange={(e) => setKeyValue(e.target.value)}
+              placeholder="gsk_..."
+            />
           </Field>
         </div>
         <label className="mt-4 flex items-center gap-2 text-sm font-semibold">
@@ -245,8 +273,8 @@ function InfrastructurePage() {
         <DataTable
           head={["When", "Status", "Key", "Message"]}
           rows={[...failoverLog]
-            .sort((a: AnyRow, b: AnyRow) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-            .map((f: AnyRow) => [
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .map((f) => [
               timeAgo(f.created_at),
               <span className="tabular-nums" key="sc">
                 {f.status_code}
@@ -258,20 +286,33 @@ function InfrastructurePage() {
         />
       </Panel>
 
-      <Panel title="Global prompt baseline" description="{company} is replaced per client at send time">
+      <Panel
+        title="Global prompt baseline"
+        description="{company} is replaced per client at send time"
+      >
         {prompts.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">No global prompt rows configured.</p>
+          <p className="py-6 text-center text-sm text-muted-foreground">
+            No global prompt rows configured.
+          </p>
         ) : (
           <div className="grid gap-4">
-            {prompts.map((row: AnyRow) => (
+            {prompts.map((row: (typeof prompts)[number]) => (
               <div key={row.key} className="rounded-2xl border border-border bg-muted/20 p-4">
-                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">{row.key}</p>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  {row.key}
+                </p>
                 <AreaField
                   rows={4}
                   value={draftFor(row)}
-                  onChange={(e) => setPromptDrafts((prev) => ({ ...prev, [row.key]: e.target.value }))}
+                  onChange={(e) =>
+                    setPromptDrafts((prev) => ({ ...prev, [row.key]: e.target.value }))
+                  }
                 />
-                <Button className="mt-3" onClick={() => void savePrompt(row)} disabled={savingKey === row.key}>
+                <Button
+                  className="mt-3"
+                  onClick={() => void savePrompt(row)}
+                  disabled={savingKey === row.key}
+                >
                   Save
                 </Button>
               </div>

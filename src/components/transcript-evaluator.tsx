@@ -40,14 +40,16 @@ export function TranscriptEvaluator({ automationId }: { automationId: string }) 
         <h2 className="text-lg font-bold">Grade a conversation</h2>
       </div>
       <p className="mb-3 text-sm text-muted-foreground">
-        Paste a chat between a visitor and your receptionist. AI scores its tone, accuracy and helpfulness against your
-        business details.
+        Paste a chat between a visitor and your receptionist. AI scores its tone, accuracy and
+        helpfulness against your business details.
       </p>
       <Textarea
         rows={7}
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={"Visitor: Hi, are you open Saturday?\nReceptionist: Yes! We're open 9am–2pm on Saturdays..."}
+        placeholder={
+          "Visitor: Hi, are you open Saturday?\nReceptionist: Yes! We're open 9am–2pm on Saturdays..."
+        }
       />
       <div className="mt-3 flex items-center gap-3">
         <Button onClick={() => run.mutate()} disabled={run.isPending || text.trim().length < 20}>
@@ -69,11 +71,19 @@ export function TranscriptEvaluator({ automationId }: { automationId: string }) 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <p className="mb-1 text-xs font-bold uppercase text-muted-foreground">Strengths</p>
-              <ul className="list-disc space-y-1 pl-5 text-sm">{r.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul>
+              <ul className="list-disc space-y-1 pl-5 text-sm">
+                {r.strengths.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+              </ul>
             </div>
             <div>
               <p className="mb-1 text-xs font-bold uppercase text-muted-foreground">Improve</p>
-              <ul className="list-disc space-y-1 pl-5 text-sm">{r.improvements.map((s, i) => <li key={i}>{s}</li>)}</ul>
+              <ul className="list-disc space-y-1 pl-5 text-sm">
+                {r.improvements.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>

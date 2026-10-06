@@ -6,7 +6,8 @@ import { defineTool } from "../assistant.registry.server";
 export const getPricingTool = defineTool({
   name: "get_pricing",
   label: "Pricing",
-  description: "Get the live, publicly listed automation plans and prices. Use for any pricing or plan question.",
+  description:
+    "Get the live, publicly listed automation plans and prices. Use for any pricing or plan question.",
   inputDoc: "{}",
   access: "public",
   sideEffect: false,
@@ -27,7 +28,10 @@ export const getPricingTool = defineTool({
   },
 });
 
-const kbInput = z.object({ automationId: z.string().trim().min(1), query: z.string().trim().min(2) });
+const kbInput = z.object({
+  automationId: z.string().trim().min(1),
+  query: z.string().trim().min(2),
+});
 
 export const retrieveKnowledgeTool = defineTool<z.infer<typeof kbInput>>({
   name: "retrieve_knowledge",

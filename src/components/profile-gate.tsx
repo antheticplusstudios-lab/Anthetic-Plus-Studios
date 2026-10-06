@@ -27,7 +27,10 @@ export function ProfileGate({ children }: { children: ReactNode }) {
         </div>
       )}
       <div className="relative">
-        <div className={locked ? "pointer-events-none select-none blur-[6px]" : undefined} aria-hidden={locked}>
+        <div
+          className={locked ? "pointer-events-none select-none blur-[6px]" : undefined}
+          aria-hidden={locked}
+        >
           {children}
         </div>
         {locked && (
@@ -38,8 +41,8 @@ export function ProfileGate({ children }: { children: ReactNode }) {
               </div>
               <h2 className="mt-5 text-xl font-extrabold">Profile required</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                We need your company name, target domain, contact email and business category before your automations
-                can be locked to your website.
+                We need your company name, target domain, contact email and business category before
+                your automations can be locked to your website.
               </p>
               <Link
                 to="/dashboard/profile"

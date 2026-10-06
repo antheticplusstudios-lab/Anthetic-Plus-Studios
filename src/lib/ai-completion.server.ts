@@ -3,7 +3,9 @@ import { routeChat, type ChatMsg } from "@/lib/llm-router.server";
 import { db3Admin } from "@/server/db/clients.server";
 
 export class AiNotConfiguredError extends Error {
-  constructor(message = "No AI provider is configured. Add a key under Admin → AI Infrastructure → LLM Providers.") {
+  constructor(
+    message = "No AI provider is configured. Add a key under Admin → AI Infrastructure → LLM Providers.",
+  ) {
     super(message);
     this.name = "AiNotConfiguredError";
   }
@@ -27,7 +29,10 @@ export type CompletionResult = {
   tokensOut: number;
 };
 
-export async function complete(_admin: typeof db3Admin, req: CompletionRequest): Promise<CompletionResult> {
+export async function complete(
+  _admin: typeof db3Admin,
+  req: CompletionRequest,
+): Promise<CompletionResult> {
   const system = req.json
     ? `${req.system}\n\nRespond with ONLY minified JSON matching this shape. Do not use markdown fences or commentary: ${req.json.description}`
     : req.system;
@@ -37,14 +42,19 @@ export async function complete(_admin: typeof db3Admin, req: CompletionRequest):
     { role: "user", content: req.user },
   ];
 
-  const result = await routeChat(messages, {
-    automationId: req.automationId ?? null,
-    clientId: req.clientId ?? null,
-    maxTokens: req.maxTokens ?? 1200,
-    temperature: req.temperature ?? 0.4,
-  }, _admin);
+  const result = await routeChat(
+    messages,
+    {
+      automationId: req.automationId ?? null,
+      clientId: req.clientId ?? null,
+      maxTokens: req.maxTokens ?? 1200,
+      temperature: req.temperature ?? 0.4,
+    },
+    _admin,
+  );
 
-  if (!result) throw new AiNotConfiguredError("All configured AI providers are unavailable right now.");
+  if (!result)
+    throw new AiNotConfiguredError("All configured AI providers are unavailable right now.");
   return {
     text: result.reply,
     provider: result.provider,

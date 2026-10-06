@@ -3,7 +3,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { askAssistant, assistantStatus, saveAssistantSettings } from "@/lib/assistant.functions";
 
 export const useAssistantStatus = () =>
-  useQuery({ queryKey: ["assistant", "status"], queryFn: () => assistantStatus(), staleTime: 30_000 });
+  useQuery({
+    queryKey: ["assistant", "status"],
+    queryFn: () => assistantStatus(),
+    staleTime: 30_000,
+  });
 
 export const useSaveAssistantSettings = () => {
   const queryClient = useQueryClient();

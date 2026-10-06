@@ -5,7 +5,11 @@
  */
 import { useCallback, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { askAssistantGuest, askAssistantUser, confirmAssistantAction } from "@/lib/assistant-agent.functions";
+import {
+  askAssistantGuest,
+  askAssistantUser,
+  confirmAssistantAction,
+} from "@/lib/assistant-agent.functions";
 import { useCurrentUser } from "@/hooks/use-portal";
 import type { AssistantResponse, ChatTurn, PendingAction, ToolOutcome } from "./assistant.types";
 import { MAX_HISTORY_TURNS, MAX_MESSAGE_LENGTH } from "./assistant.types";
@@ -19,8 +23,10 @@ export type ChatEntry = {
   isError?: boolean;
 };
 
-const YES = /^(yes|yeah|yep|yup|sure|ok(ay)?|send( it)?|confirm|go ahead|do it|please do|please send)\b/i;
-const NO = /^(no|nope|cancel|don'?t|do not|never ?mind|stop)\b/i;
+const YES =
+  /^(yes|yeah|yep|yup|sure|ok(ay)?|send( it)?|confirm|go ahead|do it|please do|please send|sí|si|oui|ja|हाँ|हां|জি|হ্যাঁ|ঠিক আছে|করুন|পাঠান)\b/i;
+const NO =
+  /^(no|nope|cancel|don'?t|do not|never ?mind|stop|no gracias|non|nein|नहीं|नही|না|বাদ দিন|বাতিল)\b/i;
 
 function uid() {
   return Math.random().toString(36).slice(2);
@@ -31,7 +37,8 @@ function errorFromThrown(e: unknown): string {
     if (e.status === 401) return "Your session has expired. Please sign in again.";
     if (e.status === 403) return "Your account doesn't have permission for that.";
   }
-  if (typeof navigator !== "undefined" && !navigator.onLine) return "You appear to be offline. Check your connection and try again.";
+  if (typeof navigator !== "undefined" && !navigator.onLine)
+    return "You appear to be offline. Check your connection and try again.";
   return "I couldn't reach the assistant. Please try again.";
 }
 
@@ -59,7 +66,13 @@ export function useAssistantSession() {
         return res.error.message;
       }
       setPending(res.pending);
-      push({ id: uid(), role: "assistant", content: res.reply, actions: res.actions, pending: res.pending });
+      push({
+        id: uid(),
+        role: "assistant",
+        content: res.reply,
+        actions: res.actions,
+        pending: res.pending,
+      });
       return res.reply;
     },
     [push],
@@ -102,7 +115,10 @@ export function useAssistantSession() {
 
   /** Sends a message. Returns the assistant's reply text (for speech), or null if cancelled. */
   const send = useCallback(
-    async (raw: string): Promise<string | null> => {
+    async (
+      raw: string,
+      language?: { language?: string | null; confidence?: number },
+    ): Promise<string | null> => {
       const text = raw.trim().slice(0, MAX_MESSAGE_LENGTH);
       if (!text) return null;
       if (pending && YES.test(text)) {
@@ -119,7 +135,25 @@ export function useAssistantSession() {
         .slice(-MAX_HISTORY_TURNS)
         .map((e) => ({ role: e.role, content: e.content }));
       push({ id: uid(), role: "user", content: text });
-      return run(() => (user ? userAsk({ data: { message: text, history } }) : guestAsk({ data: { message: text, history } })));
+      return run(() =>
+        user
+          ? userAsk({
+              data: {
+                message: text,
+                history,
+                language: language?.language ?? undefined,
+                languageConfidence: language?.confidence ?? undefined,
+              },
+            })
+          : guestAsk({
+              data: {
+                message: text,
+                history,
+                language: language?.language ?? undefined,
+                languageConfidence: language?.confidence ?? undefined,
+              },
+            }),
+      );
     },
     [pending, confirm, dismiss, push, run, user, userAsk, guestAsk],
   );

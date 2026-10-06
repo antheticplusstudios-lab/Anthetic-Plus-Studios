@@ -24,24 +24,30 @@
 ## Important production issues still requiring architectural work
 
 ### A. Background workers
+
 `backend/app/outbox_worker.py` contains a permanent `while True` worker loop.
 `backend/app/workflows.py` also contains worker-style continuous processing.
 
 These are not appropriate as ordinary request handlers. They need a durable worker/queue runtime, Vercel-compatible scheduled processing, or another persistent execution service.
 
 ### B. Redis
+
 The backend defaults to `redis://localhost:6379/0` and the rate limiter fails open if Redis is unavailable. Production should use an external Redis service and a deliberate failure policy.
 
 ### C. WebSocket architecture
+
 `backend/app/main.py` exposes `/ws/chat/{conversation_id}`. Current Vercel WebSocket support is a newer Fluid Compute capability and durable cross-instance state requires external coordination such as Redis. The current Python WebSocket path should be tested specifically against the actual backend Vercel runtime rather than assumed equivalent to local Uvicorn.
 
 ### D. WebSocket authorization/persistence
+
 The WebSocket handler validates the widget token and automation relationship, but unlike `/v1/widget/chat`, it does not currently perform the same subscription-active check and does not persist the exchanged messages/outbox events. This needs an intentional decision before production use.
 
 ### E. Server/client boundary
+
 The project has many `*.functions.ts` modules imported from client code while containing static imports of `*.server.ts` modules. TanStack Start documents server-function wrappers as safe to import from client code, but the current build previously hit import-protection on this graph. The final npm/Vite build must be run after the syntax fixes to determine whether any remaining boundary violations exist.
 
 ### F. Environment examples
+
 The real secrets are excluded from this audit ZIP, as intended. Deployment environment variables must remain configured in Vercel rather than committed.
 
 ## Security/version note

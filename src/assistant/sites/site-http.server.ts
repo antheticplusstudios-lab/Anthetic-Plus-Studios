@@ -11,8 +11,16 @@ export function cors(origin: string | null, allowed: boolean): Record<string, st
   return h;
 }
 
-export function jsonResponse(data: unknown, status: number, origin: string | null, allowed: boolean) {
-  return new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json", ...cors(origin, allowed) } });
+export function jsonResponse(
+  data: unknown,
+  status: number,
+  origin: string | null,
+  allowed: boolean,
+) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json", ...cors(origin, allowed) },
+  });
 }
 
 /** Origin header, falling back to the Referer's origin for same-origin GETs that omit Origin. */
@@ -27,7 +35,10 @@ export function requestOrigin(request: Request): string | null {
   }
 }
 
-export async function resolveFromRequest(request: Request, claimed: unknown): Promise<SiteResolution> {
+export async function resolveFromRequest(
+  request: Request,
+  claimed: unknown,
+): Promise<SiteResolution> {
   return resolveSiteForOrigin(claimed, requestOrigin(request), new URL(request.url).host);
 }
 

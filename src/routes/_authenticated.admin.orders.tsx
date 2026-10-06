@@ -2,7 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AdminPage, DataTable, Loading, Panel, StatCard, StatusPill, money, timeAgo } from "@/components/admin-ui";
+import {
+  AdminPage,
+  DataTable,
+  Loading,
+  Panel,
+  StatCard,
+  StatusPill,
+  money,
+  timeAgo,
+} from "@/components/admin-ui";
 import { useAllPayments } from "@/hooks/use-admin";
 
 export const Route = createFileRoute("/_authenticated/admin/orders")({ component: OrdersPage });
@@ -21,8 +30,19 @@ type Payment = {
 };
 
 function downloadCsv(rows: Payment[]) {
-  const head = ["Submitted", "Client", "Automation", "Plan", "Amount", "Method", "Transaction", "Origin", "Status"];
-  const escape = (value: string) => (value.includes(",") ? `"${value.replace(/"/g, '""')}"` : value);
+  const head = [
+    "Submitted",
+    "Client",
+    "Automation",
+    "Plan",
+    "Amount",
+    "Method",
+    "Transaction",
+    "Origin",
+    "Status",
+  ];
+  const escape = (value: string) =>
+    value.includes(",") ? `"${value.replace(/"/g, '""')}"` : value;
   const lines = [head.join(",")];
   for (const row of rows) {
     lines.push(
@@ -60,7 +80,18 @@ function OrdersPage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
-  const all = (payments ?? []) as Payment[];
+  const all: Payment[] = (payments ?? []).map((row) => ({
+    id: row.id,
+    sender_name: row.sender_name,
+    transaction_id: row.transaction_id,
+    automation_slug: row.automation_slug,
+    billing_plan: row.billing_plan,
+    amount: row.amount,
+    payment_method: row.payment_method,
+    origin: row.origin,
+    status: row.status,
+    submitted_at: row.submitted_at,
+  }));
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -80,8 +111,12 @@ function OrdersPage() {
 
   if (isLoading) return <Loading />;
 
-  const approvedValue = all.filter((p) => p.status === "approved").reduce((sum, p) => sum + Number(p.amount), 0);
-  const pendingValue = all.filter((p) => p.status === "pending").reduce((sum, p) => sum + Number(p.amount), 0);
+  const approvedValue = all
+    .filter((p) => p.status === "approved")
+    .reduce((sum, p) => sum + Number(p.amount), 0);
+  const pendingValue = all
+    .filter((p) => p.status === "pending")
+    .reduce((sum, p) => sum + Number(p.amount), 0);
   const rejectedCount = all.filter((p) => p.status === "rejected").length;
   const grossSubmitted = all.reduce((sum, p) => sum + Number(p.amount), 0);
 
@@ -132,17 +167,31 @@ function OrdersPage() {
 
       <Panel title={`Orders (${filtered.length})`}>
         <DataTable
-          head={["Submitted", "Client", "Automation", "Plan", "Amount", "Method", "Transaction", "Origin", "Status"]}
+          head={[
+            "Submitted",
+            "Client",
+            "Automation",
+            "Plan",
+            "Amount",
+            "Method",
+            "Transaction",
+            "Origin",
+            "Status",
+          ]}
           empty="No orders match these filters."
           rows={filtered.map((p) => [
             timeAgo(p.submitted_at),
             p.sender_name,
             p.automation_slug,
             p.billing_plan,
-            <span className="tabular-nums" key="amount">{money(p.amount)}</span>,
+            <span className="tabular-nums" key="amount">
+              {money(p.amount)}
+            </span>,
             p.payment_method,
             p.transaction_id,
-            <span className="capitalize" key="origin">{p.origin}</span>,
+            <span className="capitalize" key="origin">
+              {p.origin}
+            </span>,
             <StatusPill status={p.status} key="status" />,
           ])}
         />

@@ -3,7 +3,15 @@
  * Contains no business logic; it only drives the shared assistant session.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { isSpeechInputSupported, listenOnce, requestMicrophone, type ListenHandle, type SpeechInputError } from "./speech-input";
+import {
+  isSpeechInputSupported,
+  listenOnce,
+  monitorSpeechStart,
+  requestMicrophone,
+  type ListenHandle,
+  type SpeechInputError,
+  type SpeechInputResult,
+} from "./speech-input";
 import { isSpeechOutputSupported, speak, stopSpeaking } from "./speech-output";
 
 export type VoiceState = "idle" | "listening" | "processing" | "speaking" | "error";
@@ -18,7 +26,12 @@ const ERROR_TEXT: Record<SpeechInputError | "tts", string> = {
   tts: "I couldn't play audio, but the reply is shown below.",
 };
 
-export function useVoiceLoop(send: (text: string) => Promise<string | null>) {
+export function useVoiceLoop(
+  send: (
+    text: string,
+    language?: { language?: string | null; confidence?: number },
+  ) => Promise<string | null>,
+) {
   const [state, setState] = useState<VoiceState>("idle");
   const [interim, setInterim] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +40,9 @@ export function useVoiceLoop(send: (text: string) => Promise<string | null>) {
   const mutedRef = useRef(false);
   const stateRef = useRef<VoiceState>("idle");
   const handle = useRef<ListenHandle | null>(null);
+  const bargeHandle = useRef<ListenHandle | null>(null);
   const active = useRef(false);
+  const listenRef = useRef<(() => void) | null>(null);
 
   // Single choke point so handlers/callbacks can read the CURRENT state without stale closures.
   const setVoiceState = useCallback((next: VoiceState | ((prev: VoiceState) => VoiceState)) => {
@@ -41,9 +56,36 @@ export function useVoiceLoop(send: (text: string) => Promise<string | null>) {
     return () => {
       active.current = false;
       handle.current?.abort();
+      bargeHandle.current?.abort();
       stopSpeaking();
     };
   }, []);
+
+  const startBargeInMonitor = useCallback(() => {
+    if (!active.current || mutedRef.current || stateRef.current !== "speaking") return;
+    bargeHandle.current?.abort();
+    bargeHandle.current = monitorSpeechStart({
+      onSpeechStart: () => {
+        stopSpeaking();
+        bargeHandle.current?.abort();
+        bargeHandle.current = null;
+        setInterim("");
+        setVoiceState("listening");
+        listenRef.current?.();
+      },
+      onError: (err) => {
+        if (err !== "no_speech" && active.current && stateRef.current === "speaking") {
+          setError(ERROR_TEXT[err]);
+        }
+      },
+      onEnd: () => {
+        bargeHandle.current = null;
+        if (stateRef.current === "speaking" && active.current && !mutedRef.current) {
+          startBargeInMonitor();
+        }
+      },
+    });
+  }, [setVoiceState]);
 
   const listen = useCallback(() => {
     setInterim("");
@@ -60,7 +102,7 @@ export function useVoiceLoop(send: (text: string) => Promise<string | null>) {
         setError(ERROR_TEXT[err]);
         setVoiceState("error");
       },
-      onFinal: async (text) => {
+      onFinal: async ({ text, language }: SpeechInputResult) => {
         setInterim("");
         if (mutedRef.current || !active.current) {
           setVoiceState("idle");
@@ -70,7 +112,7 @@ export function useVoiceLoop(send: (text: string) => Promise<string | null>) {
         setVoiceState("processing");
         let reply: string | null;
         try {
-          reply = await send(text);
+          reply = await send(text, { language, ...(language ? { confidence: 0.95 } : {}) });
         } catch {
           if (active.current) {
             setError("I couldn't reach the assistant. Please try again or type your message.");
@@ -97,6 +139,8 @@ export function useVoiceLoop(send: (text: string) => Promise<string | null>) {
         }
         setVoiceState("speaking");
         speak(reply, {
+          onStart: () => startBargeInMonitor(),
+          ...(language !== undefined ? { language } : {}),
           onEnd: () => {
             if (active.current && !mutedRef.current) listen();
             else setVoiceState("idle");
@@ -113,7 +157,9 @@ export function useVoiceLoop(send: (text: string) => Promise<string | null>) {
         setVoiceState((s) => (s === "listening" ? "idle" : s));
       },
     });
-  }, [send, setVoiceState]);
+  }, [send, setVoiceState, startBargeInMonitor]);
+
+  listenRef.current = listen;
 
   const start = useCallback(async () => {
     setError(null);
@@ -142,7 +188,9 @@ export function useVoiceLoop(send: (text: string) => Promise<string | null>) {
       // Mute stops the microphone immediately. A reply that is processing/speaking is allowed to finish;
       // the loop will not re-open the mic afterwards while muted.
       handle.current?.abort();
+      bargeHandle.current?.abort();
       handle.current = null;
+      bargeHandle.current = null;
       setInterim("");
       if (stateRef.current === "listening" || stateRef.current === "error") setVoiceState("idle");
     } else if (active.current && stateRef.current === "idle") {
@@ -154,7 +202,9 @@ export function useVoiceLoop(send: (text: string) => Promise<string | null>) {
   const stop = useCallback(() => {
     active.current = false;
     handle.current?.abort();
+    bargeHandle.current?.abort();
     handle.current = null;
+    bargeHandle.current = null;
     stopSpeaking();
     setInterim("");
     setVoiceState("idle");
@@ -163,11 +213,29 @@ export function useVoiceLoop(send: (text: string) => Promise<string | null>) {
   }, [setVoiceState]);
 
   /** Speak a reply that came from typed input, when voice mode is idle. */
-  const say = useCallback((text: string) => {
-    if (!isSpeechOutputSupported() || muted) return;
-    setVoiceState("speaking");
-    speak(text, { onEnd: () => setVoiceState("idle"), onError: () => setVoiceState("idle") });
-  }, [muted, setVoiceState]);
+  const say = useCallback(
+    (text: string) => {
+      if (!isSpeechOutputSupported() || muted) return;
+      setVoiceState("speaking");
+      speak(text, {
+        onStart: () => startBargeInMonitor(),
+        onEnd: () => setVoiceState("idle"),
+        onError: () => setVoiceState("idle"),
+      });
+    },
+    [muted, setVoiceState, startBargeInMonitor],
+  );
 
-  return { state, interim, error, supported, muted, start, stop, toggleMute, say, clearError: () => setError(null) };
+  return {
+    state,
+    interim,
+    error,
+    supported,
+    muted,
+    start,
+    stop,
+    toggleMute,
+    say,
+    clearError: () => setError(null),
+  };
 }

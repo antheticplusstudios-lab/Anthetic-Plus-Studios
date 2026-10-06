@@ -113,7 +113,11 @@ export function SiteHeader() {
               ) : (
                 <>
                   <AuthDialog mode="signin">
-                    <Button variant="ghost" size="sm" className="hidden rounded-full sm:inline-flex">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hidden rounded-full sm:inline-flex"
+                    >
                       Sign in
                     </Button>
                   </AuthDialog>

@@ -7,6 +7,14 @@ export type ChatRole = "user" | "assistant";
 
 export type ChatTurn = { role: ChatRole; content: string };
 
+export type AssistantLanguage = {
+  language: string;
+  locale: string;
+  script: "Latin" | "Bengali" | "Devanagari" | "Arabic" | "Cyrillic" | "CJK" | "Other";
+  confidence: number;
+  mixedLanguages: string[];
+};
+
 /** A tool that actually ran on the server (or was refused by the server). */
 export type ToolOutcome = {
   tool: string;
@@ -42,6 +50,7 @@ export type AssistantSuccess = {
   reply: string;
   actions: ToolOutcome[];
   pending: PendingAction | null;
+  language: AssistantLanguage;
   requestId: string;
 };
 

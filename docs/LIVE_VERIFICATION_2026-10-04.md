@@ -2,16 +2,17 @@
 
 ## Supabase databases
 
-| DB | Project | Result |
-|---|---|---|
-| DB1 | `dedmsffcvpchzywiggmg` | Tenant-binding guard installed; protected SECURITY DEFINER RPC execution revoked; no invalid default-organization bindings found |
-| DB2 | `zecusgollvmtzufzmehv` | `orders.total_amount` and automation enum values verified; live schema intact |
-| DB3 | `lktejvslktfazbqitoaq` | AI/RAG tables verified; RLS enabled on the four previously public AI tables |
+| DB  | Project                | Result                                                                                                                                              |
+| --- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DB1 | `dedmsffcvpchzywiggmg` | Tenant-binding guard installed; protected SECURITY DEFINER RPC execution revoked; no invalid default-organization bindings found                    |
+| DB2 | `zecusgollvmtzufzmehv` | `orders.total_amount` and automation enum values verified; live schema intact                                                                       |
+| DB3 | `lktejvslktfazbqitoaq` | AI/RAG tables verified; RLS enabled on the four previously public AI tables                                                                         |
 | DB4 | `iztbylxqvvrhsyislqlk` | Execution/attempt/event tables and RPCs verified; conversation + scoped event dedup indexes installed; seven legacy public tables locked behind RLS |
 
 ## DB4 transactional verification
 
 A rollback-only transaction verified:
+
 - idempotent execution enqueue
 - exclusive worker claim
 - successful finish
@@ -32,6 +33,7 @@ A rollback-only transaction verified:
 ## Remaining production blockers
 
 The Vercel project currently exposes only these direct production variables:
+
 - `FASTAPI_WS_URL`
 - `FASTAPI_BACKEND_URL`
 - `VITE_FASTAPI_WS_URL`

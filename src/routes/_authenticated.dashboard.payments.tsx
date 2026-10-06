@@ -11,9 +11,15 @@ export const Route = createFileRoute("/_authenticated/dashboard/payments")({
   head: () => ({
     meta: [
       { title: "Subscription Payments — AntheticPlus Studios" },
-      { name: "description", content: "Review verification status and renew your AntheticPlus subscriptions." },
+      {
+        name: "description",
+        content: "Review verification status and renew your AntheticPlus subscriptions.",
+      },
       { property: "og:title", content: "AntheticPlus Subscription Payments" },
-      { property: "og:description", content: "Track manual payment verification and submit renewals." },
+      {
+        property: "og:description",
+        content: "Track manual payment verification and submit renewals.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -32,7 +38,9 @@ function Page() {
     <div className="page-enter">
       {renewing && <ReactivationModal instance={renewing} onClose={() => setRenewing(null)} />}
       <h1 className="text-3xl font-extrabold">Subscription Payments</h1>
-      <p className="mt-2 text-muted-foreground">Submit transaction references and track manual verification.</p>
+      <p className="mt-2 text-muted-foreground">
+        Submit transaction references and track manual verification.
+      </p>
 
       <section className="mt-8 grid gap-4">
         {due.length === 0 && (
@@ -55,7 +63,9 @@ function Page() {
                 </div>
                 <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                   {item.website_domain}
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${statusClass(item.status)}`}>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${statusClass(item.status)}`}
+                  >
                     {statusLabels[item.status] ?? item.status}
                   </span>
                   {item.status === "paid" && <span>· {left} days left</span>}
@@ -94,15 +104,22 @@ function Page() {
               <tbody className="divide-y divide-border">
                 {payments.map((p) => (
                   <tr key={p.id} className="hover:bg-muted/30">
-                    <td className="px-5 py-5 text-muted-foreground">{new Date(p.submitted_at).toLocaleDateString()}</td>
-                    <td className="px-5 font-bold">
-                      {automations.find((a) => a.slug === p.automation_slug)?.shortName ?? p.automation_slug}
+                    <td className="px-5 py-5 text-muted-foreground">
+                      {new Date(p.submitted_at).toLocaleDateString()}
                     </td>
-                    <td className="px-5 font-bold tabular-nums">${Number(p.amount).toLocaleString()}</td>
+                    <td className="px-5 font-bold">
+                      {automations.find((a) => a.slug === p.automation_slug)?.shortName ??
+                        p.automation_slug}
+                    </td>
+                    <td className="px-5 font-bold tabular-nums">
+                      ${Number(p.amount).toLocaleString()}
+                    </td>
                     <td className="px-5 text-muted-foreground">{p.payment_method}</td>
                     <td className="px-5 text-muted-foreground">{p.transaction_id}</td>
                     <td className="px-5">
-                      <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass(p.status)}`}>
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass(p.status)}`}
+                      >
                         {statusLabels[p.status] ?? p.status}
                       </span>
                       {p.status === "rejected" && p.rejection_reason && (

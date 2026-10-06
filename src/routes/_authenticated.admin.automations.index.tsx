@@ -13,9 +13,17 @@ export const Route = createFileRoute("/_authenticated/admin/automations/")({
   head: () => ({
     meta: [
       { title: "Automation Fleet — AntheticPlus Control Center" },
-      { name: "description", content: "Every deployed AntheticPlus automation with live runtime state, health, usage and renewal." },
+      {
+        name: "description",
+        content:
+          "Every deployed AntheticPlus automation with live runtime state, health, usage and renewal.",
+      },
       { property: "og:title", content: "Automation Fleet — AntheticPlus Control Center" },
-      { property: "og:description", content: "Every deployed AntheticPlus automation with live runtime state, health, usage and renewal." },
+      {
+        property: "og:description",
+        content:
+          "Every deployed AntheticPlus automation with live runtime state, health, usage and renewal.",
+      },
     ],
   }),
   component: FleetPage,
@@ -33,9 +41,20 @@ const HEALTH_TONE: Record<string, string> = {
   UNCHECKED: "border-border text-muted-foreground",
 };
 
-function Tag({ children, className }: { children: React.ReactNode; className?: string | undefined }) {
+function Tag({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string | undefined;
+}) {
   return (
-    <span className={cn("inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold", className)}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold",
+        className,
+      )}
+    >
       {children}
     </span>
   );
@@ -50,14 +69,22 @@ function AutomationCard({ a }: { a: Automation }) {
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-[15px] font-semibold capitalize">{a.type.replace(/_/g, " ")}</p>
+          <p className="truncate text-[15px] font-semibold capitalize">
+            {a.type.replace(/_/g, " ")}
+          </p>
           <p className="truncate text-xs text-muted-foreground">
             {a.company || a.clientName || "Unnamed client"} · {a.clientId}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <Tag className={HEALTH_TONE[a.health] ?? HEALTH_TONE["UNCHECKED"]}>{a.health}</Tag>
-          <Tag className={a.runtime === "active" ? "border-success/40 text-success" : "border-destructive/40 text-destructive"}>
+          <Tag
+            className={
+              a.runtime === "active"
+                ? "border-success/40 text-success"
+                : "border-destructive/40 text-destructive"
+            }
+          >
             {a.runtime || a.runState}
           </Tag>
         </div>
@@ -75,12 +102,18 @@ function AutomationCard({ a }: { a: Automation }) {
         <div>
           <dt className="text-muted-foreground">Installation</dt>
           <dd className="font-semibold">
-            {a.requiresReinstallation ? "Reinstall required" : a.installed ? "Installed" : "Not installed"}
+            {a.requiresReinstallation
+              ? "Reinstall required"
+              : a.installed
+                ? "Installed"
+                : "Not installed"}
           </dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Channels</dt>
-          <dd className="truncate font-semibold">{a.channels.length ? a.channels.join(", ") : "—"}</dd>
+          <dd className="truncate font-semibold">
+            {a.channels.length ? a.channels.join(", ") : "—"}
+          </dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Tokens (month)</dt>
@@ -89,7 +122,9 @@ function AutomationCard({ a }: { a: Automation }) {
         <div>
           <dt className="text-muted-foreground">Renewal</dt>
           <dd className="font-semibold">
-            {a.expiresAt ? `${new Date(a.expiresAt).toLocaleDateString()} (${a.daysRemaining}d)` : "—"}
+            {a.expiresAt
+              ? `${new Date(a.expiresAt).toLocaleDateString()} (${a.daysRemaining}d)`
+              : "—"}
           </dd>
         </div>
         <div>
@@ -102,7 +137,14 @@ function AutomationCard({ a }: { a: Automation }) {
         </div>
         <div>
           <dt className="text-muted-foreground">AI errors (24h)</dt>
-          <dd className={cn("font-semibold tabular-nums", a.providerFailures > 0 && "text-destructive")}>{a.providerFailures}</dd>
+          <dd
+            className={cn(
+              "font-semibold tabular-nums",
+              a.providerFailures > 0 && "text-destructive",
+            )}
+          >
+            {a.providerFailures}
+          </dd>
         </div>
       </dl>
 
@@ -142,12 +184,17 @@ function FleetPage() {
     const needle = q.trim().toLowerCase();
     return all.filter((a) => {
       if (needle) {
-        const hay = `${a.type} ${a.domain} ${a.company} ${a.clientName} ${a.clientId} ${a.phone ?? ""}`.toLowerCase();
+        const hay =
+          `${a.type} ${a.domain} ${a.company} ${a.clientName} ${a.clientId} ${a.phone ?? ""}`.toLowerCase();
         if (!hay.includes(needle)) return false;
       }
       if (filter === "running") return a.runtime === "active";
       if (filter === "attention")
-        return ["ERROR", "OFFLINE", "SUSPENDED", "WARNING", "DEGRADED"].includes(a.health) || a.providerFailures > 0 || a.integrationFailure;
+        return (
+          ["ERROR", "OFFLINE", "SUSPENDED", "WARNING", "DEGRADED"].includes(a.health) ||
+          a.providerFailures > 0 ||
+          a.integrationFailure
+        );
       if (filter === "expiring") return a.daysRemaining !== null && a.daysRemaining <= 14;
       if (filter === "uninstalled") return !a.installed || a.requiresReinstallation;
       return true;
@@ -183,18 +230,35 @@ function FleetPage() {
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Automations" value={all.length} />
-        <StatCard label="Running" value={all.filter((a) => a.runtime === "active").length} tone="good" />
+        <StatCard
+          label="Running"
+          value={all.filter((a) => a.runtime === "active").length}
+          tone="good"
+        />
         <StatCard
           label="Needs attention"
-          value={all.filter((a) => ["ERROR", "OFFLINE", "SUSPENDED"].includes(a.health) || a.providerFailures > 0).length}
+          value={
+            all.filter(
+              (a) => ["ERROR", "OFFLINE", "SUSPENDED"].includes(a.health) || a.providerFailures > 0,
+            ).length
+          }
           tone="bad"
         />
-        <StatCard label="Not installed" value={all.filter((a) => !a.installed || a.requiresReinstallation).length} tone="warn" />
+        <StatCard
+          label="Not installed"
+          value={all.filter((a) => !a.installed || a.requiresReinstallation).length}
+          tone="warn"
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         {FILTERS.map((f) => (
-          <Button key={f.key} size="sm" variant={filter === f.key ? "default" : "outline"} onClick={() => setFilter(f.key)}>
+          <Button
+            key={f.key}
+            size="sm"
+            variant={filter === f.key ? "default" : "outline"}
+            onClick={() => setFilter(f.key)}
+          >
             {f.label}
           </Button>
         ))}
@@ -209,7 +273,11 @@ function FleetPage() {
       {list.length === 0 ? (
         <EmptyState
           title="No automations match"
-          description={all.length ? "Try a different filter or search." : "Automations appear here once an order is approved."}
+          description={
+            all.length
+              ? "Try a different filter or search."
+              : "Automations appear here once an order is approved."
+          }
         />
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">

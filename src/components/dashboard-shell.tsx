@@ -1,5 +1,14 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bot, ChevronLeft, CreditCard, LayoutDashboard, LogOut, Menu, ShieldCheck, UserRound } from "lucide-react";
+import {
+  Bot,
+  ChevronLeft,
+  CreditCard,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { HomeBrand } from "@/components/home-brand";
 import { Button } from "@/components/ui/button";
@@ -72,7 +81,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             <Menu />
           </Button>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="icon" title="Sign out" onClick={() => void supabase.auth.signOut()}>
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Sign out"
+              onClick={() => void supabase.auth.signOut()}
+            >
               <LogOut />
             </Button>
             <div className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-sm font-bold text-secondary-foreground">

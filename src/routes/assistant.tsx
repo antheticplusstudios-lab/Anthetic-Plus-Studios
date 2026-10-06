@@ -6,9 +6,17 @@ export const Route = createFileRoute("/assistant")({
   head: () => ({
     meta: [
       { title: "AI Assistant — AntheticPlus Studios" },
-      { name: "description", content: "Chat or talk with the AntheticPlus assistant about automations, pricing and your account." },
+      {
+        name: "description",
+        content:
+          "Chat or talk with the AntheticPlus assistant about automations, pricing and your account.",
+      },
       { property: "og:title", content: "AI Assistant — AntheticPlus Studios" },
-      { property: "og:description", content: "Chat or talk with the AntheticPlus assistant about automations, pricing and your account." },
+      {
+        property: "og:description",
+        content:
+          "Chat or talk with the AntheticPlus assistant about automations, pricing and your account.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

@@ -26,7 +26,12 @@ export async function resolveTenantContext(token: string, claims: Claims): Promi
   const db1 = getDb("db1");
   const [profileRes, membershipRes, roleRes, restrictionRes] = await Promise.all([
     db1.from("profiles").select("id,email,default_organization_id").eq("id", userId).maybeSingle(),
-    db1.from("organization_members").select("organization_id,role,is_active").eq("user_id", userId).eq("is_active", true).order("created_at", { ascending: true }),
+    db1
+      .from("organization_members")
+      .select("organization_id,role,is_active")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .order("created_at", { ascending: true }),
     db1.from("user_roles").select("role").eq("user_id", userId),
     db1.from("account_restrictions").select("status,muted").eq("user_id", userId).maybeSingle(),
   ]);
@@ -43,17 +48,19 @@ export async function resolveTenantContext(token: string, claims: Claims): Promi
   // (every self-signup is inserted as org 'owner' by handle_new_user) and must never be merged into
   // platform privileges, otherwise every customer would pass assertOwner/assertAdmin.
   const roles = new Set<string>(
-    (roleRes.data ?? []).map((r: any) => String(r.role).trim().toLowerCase()).filter(Boolean),
+    (roleRes.data ?? []).map((r) => String(r.role).trim().toLowerCase()).filter(Boolean),
   );
 
   // profiles.default_organization_id is user-writable under RLS (profiles_update), so it is only a
   // preference: honour it solely when the user has an ACTIVE membership in that organization.
   const preferred = profile?.default_organization_id ? String(profile.default_organization_id) : "";
   const membership =
-    memberships.find((m: any) => String(m.organization_id) === preferred) ?? memberships[0] ?? null;
+    memberships.find((m) => String(m.organization_id) === preferred) ?? memberships[0] ?? null;
   const organizationId = String(membership?.organization_id ?? "");
   if (!organizationId) throw new Error("Account is missing an organization");
-  const orgRole = String(membership?.role ?? "member").trim().toLowerCase();
+  const orgRole = String(membership?.role ?? "member")
+    .trim()
+    .toLowerCase();
 
   const restriction = restrictionRes.data ?? { status: "active", muted: false };
 

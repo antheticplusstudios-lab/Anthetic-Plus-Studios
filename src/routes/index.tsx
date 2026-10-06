@@ -16,7 +16,12 @@ import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { livePricingQueryOptions, storefrontItems } from "@/lib/pricing";
 import { money } from "@/components/admin-ui";
 import { AssistantConsole } from "@/components/assistant/assistant-console";
@@ -31,7 +36,10 @@ export const Route = createFileRoute("/")({
         content:
           "Six production-ready AI systems that answer calls and messages, qualify leads, book appointments, support customers and collect reviews — deployed to your domain in days.",
       },
-      { property: "og:title", content: "AntheticPlus Studios — AI Automations That Work Every Hour You Don't" },
+      {
+        property: "og:title",
+        content: "AntheticPlus Studios — AI Automations That Work Every Hour You Don't",
+      },
       {
         property: "og:description",
         content:
@@ -134,8 +142,9 @@ function Index() {
                 <span className="text-primary">clocks out.</span>
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
-                AntheticPlus builds focused AI systems that answer, qualify, book, support, recover and review — on your
-                domain, in your voice, with a written record of everything they did.
+                AntheticPlus builds focused AI systems that answer, qualify, book, support, recover
+                and review — on your domain, in your voice, with a written record of everything they
+                did.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <Button size="lg" asChild>
@@ -150,7 +159,9 @@ function Index() {
               <dl className="mt-12 grid max-w-2xl grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-4">
                 {proof.map((item) => (
                   <div key={item.label}>
-                    <dt className="text-2xl font-extrabold tabular-nums tracking-tight">{item.value}</dt>
+                    <dt className="text-2xl font-extrabold tabular-nums tracking-tight">
+                      {item.value}
+                    </dt>
                     <dd className="mt-1 text-xs leading-4 text-muted-foreground">{item.label}</dd>
                   </div>
                 ))}
@@ -170,19 +181,30 @@ function Index() {
           <div className="mx-auto max-w-7xl">
             <div className="flex flex-wrap items-end justify-between gap-6">
               <div className="max-w-2xl">
-                <p className="text-sm font-bold uppercase tracking-wide text-primary">Flagship systems</p>
+                <p className="text-sm font-bold uppercase tracking-wide text-primary">
+                  Flagship systems
+                </p>
                 <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
                   Pick the moment you want covered.
                 </h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  Each system runs on its own subscription, so you start with the one costing you the most money today.
+                  Each system runs on its own subscription, so you start with the one costing you
+                  the most money today.
                 </p>
               </div>
               <div className="grid grid-cols-2 rounded-full border border-border bg-card p-1">
-                <Button variant={!yearly ? "default" : "ghost"} size="sm" onClick={() => setYearly(false)}>
+                <Button
+                  variant={!yearly ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setYearly(false)}
+                >
                   Monthly
                 </Button>
-                <Button variant={yearly ? "default" : "ghost"} size="sm" onClick={() => setYearly(true)}>
+                <Button
+                  variant={yearly ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setYearly(true)}
+                >
                   Yearly · save more
                 </Button>
               </div>
@@ -214,10 +236,14 @@ function Index() {
                   </ul>
                   <div className="mt-auto flex items-end justify-between border-t border-border pt-5">
                     <div>
-                      <span className="text-2xl font-extrabold tabular-nums">{money(item.monthlyOf(yearly))}</span>
+                      <span className="text-2xl font-extrabold tabular-nums">
+                        {money(item.monthlyOf(yearly))}
+                      </span>
                       <span className="text-sm text-muted-foreground">/mo</span>
                       {yearly && (
-                        <p className="text-xs text-muted-foreground">{money(item.yearlyPrice)} billed yearly</p>
+                        <p className="text-xs text-muted-foreground">
+                          {money(item.yearlyPrice)} billed yearly
+                        </p>
                       )}
                     </div>
                     <Button variant="outline" asChild>
@@ -230,8 +256,8 @@ function Index() {
               ))}
             </div>
             <p className="mt-6 text-sm text-muted-foreground">
-              Prices are read live from the AntheticPlus price matrix — the same table our admin team edits, so what you
-              see is what you are billed.
+              Prices are read live from the AntheticPlus price matrix — the same table our admin
+              team edits, so what you see is what you are billed.
             </p>
           </div>
         </section>
@@ -266,13 +292,16 @@ function Index() {
         <section className="px-4 py-20 sm:px-6 sm:py-28">
           <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.9fr_1.1fr]">
             <div>
-              <p className="text-sm font-bold uppercase tracking-wide text-primary">Why AntheticPlus</p>
+              <p className="text-sm font-bold uppercase tracking-wide text-primary">
+                Why AntheticPlus
+              </p>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
                 Automation you can actually audit.
               </h2>
               <p className="mt-4 text-muted-foreground">
-                Most AI tools hand you a chat window. We hand you a system with a contract: a domain lock, a written
-                transcript, a usage ledger and a renewal calendar you can see from your own dashboard.
+                Most AI tools hand you a chat window. We hand you a system with a contract: a domain
+                lock, a written transcript, a usage ledger and a renewal calendar you can see from
+                your own dashboard.
               </p>
               <Button className="mt-8" asChild>
                 <Link to="/auth">
@@ -282,7 +311,10 @@ function Index() {
             </div>
             <div className="space-y-4">
               {reasons.map((reason) => (
-                <div key={reason.title} className="flex gap-4 rounded-2xl border border-border bg-card p-6">
+                <div
+                  key={reason.title}
+                  className="flex gap-4 rounded-2xl border border-border bg-card p-6"
+                >
                   <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
                     <reason.icon className="h-5 w-5" />
                   </div>
@@ -301,8 +333,9 @@ function Index() {
           <div className="mx-auto max-w-5xl">
             <Quote className="h-8 w-8 text-primary/60" />
             <blockquote className="mt-5 text-2xl font-bold leading-relaxed tracking-tight sm:text-3xl">
-              “We stopped losing after-hours enquiries the week the receptionist went live. The transcripts are the part
-              our team actually trusts — we can read exactly what was promised to the patient.”
+              “We stopped losing after-hours enquiries the week the receptionist went live. The
+              transcripts are the part our team actually trusts — we can read exactly what was
+              promised to the patient.”
             </blockquote>
             <p className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
               <Clock3 className="h-4 w-4 text-primary" />
@@ -314,12 +347,16 @@ function Index() {
         {/* FAQ */}
         <section className="px-4 py-20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-4xl">
-            <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Questions before you order</h2>
+            <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+              Questions before you order
+            </h2>
             <Accordion type="single" collapsible className="mt-8">
               {faqs.map((faq, index) => (
                 <AccordionItem key={faq.q} value={`item-${index}`}>
                   <AccordionTrigger className="text-left font-bold">{faq.q}</AccordionTrigger>
-                  <AccordionContent className="text-sm leading-7 text-muted-foreground">{faq.a}</AccordionContent>
+                  <AccordionContent className="text-sm leading-7 text-muted-foreground">
+                    {faq.a}
+                  </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
@@ -333,8 +370,9 @@ function Index() {
               Put your first AI system to work this week.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-              Open an account, tell us about your business, and submit your first order. Verification is manual and
-              personal — a person checks it, then your automation goes live.
+              Open an account, tell us about your business, and submit your first order.
+              Verification is manual and personal — a person checks it, then your automation goes
+              live.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button size="lg" asChild>

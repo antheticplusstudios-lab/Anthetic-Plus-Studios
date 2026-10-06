@@ -7,11 +7,19 @@ import { createHmac, randomUUID, timingSafeEqual } from "crypto";
 
 const TTL_MS = 10 * 60 * 1000;
 
-export type ActionPayload = { id: string; uid: string; tool: string; input: unknown; exp: number; rid: string };
+export type ActionPayload = {
+  id: string;
+  uid: string;
+  tool: string;
+  input: unknown;
+  exp: number;
+  rid: string;
+};
 
 function key(): Buffer {
   const master = process.env.ANTHETICPLUS_DB3_MASTER_KEY;
-  if (!master) throw new Error("Missing required server environment variable: ANTHETICPLUS_DB3_MASTER_KEY");
+  if (!master)
+    throw new Error("Missing required server environment variable: ANTHETICPLUS_DB3_MASTER_KEY");
   return createHmac("sha256", master).update("assistant-action-v1").digest();
 }
 
@@ -19,8 +27,20 @@ function sign(body: string) {
   return createHmac("sha256", key()).update(body).digest("base64url");
 }
 
-export function createActionToken(args: { uid: string; tool: string; input: unknown; rid: string }) {
-  const payload: ActionPayload = { id: randomUUID(), uid: args.uid, tool: args.tool, input: args.input, exp: Date.now() + TTL_MS, rid: args.rid };
+export function createActionToken(args: {
+  uid: string;
+  tool: string;
+  input: unknown;
+  rid: string;
+}) {
+  const payload: ActionPayload = {
+    id: randomUUID(),
+    uid: args.uid,
+    tool: args.tool,
+    input: args.input,
+    exp: Date.now() + TTL_MS,
+    rid: args.rid,
+  };
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
   return { token: `${body}.${sign(body)}`, payload };
 }

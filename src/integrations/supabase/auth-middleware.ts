@@ -27,25 +27,28 @@ export type AuthContext = {
   tenant: TenantContext;
 };
 
-export const requireSupabaseAuth = createMiddleware({ type: "function" }).server(async ({ next }) => {
-  const request = getRequest();
-  const authHeader = request?.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) throw new Response("Unauthorized", { status: 401 });
-  const token = authHeader.slice("Bearer ".length).trim();
-  if (!token || token.split(".").length !== 3) throw new Response("Unauthorized", { status: 401 });
+export const requireSupabaseAuth = createMiddleware({ type: "function" }).server(
+  async ({ next }) => {
+    const request = getRequest();
+    const authHeader = request?.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) throw new Response("Unauthorized", { status: 401 });
+    const token = authHeader.slice("Bearer ".length).trim();
+    if (!token || token.split(".").length !== 3)
+      throw new Response("Unauthorized", { status: 401 });
 
-  const supabase = createAuthClient(token);
-  const { data, error } = await supabase.auth.getClaims(token);
-  if (error || !data?.claims?.sub) throw new Response("Unauthorized", { status: 401 });
+    const supabase = createAuthClient(token);
+    const { data, error } = await supabase.auth.getClaims(token);
+    if (error || !data?.claims?.sub) throw new Response("Unauthorized", { status: 401 });
 
-  const claims = data.claims as Record<string, unknown>;
-  const tenant = await resolveTenantContext(token, claims);
-  return next({
-    context: {
-      supabase,
-      userId: String(data.claims.sub),
-      claims,
-      tenant,
-    } satisfies AuthContext,
-  });
-});
+    const claims = data.claims as Record<string, unknown>;
+    const tenant = await resolveTenantContext(token, claims);
+    return next({
+      context: {
+        supabase,
+        userId: String(data.claims.sub),
+        claims,
+        tenant,
+      } satisfies AuthContext,
+    });
+  },
+);

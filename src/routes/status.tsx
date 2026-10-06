@@ -20,7 +20,8 @@ export const Route = createFileRoute("/status")({
       { property: "og:title", content: "System Status — AntheticPlus Studios" },
       {
         property: "og:description",
-        content: "Live availability for the database, widget API, AI inference and scheduled billing jobs.",
+        content:
+          "Live availability for the database, widget API, AI inference and scheduled billing jobs.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -35,7 +36,9 @@ function Dot({ ok }: { ok: boolean }) {
       <span
         className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-70 ${ok ? "bg-success" : "bg-foreground"}`}
       />
-      <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${ok ? "bg-success" : "bg-foreground"}`} />
+      <span
+        className={`relative inline-flex h-2.5 w-2.5 rounded-full ${ok ? "bg-success" : "bg-foreground"}`}
+      />
     </span>
   );
 }
@@ -81,8 +84,8 @@ function StatusPage() {
                 <Activity className="h-6 w-6 text-primary" /> System status
               </h1>
               <p className="mt-2 text-muted-foreground">
-                {allOk ? "All systems operational." : "Some systems need attention."} Refreshed automatically every 30
-                seconds.
+                {allOk ? "All systems operational." : "Some systems need attention."} Refreshed
+                automatically every 30 seconds.
               </p>
             </div>
             <Button variant="outline" onClick={() => void refetch()} disabled={isFetching}>

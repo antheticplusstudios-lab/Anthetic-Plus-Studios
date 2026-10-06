@@ -1,65 +1,71 @@
 # AntheticPlus Suite — Audit Pass Report (2026-10-04)
 
-**Scope honesty.** This pass was a *partial* audit performed in a sandbox where `npm install` is blocked (registry returned HTTP 403) and no live Supabase project was inspected. Only a syntax-level check (TypeScript `transpileModule`, `py_compile`) could be run on changed files. **Typecheck, build, tests and lint were NOT run.** DB1–DB4 were audited only against the SQL in `docs/database-bootstrap/`, not against live schemas. Large parts of the codebase (most of `src/lib/*.functions.ts`, admin routes, billing/place_order, knowledge/RAG, assistant tool authorization, the Python backend beyond `main.py`) were **not** reviewed in this pass.
+**Scope honesty.** This pass was a _partial_ audit performed in a sandbox where `npm install` is blocked (registry returned HTTP 403) and no live Supabase project was inspected. Only a syntax-level check (TypeScript `transpileModule`, `py_compile`) could be run on changed files. **Typecheck, build, tests and lint were NOT run.** DB1–DB4 were audited only against the SQL in `docs/database-bootstrap/`, not against live schemas. Large parts of the codebase (most of `src/lib/*.functions.ts`, admin routes, billing/place_order, knowledge/RAG, assistant tool authorization, the Python backend beyond `main.py`) were **not** reviewed in this pass.
 
 ## Fixed in this pass (implemented, syntax-checked only)
 
-| # | Sev | File | Problem → Fix |
-|---|-----|------|---------------|
-| 1 | **P0** | `src/server/auth/tenant.server.ts` | `handle_new_user` (DB1) inserts every self-signup as `organization_members.role='owner'`; `resolveTenantContext` merged that into the platform role set, so **every customer satisfied `isSuperAdmin` and passed `assertAdmin`/`assertOwner`**. Platform roles now come only from `user_roles`; org role is exposed separately as `orgRole`. Display `role` defaults to `client`. |
-| 2 | **P0** | same | `profiles.default_organization_id` is user-writable under RLS (`profiles_update`; the guard trigger protects only id/email), and was trusted as the tenant → cross-tenant access by setting it to another org UUID. It is now honoured only if the user has an **active membership** in that org. |
-| 3 | P1 | same | Lookup errors were silently treated as "no roles/restrictions". Now fail closed (503). Removed unused `authClient`. |
-| 4 | P1 | `src/routes/api/public/automations/webhook.ts` | Wrote `automation_events.status` = `rejected`/`queued`, which violate the DB4 CHECK (`received/enqueued/ignored/failed`); update errors were unchecked, so events stayed `received`. Fixed values, check errors. |
-| 5 | P1 | same | Redelivery of an event that died between `received` and enqueue was answered `duplicate` and **lost forever**. Duplicates are now only skipped if `enqueued`/`ignored`; otherwise re-attempted. Enqueue failures mark the event `failed` and return 500 so the provider redelivers. |
-| 6 | P1 | `src/lib/automation-engine.server.ts` | `enqueue_automation_execution` RETURNS TABLE → array; caller read `exec.id` (always undefined), so `execution_id` was never linked. `enqueueExecution` now returns `{ id, created }`. |
-| 7 | P1 | `src/voice/use-voice-loop.ts` | (a) `reply === null` left the state stuck in `processing`; (b) side effects (`listen()`, `abort()`) ran inside a `setMuted` updater (double-invoked under StrictMode) and read a stale `state`, so unmuting while speaking/processing could open the mic during TTS; (c) mute/TTS-unsupported paths could resume listening while muted. State is now mirrored in a ref via one setter; mute logic is outside the updater. Ring priority (muted red > speaking green > idle white) in `assistant-console.tsx` was already correct and is unchanged. |
-| 8 | P1 | `src/components/magic-marble.tsx` | If WebGL construction threw, the effect returned and left a **blank area**. Added a CSS/DOM animated fallback orb (palette- and speed-reactive, honours `prefers-reduced-motion`) and `webglcontextlost` handling. |
-| 9 | P1 | `backend/app/main.py` | WebSocket chat had no subscription check and no rate limit (POST path had both). Added both. Persistence/outbox parity is still missing (see below). |
-| 10 | P3 | `.env.example` | Added `RESEND_FROM_EMAIL` (used in code, undocumented). |
+| #   | Sev    | File                                           | Problem → Fix                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| --- | ------ | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **P0** | `src/server/auth/tenant.server.ts`             | `handle_new_user` (DB1) inserts every self-signup as `organization_members.role='owner'`; `resolveTenantContext` merged that into the platform role set, so **every customer satisfied `isSuperAdmin` and passed `assertAdmin`/`assertOwner`**. Platform roles now come only from `user_roles`; org role is exposed separately as `orgRole`. Display `role` defaults to `client`.                                                                                                                                                                  |
+| 2   | **P0** | same                                           | `profiles.default_organization_id` is user-writable under RLS (`profiles_update`; the guard trigger protects only id/email), and was trusted as the tenant → cross-tenant access by setting it to another org UUID. It is now honoured only if the user has an **active membership** in that org.                                                                                                                                                                                                                                                  |
+| 3   | P1     | same                                           | Lookup errors were silently treated as "no roles/restrictions". Now fail closed (503). Removed unused `authClient`.                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 4   | P1     | `src/routes/api/public/automations/webhook.ts` | Wrote `automation_events.status` = `rejected`/`queued`, which violate the DB4 CHECK (`received/enqueued/ignored/failed`); update errors were unchecked, so events stayed `received`. Fixed values, check errors.                                                                                                                                                                                                                                                                                                                                   |
+| 5   | P1     | same                                           | Redelivery of an event that died between `received` and enqueue was answered `duplicate` and **lost forever**. Duplicates are now only skipped if `enqueued`/`ignored`; otherwise re-attempted. Enqueue failures mark the event `failed` and return 500 so the provider redelivers.                                                                                                                                                                                                                                                                |
+| 6   | P1     | `src/lib/automation-engine.server.ts`          | `enqueue_automation_execution` RETURNS TABLE → array; caller read `exec.id` (always undefined), so `execution_id` was never linked. `enqueueExecution` now returns `{ id, created }`.                                                                                                                                                                                                                                                                                                                                                              |
+| 7   | P1     | `src/voice/use-voice-loop.ts`                  | (a) `reply === null` left the state stuck in `processing`; (b) side effects (`listen()`, `abort()`) ran inside a `setMuted` updater (double-invoked under StrictMode) and read a stale `state`, so unmuting while speaking/processing could open the mic during TTS; (c) mute/TTS-unsupported paths could resume listening while muted. State is now mirrored in a ref via one setter; mute logic is outside the updater. Ring priority (muted red > speaking green > idle white) in `assistant-console.tsx` was already correct and is unchanged. |
+| 8   | P1     | `src/components/magic-marble.tsx`              | If WebGL construction threw, the effect returned and left a **blank area**. Added a CSS/DOM animated fallback orb (palette- and speed-reactive, honours `prefers-reduced-motion`) and `webglcontextlost` handling.                                                                                                                                                                                                                                                                                                                                 |
+| 9   | P1     | `backend/app/main.py`                          | WebSocket chat had no subscription check and no rate limit (POST path had both). Added both. Persistence/outbox parity is still missing (see below).                                                                                                                                                                                                                                                                                                                                                                                               |
+| 10  | P3     | `.env.example`                                 | Added `RESEND_FROM_EMAIL` (used in code, undocumented).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 New test (not executed): `src/server/auth/tenant.server.test.ts` — 6 cases covering items 1–3.
 
 ## DB4 — SQL REQUIRED (not applied; no access)
+
 `docs/database-bootstrap/migrations/2026-10-04_db4_conversation_and_event_dedup.sql` (additive indexes, rollback included, pre-check query included):
+
 1. Partial unique index `conversations(automation_id, visitor_session)` — widget chat does SELECT-then-INSERT and can create duplicate conversations under concurrency.
 2. Per-automation unique index on `automation_events`. Dropping the old global `(provider, external_event_id)` constraint is **not safe yet** (needs a route change first; explained in the file).
 
 DB3 SQL required: **not determined** (DB3 contract not audited this pass). DB1/DB2 changes required: none identified, but **live inspection not done**.
 
 ## Remaining issues (found, not fixed)
-| Sev | Where | Issue | Recommendation |
-|-----|-------|-------|----------------|
-| P1 | DB1 `profiles_update` RLS | Users can write `default_organization_id` to any org. Code is now safe, but other SQL/RLS (`current user's org` helpers at lines ~321, ~635 of `01_db1_app_auth.sql`) key off it. | Add a guard trigger/WITH CHECK requiring active membership; verify live. |
-| P1 | `webhook.ts` auth | Inbound provider events authenticate with the global `CRON_SECRET`. One leaked secret can inject events for any tenant, and real providers (Twilio, Meta) cannot send a Bearer token. | Per-provider signature verification + per-automation secret. |
-| P1 | `backend/app/main.py` WS | Messages are not persisted and no outbox events are emitted, unlike POST. | Decide intended behaviour; mirror POST path. |
-| P1 | Python backend / Vercel | `outbox_worker.py` runs `while True`; Redis defaults to localhost; rate limiter **fails open** on Redis error. Not viable as-is on serverless. | Cron-driven batch worker, external Redis, explicit failure policy. |
-| P2 | `knowledge.functions.ts`, `improvements.functions.ts` | SSRF blocklist is string-based: misses `172.16/12`, IPv6, DNS rebinding/redirects. | Resolve DNS and validate IPs; block redirects. |
-| P2 | `magic-marble.tsx` | Loads HDRI/textures from `cdn.jsdelivr.net/gh/...@master` (unpinned, third-party). | Pin commit SHA or self-host in `public/`. |
-| P2 | `use-assistant-session.ts` | A spoken "yes" confirms a side-effecting pending action (server token is still user-bound). | Require an on-screen tap to confirm for side-effecting tools. |
-| P2 | `widget/chat.ts` | Existing conversation's `status` not checked; subscription check fails *closed* on missing row but ignores DB errors. | Check status; distinguish error vs. none. |
-| P2 | repo | No lockfile in the archive (`package-lock.json` absent) and `AUDIT_REPORT.md` claims one exists. `AUDIT_REPORT.md` claims were not independently verified. | Commit lockfile; run `npm ci`. |
-| — | everything not listed | **Unreviewed.** | Continue audit in an environment with network + Supabase access. |
+
+| Sev | Where                                                 | Issue                                                                                                                                                                                 | Recommendation                                                           |
+| --- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| P1  | DB1 `profiles_update` RLS                             | Users can write `default_organization_id` to any org. Code is now safe, but other SQL/RLS (`current user's org` helpers at lines ~321, ~635 of `01_db1_app_auth.sql`) key off it.     | Add a guard trigger/WITH CHECK requiring active membership; verify live. |
+| P1  | `webhook.ts` auth                                     | Inbound provider events authenticate with the global `CRON_SECRET`. One leaked secret can inject events for any tenant, and real providers (Twilio, Meta) cannot send a Bearer token. | Per-provider signature verification + per-automation secret.             |
+| P1  | `backend/app/main.py` WS                              | Messages are not persisted and no outbox events are emitted, unlike POST.                                                                                                             | Decide intended behaviour; mirror POST path.                             |
+| P1  | Python backend / Vercel                               | `outbox_worker.py` runs `while True`; Redis defaults to localhost; rate limiter **fails open** on Redis error. Not viable as-is on serverless.                                        | Cron-driven batch worker, external Redis, explicit failure policy.       |
+| P2  | `knowledge.functions.ts`, `improvements.functions.ts` | SSRF blocklist is string-based: misses `172.16/12`, IPv6, DNS rebinding/redirects.                                                                                                    | Resolve DNS and validate IPs; block redirects.                           |
+| P2  | `magic-marble.tsx`                                    | Loads HDRI/textures from `cdn.jsdelivr.net/gh/...@master` (unpinned, third-party).                                                                                                    | Pin commit SHA or self-host in `public/`.                                |
+| P2  | `use-assistant-session.ts`                            | A spoken "yes" confirms a side-effecting pending action (server token is still user-bound).                                                                                           | Require an on-screen tap to confirm for side-effecting tools.            |
+| P2  | `widget/chat.ts`                                      | Existing conversation's `status` not checked; subscription check fails _closed_ on missing row but ignores DB errors.                                                                 | Check status; distinguish error vs. none.                                |
+| P2  | repo                                                  | No lockfile in the archive (`package-lock.json` absent) and `AUDIT_REPORT.md` claims one exists. `AUDIT_REPORT.md` claims were not independently verified.                            | Commit lockfile; run `npm ci`.                                           |
+| —   | everything not listed                                 | **Unreviewed.**                                                                                                                                                                       | Continue audit in an environment with network + Supabase access.         |
 
 ## Environment variables (names only)
+
 Server secrets: `DB1_SERVICE_KEY`, `DB2_SERVICE_KEY`, `DB3_SERVICE_KEY`, `DB4_SERVICE_KEY`, `ANTHETICPLUS_DB3_MASTER_KEY`, `CRON_SECRET`, `CRON_SECRET_PREVIOUS`, `RESEND_API_KEY`, `REDIS_URL`.
 Server config: `DB1_URL`, `DB1_ANON_KEY` (alt `DB1_PUBLISHABLE_KEY`), `DB2_URL`, `DB3_URL`, `DB4_URL`, `FASTAPI_BACKEND_URL`, `FASTAPI_WS_URL`, `ALLOWED_WIDGET_HOSTS`, `RESEND_FROM_EMAIL`, `NITRO_PRESET`, `NODE_ENV`.
 Browser-safe (`VITE_*`): `VITE_DB1_URL`, `VITE_DB1_ANON_KEY`, `VITE_APP_URL`, `VITE_API_GATEWAY_URL`, `VITE_FASTAPI_WS_URL`.
 No service key or secret was found referenced from non-server files in a grep scan (not a proof of absence).
 
 ## Verification status
-| Check | Status | Detail |
-|-------|--------|--------|
-| `npm install` / `npm ci` | NOT RUN | registry 403 in sandbox |
-| `npm run typecheck` | NOT RUN | needs deps |
-| `npm run build` | NOT RUN | needs deps |
-| `npm test` | NOT RUN | new test file unexecuted |
-| `npm run lint` | NOT RUN | needs deps |
-| TS syntax transpile of changed files | PASS | 0 diagnostics (syntax only, no type info) |
-| `py_compile backend/app/main.py` | PASS | |
-| Live DB1–DB4 inspection | NOT DONE | |
-| Runtime/browser test of voice loop & marble fallback | NOT DONE | |
+
+| Check                                                | Status   | Detail                                    |
+| ---------------------------------------------------- | -------- | ----------------------------------------- |
+| `npm install` / `npm ci`                             | NOT RUN  | registry 403 in sandbox                   |
+| `npm run typecheck`                                  | NOT RUN  | needs deps                                |
+| `npm run build`                                      | NOT RUN  | needs deps                                |
+| `npm test`                                           | NOT RUN  | new test file unexecuted                  |
+| `npm run lint`                                       | NOT RUN  | needs deps                                |
+| TS syntax transpile of changed files                 | PASS     | 0 diagnostics (syntax only, no type info) |
+| `py_compile backend/app/main.py`                     | PASS     |                                           |
+| Live DB1–DB4 inspection                              | NOT DONE |                                           |
+| Runtime/browser test of voice loop & marble fallback | NOT DONE |                                           |
 
 ## Manual steps required
+
 1. Run `npm ci && npm run typecheck && npm run build && npm test && npm run lint` and fix anything my edits broke (notably types in `magic-marble.tsx` and `use-voice-loop.ts`).
 2. Review and apply the DB4 SQL file.
 3. Deploy the tenant fix **before** anything else; then audit live `user_roles` / `organization_members` for unintended rows.

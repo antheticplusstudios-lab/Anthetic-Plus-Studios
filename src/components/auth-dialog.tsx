@@ -83,8 +83,8 @@ export function AuthPanel({
         </motion.div>
         <h2 className="mt-5 text-xl font-extrabold">Confirm your email</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          We sent a confirmation link to <strong>{email}</strong>. Open it, then sign in right here — you never have to
-          leave this page.
+          We sent a confirmation link to <strong>{email}</strong>. Open it, then sign in right here
+          — you never have to leave this page.
         </p>
         <Button
           variant="outline"

@@ -134,7 +134,9 @@ function normalizeStateConfig(value: unknown, fallback: WidgetStateConfig) {
     enabled: typeof source.enabled === "boolean" ? source.enabled : fallback.enabled,
     speed: asNumber(source.speed, fallback.speed, 0, 5),
     energy: asNumber(source.energy, fallback.energy, 0, 3),
-    ...(source.color ? { color: asHex(source.color, fallback.color ?? DEFAULT_WIDGET_CONFIG.primary) } : {}),
+    ...(source.color
+      ? { color: asHex(source.color, fallback.color ?? DEFAULT_WIDGET_CONFIG.primary) }
+      : {}),
   } satisfies WidgetStateConfig;
 }
 
@@ -146,11 +148,12 @@ export function normalizeWidgetConfig(input: unknown): WidgetConfig {
   const legacyCenterSize = raw.centerSize !== undefined ? Number(raw.centerSize) : NaN;
   const legacyTilt = raw.tilt !== undefined ? Number(raw.tilt) : NaN;
 
-  const stateSource = raw.stateAnimations && typeof raw.stateAnimations === "object"
-    ? (raw.stateAnimations as Record<string, unknown>)
-    : raw.states && typeof raw.states === "object"
-      ? (raw.states as Record<string, unknown>)
-      : {};
+  const stateSource =
+    raw.stateAnimations && typeof raw.stateAnimations === "object"
+      ? (raw.stateAnimations as Record<string, unknown>)
+      : raw.states && typeof raw.states === "object"
+        ? (raw.states as Record<string, unknown>)
+        : {};
 
   const stateAnimations = Object.fromEntries(
     WIDGET_STATES.map((state) => {
@@ -160,10 +163,14 @@ export function normalizeWidgetConfig(input: unknown): WidgetConfig {
     }),
   ) as WidgetConfig["stateAnimations"];
 
-  const labelsSource = raw.labels && typeof raw.labels === "object" ? (raw.labels as Record<string, unknown>) : {};
+  const labelsSource =
+    raw.labels && typeof raw.labels === "object" ? (raw.labels as Record<string, unknown>) : {};
 
   const primary = asHex(raw.primary ?? raw.orb_color_primary, DEFAULT_WIDGET_CONFIG.primary);
-  const secondary = asHex(raw.secondary ?? raw.orb_color_secondary, DEFAULT_WIDGET_CONFIG.secondary);
+  const secondary = asHex(
+    raw.secondary ?? raw.orb_color_secondary,
+    DEFAULT_WIDGET_CONFIG.secondary,
+  );
   const glow = asHex(raw.glow ?? raw.orb_color_accent ?? raw.accent, primary);
   const center = asHex(raw.center ?? raw.centerColor, DEFAULT_WIDGET_CONFIG.center);
 
@@ -176,35 +183,102 @@ export function normalizeWidgetConfig(input: unknown): WidgetConfig {
     size: asNumber(raw.size, DEFAULT_WIDGET_CONFIG.size, 44, 132),
     position: raw.position === "bottom-left" ? "bottom-left" : "bottom-right",
     ballCount: Math.round(asNumber(raw.ballCount, DEFAULT_WIDGET_CONFIG.ballCount, 8, 128)),
-    radius: legacyRadius > 0 && legacyRadius <= 0.6 ? legacyRadius * 50 : asNumber(raw.radius, DEFAULT_WIDGET_CONFIG.radius, 8, 60),
-    ballSize: legacyBallSize > 0 && legacyBallSize <= 0.35 ? legacyBallSize * 25 : asNumber(raw.ballSize, DEFAULT_WIDGET_CONFIG.ballSize, 1, 12),
-    centerSize: legacyCenterSize >= 0 && legacyCenterSize <= 0.5 ? legacyCenterSize * 172 : asNumber(raw.centerSize, DEFAULT_WIDGET_CONFIG.centerSize, 3, 70),
-    tilt: legacyTilt >= 0 && legacyTilt <= 1 ? legacyTilt * 140 : asNumber(raw.tilt, DEFAULT_WIDGET_CONFIG.tilt, 0, 180),
+    radius:
+      legacyRadius > 0 && legacyRadius <= 0.6
+        ? legacyRadius * 50
+        : asNumber(raw.radius, DEFAULT_WIDGET_CONFIG.radius, 8, 60),
+    ballSize:
+      legacyBallSize > 0 && legacyBallSize <= 0.35
+        ? legacyBallSize * 25
+        : asNumber(raw.ballSize, DEFAULT_WIDGET_CONFIG.ballSize, 1, 12),
+    centerSize:
+      legacyCenterSize >= 0 && legacyCenterSize <= 0.5
+        ? legacyCenterSize * 172
+        : asNumber(raw.centerSize, DEFAULT_WIDGET_CONFIG.centerSize, 3, 70),
+    tilt:
+      legacyTilt >= 0 && legacyTilt <= 1
+        ? legacyTilt * 140
+        : asNumber(raw.tilt, DEFAULT_WIDGET_CONFIG.tilt, 0, 180),
     variation: asNumber(raw.variation, DEFAULT_WIDGET_CONFIG.variation, 0, 1),
     shine: typeof raw.shine === "number" ? raw.shine > 0 : raw.shine !== false,
     speed: asNumber(raw.speed ?? raw.animation_speed, DEFAULT_WIDGET_CONFIG.speed, 0.1, 4),
     stateAnimations,
     labels: Object.fromEntries(
-      WIDGET_STATES.map((state) => [state, typeof labelsSource[state] === "string" ? labelsSource[state] : DEFAULT_WIDGET_CONFIG.labels[state]]),
+      WIDGET_STATES.map((state) => [
+        state,
+        typeof labelsSource[state] === "string"
+          ? labelsSource[state]
+          : DEFAULT_WIDGET_CONFIG.labels[state],
+      ]),
     ) as WidgetConfig["labels"],
-    welcome: String(raw.welcome ?? raw.text ?? raw.greeting_text ?? DEFAULT_WIDGET_CONFIG.welcome).slice(0, 400),
+    welcome: String(
+      raw.welcome ?? raw.text ?? raw.greeting_text ?? DEFAULT_WIDGET_CONFIG.welcome,
+    ).slice(0, 400),
     placeholder: String(raw.placeholder ?? DEFAULT_WIDGET_CONFIG.placeholder).slice(0, 120),
     sound: raw.sound === true,
     chat: {
-      title: String((raw.chat && typeof raw.chat === "object" ? (raw.chat as Record<string, unknown>).title : raw.title) ?? DEFAULT_WIDGET_CONFIG.chat.title).slice(0, 60),
-      subtitle: String((raw.chat && typeof raw.chat === "object" ? (raw.chat as Record<string, unknown>).subtitle : raw.subtitle) ?? DEFAULT_WIDGET_CONFIG.chat.subtitle).slice(0, 80),
-      autoOpen: Boolean((raw.chat && typeof raw.chat === "object" ? (raw.chat as Record<string, unknown>).autoOpen : raw.autoOpen) ?? false),
+      title: String(
+        (raw.chat && typeof raw.chat === "object"
+          ? (raw.chat as Record<string, unknown>).title
+          : raw.title) ?? DEFAULT_WIDGET_CONFIG.chat.title,
+      ).slice(0, 60),
+      subtitle: String(
+        (raw.chat && typeof raw.chat === "object"
+          ? (raw.chat as Record<string, unknown>).subtitle
+          : raw.subtitle) ?? DEFAULT_WIDGET_CONFIG.chat.subtitle,
+      ).slice(0, 80),
+      autoOpen: Boolean(
+        (raw.chat && typeof raw.chat === "object"
+          ? (raw.chat as Record<string, unknown>).autoOpen
+          : raw.autoOpen) ?? false,
+      ),
     },
     mobile: {
-      hidden: Boolean((raw.mobile && typeof raw.mobile === "object" ? (raw.mobile as Record<string, unknown>).hidden : raw.mobileHidden) ?? false),
-      size: asNumber((raw.mobile && typeof raw.mobile === "object" ? (raw.mobile as Record<string, unknown>).size : raw.mobileSize), DEFAULT_WIDGET_CONFIG.mobile.size, 40, 100),
+      hidden: Boolean(
+        (raw.mobile && typeof raw.mobile === "object"
+          ? (raw.mobile as Record<string, unknown>).hidden
+          : raw.mobileHidden) ?? false,
+      ),
+      size: asNumber(
+        raw.mobile && typeof raw.mobile === "object"
+          ? (raw.mobile as Record<string, unknown>).size
+          : raw.mobileSize,
+        DEFAULT_WIDGET_CONFIG.mobile.size,
+        40,
+        100,
+      ),
     },
     desktop: {
-      size: asNumber((raw.desktop && typeof raw.desktop === "object" ? (raw.desktop as Record<string, unknown>).size : raw.size), DEFAULT_WIDGET_CONFIG.desktop.size, 44, 132),
+      size: asNumber(
+        raw.desktop && typeof raw.desktop === "object"
+          ? (raw.desktop as Record<string, unknown>).size
+          : raw.size,
+        DEFAULT_WIDGET_CONFIG.desktop.size,
+        44,
+        132,
+      ),
     },
-    fallback: { enabled: raw.fallback && typeof raw.fallback === "object" ? (raw.fallback as Record<string, unknown>).enabled !== false : true, type: "static" },
-    advanced: { debug: raw.advanced && typeof raw.advanced === "object" ? Boolean((raw.advanced as Record<string, unknown>).debug) : false },
-    retrievalTopK: Math.round(asNumber(raw.retrievalTopK, DEFAULT_WIDGET_CONFIG.retrievalTopK ?? 8, 1, 20)),
-    behavior: typeof raw.behavior === "string" ? raw.behavior.slice(0, 4000) : typeof raw.owner_instructions === "string" ? raw.owner_instructions.slice(0, 4000) : "",
+    fallback: {
+      enabled:
+        raw.fallback && typeof raw.fallback === "object"
+          ? (raw.fallback as Record<string, unknown>).enabled !== false
+          : true,
+      type: "static",
+    },
+    advanced: {
+      debug:
+        raw.advanced && typeof raw.advanced === "object"
+          ? Boolean((raw.advanced as Record<string, unknown>).debug)
+          : false,
+    },
+    retrievalTopK: Math.round(
+      asNumber(raw.retrievalTopK, DEFAULT_WIDGET_CONFIG.retrievalTopK ?? 8, 1, 20),
+    ),
+    behavior:
+      typeof raw.behavior === "string"
+        ? raw.behavior.slice(0, 4000)
+        : typeof raw.owner_instructions === "string"
+          ? raw.owner_instructions.slice(0, 4000)
+          : "",
   };
 }

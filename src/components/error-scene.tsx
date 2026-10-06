@@ -4,7 +4,15 @@ import type { ReactNode } from "react";
  * Looping error scene: a little receptionist bot whose signal keeps
  * pinging out into the void while its antenna searches for a connection.
  */
-export function ErrorScene({ code, title, children }: { code: string; title: string; children: ReactNode }) {
+export function ErrorScene({
+  code,
+  title,
+  children,
+}: {
+  code: string;
+  title: string;
+  children: ReactNode;
+}) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
       <div className="err-grid pointer-events-none absolute inset-0" aria-hidden />
@@ -28,7 +36,10 @@ export function ErrorScene({ code, title, children }: { code: string; title: str
             </div>
           </div>
         </div>
-        <p className="err-glitch mt-6 text-7xl font-extrabold tabular-nums tracking-tight text-foreground" data-text={code}>
+        <p
+          className="err-glitch mt-6 text-7xl font-extrabold tabular-nums tracking-tight text-foreground"
+          data-text={code}
+        >
           {code}
         </p>
         <h1 className="mt-3 text-xl font-bold text-foreground">{title}</h1>

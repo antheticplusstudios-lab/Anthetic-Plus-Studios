@@ -5,6 +5,10 @@
     {
       "path": "/api/public/hooks/lifecycle",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/public/hooks/ai-knowledge",
+      "schedule": "30 6 * * *"
     }
   ]
 }

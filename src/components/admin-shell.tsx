@@ -31,29 +31,134 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 export const adminNav = [
-  { label: "Command Center", to: "/admin", icon: LayoutDashboard, roles: ["owner", "admin", "partner"] },
-  { label: "Global Search", to: "/admin/search", icon: Search, roles: ["owner", "admin", "partner"] },
+  {
+    label: "Command Center",
+    to: "/admin",
+    icon: LayoutDashboard,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Global Search",
+    to: "/admin/search",
+    icon: Search,
+    roles: ["owner", "admin", "partner"],
+  },
   { label: "Emergency Controls", to: "/admin/emergency", icon: ShieldAlert, roles: ["owner"] },
-  { label: "Orders Ledger", to: "/admin/orders", icon: BadgeDollarSign, roles: ["owner", "admin", "partner"] },
-  { label: "Verification Queue", to: "/admin/verification", icon: ClipboardCheck, roles: ["owner", "admin", "partner", "verifier"] },
-  { label: "Automation Creator", to: "/admin/creator", icon: Wand2, roles: ["owner", "admin", "partner"] },
-  { label: "Knowledge Drafts", to: "/admin/knowledge", icon: BookOpenText, roles: ["owner", "admin", "partner"] },
-  { label: "AI Assistants (AntheticPlus · Autumic)", to: "/admin/assistants", icon: Globe2, roles: ["owner", "admin"] },
-  { label: "AI Voice Agent", to: "/admin/voice-agent", icon: Sparkles, roles: ["owner", "admin", "partner"] },
-  { label: "Automations & Transcripts", to: "/admin/automations", icon: Bot, roles: ["owner", "admin", "partner"] },
-  { label: "Round-Robin", to: "/admin/automations/round-robin", icon: Users, roles: ["owner", "admin", "partner"] },
-  { label: "Workflow Automation", to: "/admin/automations/workflow", icon: Clock, roles: ["owner", "admin", "partner"] },
-  { label: "All Automations", to: "/admin/catalog", icon: Boxes, roles: ["owner", "admin", "partner"] },
-  { label: "Analytics", to: "/admin/analytics", icon: BarChart3, roles: ["owner", "admin", "partner"] },
-  { label: "Client CRM & Tags", to: "/admin/crm", icon: Tags, roles: ["owner", "admin", "partner"] },
-  { label: "Subscription Lifecycle", to: "/admin/lifecycle", icon: Clock, roles: ["owner", "admin", "partner"] },
-  { label: "Pricing Configurator", to: "/admin/pricing", icon: Sparkles, roles: ["owner", "admin", "partner"] },
-  { label: "Infrastructure & Groq Pool", to: "/admin/infrastructure", icon: ServerCog, roles: ["owner"] },
-  { label: "Team & Audit Trail", to: "/admin/team", icon: Users, roles: ["owner", "admin", "partner"] },
-  { label: "Live Automations", to: "/admin/receptionist", icon: Bot, roles: ["owner", "admin", "partner"] },
-  { label: "Payment Methods", to: "/admin/payment-methods", icon: BadgeDollarSign, roles: ["owner"] },
+  {
+    label: "Orders Ledger",
+    to: "/admin/orders",
+    icon: BadgeDollarSign,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Verification Queue",
+    to: "/admin/verification",
+    icon: ClipboardCheck,
+    roles: ["owner", "admin", "partner", "verifier"],
+  },
+  {
+    label: "Automation Creator",
+    to: "/admin/creator",
+    icon: Wand2,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Knowledge Drafts",
+    to: "/admin/knowledge",
+    icon: BookOpenText,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "AI Assistants (AntheticPlus · Autumic)",
+    to: "/admin/assistants",
+    icon: Globe2,
+    roles: ["owner", "admin"],
+  },
+  {
+    label: "AI Voice Agent",
+    to: "/admin/voice-agent",
+    icon: Sparkles,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Automations & Transcripts",
+    to: "/admin/automations",
+    icon: Bot,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Round-Robin",
+    to: "/admin/automations/round-robin",
+    icon: Users,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Workflow Automation",
+    to: "/admin/automations/workflow",
+    icon: Clock,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "All Automations",
+    to: "/admin/catalog",
+    icon: Boxes,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Analytics",
+    to: "/admin/analytics",
+    icon: BarChart3,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Client CRM & Tags",
+    to: "/admin/crm",
+    icon: Tags,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Subscription Lifecycle",
+    to: "/admin/lifecycle",
+    icon: Clock,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Pricing Configurator",
+    to: "/admin/pricing",
+    icon: Sparkles,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Infrastructure & Groq Pool",
+    to: "/admin/infrastructure",
+    icon: ServerCog,
+    roles: ["owner"],
+  },
+  {
+    label: "Team & Audit Trail",
+    to: "/admin/team",
+    icon: Users,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Live Automations",
+    to: "/admin/receptionist",
+    icon: Bot,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
+    label: "Payment Methods",
+    to: "/admin/payment-methods",
+    icon: BadgeDollarSign,
+    roles: ["owner"],
+  },
   { label: "AI Key Pool", to: "/admin/llm-keys", icon: ServerCog, roles: ["owner"] },
-  { label: "Conversation Diagnostics", to: "/admin/diagnostics", icon: Wand2, roles: ["owner", "admin", "partner", "verifier"] },
+  {
+    label: "Conversation Diagnostics",
+    to: "/admin/diagnostics",
+    icon: Wand2,
+    roles: ["owner", "admin", "partner", "verifier"],
+  },
   { label: "System Settings", to: "/admin/settings", icon: SlidersHorizontal, roles: ["owner"] },
 ] as const;
 
@@ -80,8 +185,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </Button>
         </div>
         <div className="mb-5 rounded-xl border border-primary/25 bg-secondary px-3 py-2.5">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Signed in as</p>
-          <p className="truncate text-sm font-extrabold capitalize text-primary">{role === "partner" ? "Partner" : role}</p>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+            Signed in as
+          </p>
+          <p className="truncate text-sm font-extrabold capitalize text-primary">
+            {role === "partner" ? "Partner" : role}
+          </p>
         </div>
         <nav className="grid min-h-0 flex-1 content-start gap-1 overflow-y-auto">
           {nav.map((item) => {
@@ -113,7 +222,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </Link>
       </aside>
       {open && (
-        <div className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden" onClick={() => setOpen(false)} />
+        <div
+          className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden"
+          onClick={() => setOpen(false)}
+        />
       )}
       <div className="lg:pl-72">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-xl sm:px-8">
@@ -121,7 +233,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)}>
               <Menu />
             </Button>
-            <p className="hidden text-sm font-bold text-muted-foreground sm:block">AntheticPlus Studios · Control Center</p>
+            <p className="hidden text-sm font-bold text-muted-foreground sm:block">
+              AntheticPlus Studios · Control Center
+            </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <AssistantPanel />

@@ -3,6 +3,7 @@
 ## What was verified and hardened
 
 ### Voice Agent UI
+
 - Added the animated marble status ring:
   - **Green** while the assistant is speaking.
   - **White** while idle/ready/listening/processing/error unless muted.
@@ -13,16 +14,19 @@
 - Voice send failures are caught and shown as a recoverable error instead of leaving the voice loop stuck in `processing`.
 
 ### AI assistant
+
 - Strengthened the shared assistant system prompt around authoritative live data, tool use, verification, clarification and action safety.
 - Increased the supported assistant token ceiling to 2400 with a 1200-token default.
 - Preserved one shared assistant brain for text and voice.
 - Preserved confirmation-before-side-effect behavior and server-side authorization checks.
 
 ### LLM reliability
+
 - Hardened `src/lib/llm-router.server.ts` so a successful provider response is returned even if usage/audit logging or the key usage counter fails.
 - Logging/cooldown bookkeeping failures are now logged separately instead of incorrectly causing a second provider request after a successful LLM call.
 
 ### Build/dependency cleanup
+
 - Removed obsolete Bun artifacts: `bunfig.toml` and `bun.lock`.
 - Removed the `.lovable/` project metadata and unused Lovable runtime reporter.
 - Removed the active Lovable Vite build dependency.
@@ -36,6 +40,7 @@
 - Kept the production Vercel/TanStack configuration explicit instead of depending on a hosted builder wrapper.
 
 ### Scope cleanup
+
 - Appointment & No-Show Recovery remains removed.
 - Review Collector remains removed.
 - No production SQL changes were executed during this audit because the inspected voice-agent settings row was absent and application defaults already cover the runtime configuration.

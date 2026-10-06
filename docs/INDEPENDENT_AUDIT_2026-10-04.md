@@ -16,26 +16,31 @@ This audit was performed independently against `antheticplus-suite-audited.zip`.
 ## Additional findings beyond Claude's report
 
 ### P1 — Python backend tenant authorization trusted a user-writable profile field
+
 `backend/app/security.py` selected `profiles.default_organization_id` and used it directly as `client_id` without checking `organization_members`. This was inconsistent with the hardened TypeScript tenant resolver and could permit cross-tenant access through backend endpoints.
 
 **Fixed in this copy:** backend tenant resolution now requires an active organization membership and uses the preferred organization only when membership exists; otherwise it falls back to the first active membership.
 
 ### P1 — DB1 still allowed authenticated users to mutate tenant-binding profile fields
+
 `profiles_update` permits users to update the entire profile row. `default_organization_id` and `client_id` are tenant-binding fields, while compatibility helpers also derive other tenant metadata from them.
 
 **Fixed in this copy:** added `2026-10-04_db1_profile_tenant_guard.sql`, a BEFORE UPDATE trigger that prevents authenticated users from changing `client_id` and requires any changed default organization to be an active membership. The migration is **not applied to production**.
 
 ### P1 — WebSocket path was still not persistence/outbox-equivalent
+
 Claude added subscription and rate-limit checks, but the WebSocket handler still only generated a response. It did not persist user/assistant messages or emit the same outbox events as the POST widget path.
 
 **Fixed in this copy:** WebSocket now checks active conversation status, persists both sides of the exchange, emits `message.created` outbox events, updates `last_message_at`, and uses recent conversation history.
 
 ### P1 — Redis rate limiter still failed open
+
 The backend returned `True` when Redis was unavailable, disabling a security control exactly when infrastructure was degraded.
 
 **Fixed in this copy:** Redis failure now produces a service-unavailable condition rather than silently bypassing rate limiting.
 
 ### P2 — SSRF protection was incomplete and redirect-unsafe
+
 The URL scraper blocked only a few string prefixes. It missed RFC1918 `172.16/12`, IPv6 local ranges, CGNAT and other special ranges, and `crawl()` followed redirects without validating redirect targets.
 
 **Fixed in this copy:** added DNS-resolution-based public-host validation, IPv4/IPv6 special-range checks, manual redirect validation, and a redirect cap. Both knowledge scrapers now use the same validation helper.

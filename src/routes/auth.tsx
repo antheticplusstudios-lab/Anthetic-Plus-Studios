@@ -5,7 +5,9 @@ import { motion } from "@/components/motion";
 
 export const Route = createFileRoute("/auth")({
   // Both params are optional so plain <Link to="/auth"> works from anywhere on the site.
-  validateSearch: (search: Record<string, unknown>): { redirect?: string; mode?: "signup" | "signin" } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { redirect?: string; mode?: "signup" | "signin" } => ({
     ...(typeof search["redirect"] === "string" ? { redirect: search["redirect"] as string } : {}),
     mode: search["mode"] === "signup" ? ("signup" as const) : ("signin" as const),
   }),

@@ -7,7 +7,16 @@ export type KnowledgeItem = {
   content: string;
   /** manual = admin-authored (higher authority); discovered = extracted from an approved source. */
   kind: "manual" | "discovered";
-  category: "business" | "service" | "product" | "faq" | "policy" | "contact" | "hours" | "pricing" | "other";
+  category:
+    | "business"
+    | "service"
+    | "product"
+    | "faq"
+    | "policy"
+    | "contact"
+    | "hours"
+    | "pricing"
+    | "other";
   status: "approved" | "needs_review" | "disabled";
   sourceId: string | null;
   updatedAt: string;

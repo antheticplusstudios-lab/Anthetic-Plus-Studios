@@ -14,8 +14,6 @@ export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminCommandCenter,
 });
 
-type AnyRow = any;
-
 function AdminCommandCenter() {
   const { data: payments = [], isLoading: paymentsLoading } = useAllPayments();
   const { data: instances = [], isLoading: instancesLoading } = useAllInstances();
@@ -23,42 +21,48 @@ function AdminCommandCenter() {
   const { data: failoverLog = [], isLoading: failoverLoading } = useFailoverLog();
   const { data: auditLog = [], isLoading: auditLoading } = useAuditLog();
 
-  if (paymentsLoading || instancesLoading || keysLoading || failoverLoading || auditLoading) return <Loading />;
+  if (paymentsLoading || instancesLoading || keysLoading || failoverLoading || auditLoading)
+    return <Loading />;
 
-  const approved = payments.filter((p: AnyRow) => p.status === "approved");
-  const mrr = approved.reduce((sum: number, p: AnyRow) => {
+  const approved = payments.filter((p) => p.status === "approved");
+  const mrr = approved.reduce((sum: number, p) => {
     const amount = Number(p.amount ?? 0);
     return sum + (p.billing_plan === "yearly" ? amount / 12 : amount);
   }, 0);
 
-  const activeAutomations = instances.filter((i: AnyRow) => isLive(i)).length;
-  const leadsCaptured = instances.reduce((s: number, i: AnyRow) => s + Number(i.leads_count ?? 0), 0);
-  const conversationsHandled = instances.reduce((s: number, i: AnyRow) => s + Number(i.conversations_count ?? 0), 0);
+  const activeAutomations = instances.filter((i) => isLive(i)).length;
+  const leadsCaptured = instances.reduce((s: number, i) => s + Number(i.leads_count ?? 0), 0);
+  const conversationsHandled = instances.reduce(
+    (s: number, i) => s + Number(i.conversations_count ?? 0),
+    0,
+  );
 
   const originCounts = new Map<string, number>();
-  for (const p of payments as AnyRow[]) {
+  for (const p of payments) {
     const origin = p.origin || "unknown";
     originCounts.set(origin, (originCounts.get(origin) ?? 0) + 1);
   }
   const totalPayments = payments.length || 1;
 
-  const enabledKeys = groqKeys.filter((k: AnyRow) => k.enabled);
-  const primaryKey = groqKeys.find((k: AnyRow) => k.is_primary);
-  const cooldownKeys = groqKeys.filter((k: AnyRow) => k.cooldown_until && new Date(k.cooldown_until).getTime() > Date.now());
+  const enabledKeys = groqKeys.filter((k) => k.enabled);
+  const primaryKey = groqKeys.find((k) => k.is_primary);
+  const cooldownKeys = groqKeys.filter(
+    (k) => k.cooldown_until && new Date(k.cooldown_until).getTime() > Date.now(),
+  );
   const recentFailover = [...failoverLog]
-    .sort((a: AnyRow, b: AnyRow) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
 
-  const pendingPayments = payments.filter((p: AnyRow) => p.status === "pending");
-  const expiringSoon = instances.filter((i: AnyRow) => {
+  const pendingPayments = payments.filter((p) => p.status === "pending");
+  const expiringSoon = instances.filter((i) => {
     const d = daysRemaining(i.expires_at);
     return (i.status === "paid" || i.status === "active") && d <= 5 && d > 0;
   });
-  const stoppedRevoked = instances.filter((i: AnyRow) => i.status === "stopped" || i.status === "revoked");
-  const awaitingSetup = instances.filter((i: AnyRow) => i.status === "paid" && !i.client_id);
+  const stoppedRevoked = instances.filter((i) => i.status === "stopped" || i.status === "revoked");
+  const awaitingSetup = instances.filter((i) => i.status === "paid" && !i.client_id);
 
   const recentAudit = [...auditLog]
-    .sort((a: AnyRow, b: AnyRow) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 8);
 
   const urgentItems: { icon: React.ReactNode; text: string; to: string }[] = [];
@@ -112,7 +116,9 @@ function AdminCommandCenter() {
       <div className="grid gap-6 xl:grid-cols-2">
         <Panel title="Attribution split" description="Where payments originate">
           {payments.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">No payments recorded yet.</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              No payments recorded yet.
+            </p>
           ) : (
             <div className="space-y-4">
               {[...originCounts.entries()].map(([origin, count]) => {
@@ -126,7 +132,10 @@ function AdminCommandCenter() {
                       </span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                      <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                   </div>
                 );
@@ -163,21 +172,27 @@ function AdminCommandCenter() {
               {cooldownKeys.length > 0 && (
                 <p className="text-xs font-semibold text-destructive">
                   {cooldownKeys.length} key(s) in cooldown until{" "}
-                  {cooldownKeys.map((k: AnyRow) => new Date(k.cooldown_until).toLocaleTimeString()).join(", ")}
+                  {cooldownKeys
+                    .map((k) => new Date(k.cooldown_until ?? 0).toLocaleTimeString())
+                    .join(", ")}
                 </p>
               )}
               <div>
-                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Recent failovers</p>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  Recent failovers
+                </p>
                 {recentFailover.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No failover events.</p>
                 ) : (
                   <ul className="space-y-2">
-                    {recentFailover.map((f: AnyRow) => (
+                    {recentFailover.map((f) => (
                       <li key={f.id} className="flex items-center justify-between text-sm">
                         <span className="font-semibold">
                           {f.status_code} · {f.message}
                         </span>
-                        <span className="text-xs text-muted-foreground">{timeAgo(f.created_at)}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {timeAgo(f.created_at)}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -191,11 +206,16 @@ function AdminCommandCenter() {
       <div className="grid gap-6 xl:grid-cols-2">
         <Panel title="Urgent actions">
           {urgentItems.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Nothing needs attention right now.</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Nothing needs attention right now.
+            </p>
           ) : (
             <ul className="space-y-3">
               {urgentItems.map((item, i) => (
-                <li key={i} className="flex items-center justify-between gap-3 rounded-xl bg-muted/40 p-3">
+                <li
+                  key={i}
+                  className="flex items-center justify-between gap-3 rounded-xl bg-muted/40 p-3"
+                >
                   <span className="flex items-center gap-2 text-sm font-semibold">
                     {item.icon}
                     {item.text}
@@ -211,16 +231,20 @@ function AdminCommandCenter() {
 
         <Panel title="Recent activity">
           {recentAudit.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">No recorded activity yet.</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              No recorded activity yet.
+            </p>
           ) : (
             <ul className="space-y-3">
-              {recentAudit.map((a: AnyRow) => (
+              {recentAudit.map((a) => (
                 <li key={a.id} className="flex items-center justify-between gap-3 text-sm">
                   <span>
                     <span className="font-bold">{a.action}</span>{" "}
                     <span className="text-muted-foreground">by {a.actor_email}</span>
                   </span>
-                  <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(a.created_at)}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {timeAgo(a.created_at)}
+                  </span>
                 </li>
               ))}
             </ul>

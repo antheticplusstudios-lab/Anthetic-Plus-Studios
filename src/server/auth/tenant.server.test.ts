@@ -8,8 +8,11 @@ vi.mock("@/server/db/clients.server", () => ({
   getDb: () => ({
     from: (table: string) => {
       const result = () => rows[table] ?? { data: null, error: null };
-      const chain: any = {
-        select: () => chain, eq: () => chain, order: () => chain, limit: () => chain,
+      const chain: unknown = {
+        select: () => chain,
+        eq: () => chain,
+        order: () => chain,
+        limit: () => chain,
         maybeSingle: async () => result(),
         then: (resolve: (v: unknown) => unknown) => resolve(result()),
       };
@@ -75,6 +78,8 @@ describe("resolveTenantContext", () => {
 
   it("rejects an account with no active membership", async () => {
     rows.organization_members = ok([]);
-    await expect(resolveTenantContext("t", { sub: USER })).rejects.toThrow(/missing an organization/);
+    await expect(resolveTenantContext("t", { sub: USER })).rejects.toThrow(
+      /missing an organization/,
+    );
   });
 });

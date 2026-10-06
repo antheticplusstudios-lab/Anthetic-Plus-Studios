@@ -13,7 +13,12 @@ import { useCurrentUser, useRole } from "@/hooks/use-portal";
  * Backend auth/RBAC/RLS remain the security boundary; this gate is a UX layer.
  */
 function AdminGate() {
-  const { data: user, isLoading: userLoading, error: userError, refetch: refetchUser } = useCurrentUser();
+  const {
+    data: user,
+    isLoading: userLoading,
+    error: userError,
+    refetch: refetchUser,
+  } = useCurrentUser();
   const { data: role, isLoading: roleLoading, error: roleError, refetch: refetchRole } = useRole();
   const path = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
@@ -33,14 +38,29 @@ function AdminGate() {
   if (!ready) return <Loading label="Checking your access" />;
 
   if (userError || roleError) {
-    const message = userError instanceof Error ? userError.message : roleError instanceof Error ? roleError.message : "Could not verify your admin access.";
+    const message =
+      userError instanceof Error
+        ? userError.message
+        : roleError instanceof Error
+          ? roleError.message
+          : "Could not verify your admin access.";
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center text-center">
         <h1 className="text-xl font-bold">Admin access could not be verified</h1>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">{message}</p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <Button variant="outline" onClick={() => { void refetchUser(); void refetchRole(); }}>Retry</Button>
-          <Button onClick={() => void navigate({ to: "/dashboard", replace: true })}>Return to dashboard</Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              void refetchUser();
+              void refetchRole();
+            }}
+          >
+            Retry
+          </Button>
+          <Button onClick={() => void navigate({ to: "/dashboard", replace: true })}>
+            Return to dashboard
+          </Button>
         </div>
       </div>
     );

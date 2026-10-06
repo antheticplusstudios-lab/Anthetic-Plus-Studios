@@ -6,6 +6,7 @@ Replace the two files in the same paths in the project:
 - `src/components/assistant/assistant-console.tsx`
 
 The existing assistant/session/voice-loop/server logic is preserved. The new UI adds:
+
 - a full orb instead of the incomplete ring;
 - AntheticPlus purple/cyan glass styling;
 - separate idle/listening/thinking/speaking/error motion;

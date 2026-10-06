@@ -41,13 +41,12 @@ function AutomationDetail() {
   const { slug } = Route.useLoaderData();
   const item = automations.find((entry) => entry.slug === slug)!;
   const { data: plans } = useSuspenseQuery(livePricingQueryOptions);
-  const priced =
-    withLivePricing(plans).find((entry) => entry.slug === item.slug) ?? {
-      ...item,
-      yearlyDiscountPct: 20,
-      yearlyPrice: Math.round(item.price * 0.8) * 12,
-      monthlyOf: (yearly: boolean) => (yearly ? Math.round(item.price * 0.8) : item.price),
-    };
+  const priced = withLivePricing(plans).find((entry) => entry.slug === item.slug) ?? {
+    ...item,
+    yearlyDiscountPct: 20,
+    yearlyPrice: Math.round(item.price * 0.8) * 12,
+    monthlyOf: (yearly: boolean) => (yearly ? Math.round(item.price * 0.8) : item.price),
+  };
   const [yearly, setYearly] = useState(false);
 
   return (
@@ -63,7 +62,9 @@ function AutomationDetail() {
             <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-[1.06] tracking-tight sm:text-6xl">
               {item.name}
             </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">{item.description}</p>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
+              {item.description}
+            </p>
           </div>
         </section>
 
@@ -71,17 +72,22 @@ function AutomationDetail() {
           <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.15fr_.85fr]">
             <div className="space-y-10">
               <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-primary">What it handles</p>
+                <p className="text-sm font-bold uppercase tracking-wide text-primary">
+                  What it handles
+                </p>
                 <h2 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
                   One system, one job, done properly.
                 </h2>
                 <p className="mt-4 text-muted-foreground">
-                  {item.shortName} ships configured, tested and monitored from day one — you never touch a model, a
-                  prompt or a server.
+                  {item.shortName} ships configured, tested and monitored from day one — you never
+                  touch a model, a prompt or a server.
                 </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   {item.features.map((feature) => (
-                    <div key={feature} className="flex gap-3 rounded-2xl border border-border bg-card p-4">
+                    <div
+                      key={feature}
+                      className="flex gap-3 rounded-2xl border border-border bg-card p-4"
+                    >
                       <BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                       <p className="text-sm font-semibold leading-6">{feature}</p>
                     </div>
@@ -90,8 +96,12 @@ function AutomationDetail() {
               </div>
 
               <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-primary">Where it earns its keep</p>
-                <h2 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">Built for real operations.</h2>
+                <p className="text-sm font-bold uppercase tracking-wide text-primary">
+                  Where it earns its keep
+                </p>
+                <h2 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
+                  Built for real operations.
+                </h2>
                 <div className="mt-6 space-y-4">
                   {item.useCases.map((useCase) => (
                     <div key={useCase} className="rounded-2xl border border-border bg-card/60 p-5">
@@ -102,12 +112,30 @@ function AutomationDetail() {
               </div>
 
               <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-primary">Every order includes</p>
+                <p className="text-sm font-bold uppercase tracking-wide text-primary">
+                  Every order includes
+                </p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <Include icon={GlobeLock} title="Domain lock" body="One client ID bound to one domain — the script cannot run elsewhere." />
-                  <Include icon={Clock3} title="Renewal calendar" body="Expiry, warning and grace dates are visible in your own dashboard." />
-                  <Include icon={ShieldCheck} title="Business guardrail" body="Your services, hours and policies decide what the AI may claim." />
-                  <Include icon={Zap} title="Failover pool" body="A rotating model pool keeps the system answering under rate limits." />
+                  <Include
+                    icon={GlobeLock}
+                    title="Domain lock"
+                    body="One client ID bound to one domain — the script cannot run elsewhere."
+                  />
+                  <Include
+                    icon={Clock3}
+                    title="Renewal calendar"
+                    body="Expiry, warning and grace dates are visible in your own dashboard."
+                  />
+                  <Include
+                    icon={ShieldCheck}
+                    title="Business guardrail"
+                    body="Your services, hours and policies decide what the AI may claim."
+                  />
+                  <Include
+                    icon={Zap}
+                    title="Failover pool"
+                    body="A rotating model pool keeps the system answering under rate limits."
+                  />
                 </div>
               </div>
             </div>
@@ -118,7 +146,10 @@ function AutomationDetail() {
                 <p className="text-sm font-bold text-primary">Live pricing</p>
                 <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-secondary px-4 py-3">
                   <span className="text-sm font-bold">Yearly billing</span>
-                  <Switch checked={yearly} onCheckedChange={(checked) => setYearly(Boolean(checked))} />
+                  <Switch
+                    checked={yearly}
+                    onCheckedChange={(checked) => setYearly(Boolean(checked))}
+                  />
                 </div>
                 <p className="mt-6 flex items-end gap-1">
                   <span className="text-5xl font-extrabold tabular-nums tracking-tight">
@@ -128,11 +159,13 @@ function AutomationDetail() {
                 </p>
                 {yearly ? (
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {money(priced.yearlyPrice)} billed once a year — {priced.yearlyDiscountPct}% off monthly.
+                    {money(priced.yearlyPrice)} billed once a year — {priced.yearlyDiscountPct}% off
+                    monthly.
                   </p>
                 ) : (
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Billed monthly. Switch to yearly any time and pay {priced.yearlyDiscountPct}% less per month.
+                    Billed monthly. Switch to yearly any time and pay {priced.yearlyDiscountPct}%
+                    less per month.
                   </p>
                 )}
                 <Button size="lg" className="mt-7 w-full" asChild>
@@ -146,8 +179,8 @@ function AutomationDetail() {
                 </Button>
                 <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-muted-foreground">
                   <Clock3 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                  Payment is verified by a person, usually within a few hours. Your automation is activated with a
-                  written expiry date the moment it is approved.
+                  Payment is verified by a person, usually within a few hours. Your automation is
+                  activated with a written expiry date the moment it is approved.
                 </p>
               </div>
             </aside>
@@ -157,9 +190,12 @@ function AutomationDetail() {
         <section className="border-t border-border bg-card/50 px-4 py-14 sm:px-6">
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
             <div>
-              <h2 className="text-2xl font-extrabold tracking-tight">Not sure which system to start with?</h2>
+              <h2 className="text-2xl font-extrabold tracking-tight">
+                Not sure which system to start with?
+              </h2>
               <p className="mt-2 text-muted-foreground">
-                Tell us where enquiries are slipping and we will recommend the smallest stack that fixes it.
+                Tell us where enquiries are slipping and we will recommend the smallest stack that
+                fixes it.
               </p>
             </div>
             <Button size="lg" variant="outline" asChild>

@@ -8,7 +8,13 @@ import { submitRenewalPayment } from "@/lib/client-platform.functions";
 import { paymentMethods, type Instance } from "@/lib/portal";
 import { automations } from "@/lib/automations";
 
-export function ReactivationModal({ instance, onClose }: { instance: Instance; onClose: () => void }) {
+export function ReactivationModal({
+  instance,
+  onClose,
+}: {
+  instance: Instance;
+  onClose: () => void;
+}) {
   const meta = automations.find((a) => a.slug === instance.automation_slug);
   const amount = meta?.price ?? 0;
   const queryClient = useQueryClient();
@@ -22,7 +28,15 @@ export function ReactivationModal({ instance, onClose }: { instance: Instance; o
     setBusy(true);
     setError("");
     try {
-      await submitRenewalPayment({ data: { automationId: instance.id, paymentMethod: method, transactionId: transaction.trim(), senderName: sender.trim(), amount } });
+      await submitRenewalPayment({
+        data: {
+          automationId: instance.id,
+          paymentMethod: method,
+          transactionId: transaction.trim(),
+          senderName: sender.trim(),
+          amount,
+        },
+      });
     } catch (e) {
       setBusy(false);
       setError(e instanceof Error ? e.message : "Could not submit renewal payment.");
@@ -43,14 +57,16 @@ export function ReactivationModal({ instance, onClose }: { instance: Instance; o
           <div>
             <h2 className="text-xl font-extrabold">Subscription expired</h2>
             <p className="text-sm text-muted-foreground">
-              Your widget is offline on {instance.website_domain}. Submit your renewal payment reference.
+              Your widget is offline on {instance.website_domain}. Submit your renewal payment
+              reference.
             </p>
           </div>
         </div>
         <div className="mt-6 rounded-2xl bg-secondary p-4 text-sm">
           <p className="font-extrabold">Amount due: ${amount} USD</p>
           <p className="mt-1 text-muted-foreground">
-            Send the transfer, then paste the transaction reference below. Verification usually takes under 15 minutes.
+            Send the transfer, then paste the transaction reference below. Verification usually
+            takes under 15 minutes.
           </p>
         </div>
         <div className="mt-5 grid gap-4">
@@ -80,10 +96,16 @@ export function ReactivationModal({ instance, onClose }: { instance: Instance; o
           </div>
           <div>
             <Label>Sender name</Label>
-            <Input value={sender} onChange={(e) => setSender(e.target.value)} className="mt-2 h-12 rounded-xl" />
+            <Input
+              value={sender}
+              onChange={(e) => setSender(e.target.value)}
+              className="mt-2 h-12 rounded-xl"
+            />
           </div>
         </div>
-        {error && <p className="mt-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+        {error && (
+          <p className="mt-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>
+        )}
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="ghost" onClick={onClose}>
             Later
