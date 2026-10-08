@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "tanstack-start",
+  "crons": [
+    {
+      "path": "/api/public/hooks/lifecycle",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/public/hooks/ai-knowledge",
+      "schedule": "30 6 * * *"
+    }
+  ]
+}

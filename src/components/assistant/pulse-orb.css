@@ -1,0 +1,49 @@
+.pulse-orb {
+  --orb-size: 160px; --orb-speed: 1; --orb-color-from: #818cf8; --orb-color-to: #22d3ee; --orb-level: 0;
+  --pf: var(--orb-color-from); --pt: var(--orb-color-to); --glow: 1;
+  position: relative; display: grid; place-items: center; width: var(--orb-size); height: var(--orb-size);
+  isolation: isolate; transition: opacity .4s, filter .4s;
+}
+.pulse-orb[data-state="error"] { --pf: #fb7185; --pt: #f43f5e; }
+.pulse-orb[data-state="connecting"] { --glow: .6; }
+.pulse-orb[data-state="disabled"] { --glow: .4; filter: grayscale(.8); opacity: .5; }
+.pulse-orb__glow {
+  position: absolute; width: 82%; height: 82%; border-radius: 50%;
+  background:
+    radial-gradient(48% 48% at 36% 32%, color-mix(in oklab, var(--pf), transparent 25%), transparent 70%),
+    radial-gradient(52% 52% at 66% 70%, color-mix(in oklab, var(--pt), transparent 30%), transparent 72%);
+  filter: blur(18px);
+  opacity: calc(var(--glow) * (.5 + .5 * var(--orb-level)));
+  transform: scale(calc(.95 + .25 * var(--orb-level)));
+}
+.pulse-orb__core {
+  position: absolute; width: 44%; height: 44%; border-radius: 50%;
+  background: radial-gradient(120% 120% at 32% 28%,
+    color-mix(in oklab, var(--pf), white 60%) 0%, var(--pf) 30%, var(--pt) 78%, color-mix(in oklab, var(--pt), black 35%) 100%);
+  box-shadow: inset -6px -10px 18px color-mix(in oklab, var(--pt), black 60%),
+    inset 3px 5px 10px color-mix(in oklab, white, transparent 60%),
+    0 10px 26px -10px color-mix(in oklab, var(--pt), transparent 55%);
+  scale: calc(1 + .16 * var(--orb-level));
+  animation: pulse-orb-breathe calc(4s / var(--orb-speed)) ease-in-out infinite;
+}
+.pulse-orb__core::before {
+  content: ""; position: absolute; top: 10%; left: 16%; width: 40%; height: 26%; border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 255 255 / .9), transparent); filter: blur(1px); transform: rotate(-20deg);
+}
+.pulse-orb[data-state="thinking"] .pulse-orb__core { animation-duration: calc(1.6s / var(--orb-speed)); }
+.pulse-orb[data-state="error"] .pulse-orb__core { animation: pulse-orb-blink calc(1.8s / var(--orb-speed)) ease-in-out infinite; }
+.pulse-orb__ring {
+  position: absolute; inset: 22%; border-radius: 50%; border: 1.5px solid color-mix(in oklab, var(--pt), transparent 40%);
+  opacity: 0; transform: scale(1);
+}
+.pulse-orb:is([data-state="listening"], [data-state="speaking"]) .pulse-orb__ring {
+  animation: pulse-orb-ripple calc(1.8s / var(--orb-speed)) cubic-bezier(.16, 1, .3, 1) infinite;
+}
+.pulse-orb[data-state="listening"] .pulse-orb__ring { animation-direction: reverse; }
+.pulse-orb__ring--2 { animation-delay: calc(.9s / var(--orb-speed)) !important; border-color: color-mix(in oklab, var(--pf), transparent 40%); }
+@keyframes pulse-orb-breathe { 0%, 100% { transform: scale(.97); } 50% { transform: scale(1.03); } }
+@keyframes pulse-orb-blink { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+@keyframes pulse-orb-ripple { 0% { opacity: .7; transform: scale(1); } 100% { opacity: 0; transform: scale(2.1); } }
+@media (prefers-reduced-motion: reduce) {
+  .pulse-orb__core, .pulse-orb__ring { animation: none !important; }
+}

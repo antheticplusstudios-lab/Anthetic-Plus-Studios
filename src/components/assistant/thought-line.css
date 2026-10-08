@@ -1,0 +1,30 @@
+.thought-line { --tl-ease: cubic-bezier(0.23, 1, 0.32, 1); display: inline-flex; flex-direction: column; align-items: flex-start; color: currentColor; font-weight: 500; line-height: 1.2; }
+.thought-line__head { display: inline-flex; align-items: center; gap: .3em; padding: 0; border: 0; background: none; color: inherit; font: inherit; white-space: nowrap; cursor: default; }
+.thought-line__head[data-toggle] { cursor: pointer; }
+.thought-line__head:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 3px; border-radius: 4px; }
+.thought-line__glyph { display: inline-flex; width: 1.1em; height: 1.1em; margin-right: .2em; color: var(--color-primary); }
+.thought-line__glyph[data-error] { color: var(--color-destructive); }
+.thought-line__breath { display: inline-block; }
+.thought-line[data-working] .thought-line__breath[data-shimmer] {
+  background: linear-gradient(100deg, color-mix(in srgb, currentColor 50%, transparent) 30%, currentColor 50%, color-mix(in srgb, currentColor 50%, transparent) 70%);
+  background-size: 250% 100%; background-position: 125% 0; -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; animation: thought-line-shimmer 1.8s linear infinite;
+}
+@keyframes thought-line-shimmer { to { background-position: -125% 0; } }
+.thought-line__timer { font-variant-numeric: tabular-nums; opacity: .55; }
+.thought-line__chevron { display: inline-flex; opacity: .55; transition: transform 200ms var(--tl-ease); }
+.thought-line[data-open] .thought-line__chevron { transform: rotate(180deg); }
+.thought-line__trace { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 350ms var(--tl-ease); }
+.thought-line__trace[data-open] { grid-template-rows: 1fr; }
+.thought-line__fold { min-height: 0; overflow: hidden; }
+.thought-line__steps { display: flex; flex-direction: column; gap: .45em; padding: .6em 0 .2em 1.6em; margin: 0; list-style: none; font-size: .875em; font-weight: 400; }
+.thought-line__step { display: flex; align-items: center; gap: .5em; transition: opacity 200ms var(--tl-ease), transform 200ms var(--tl-ease); }
+@starting-style { .thought-line__step { opacity: 0; transform: translateY(-4px); } }
+.thought-line__mark { display: inline-grid; place-items: center; width: 1em; height: 1em; opacity: .55; }
+.thought-line__pulse { width: .4em; height: .4em; border-radius: 50%; background: currentColor; animation: thought-line-pulse 1.6s ease-in-out infinite; }
+@keyframes thought-line-pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+.thought-line__step[data-done] .thought-line__step-text { opacity: .55; }
+@media (prefers-reduced-motion: reduce) {
+  .thought-line__step { transform: none !important; }
+  .thought-line__pulse { animation-duration: 2.4s; }
+}
