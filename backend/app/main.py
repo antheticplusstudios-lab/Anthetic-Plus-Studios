@@ -7,7 +7,7 @@ import httpx
 import time
 import redis.asyncio as redis
 from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect, Depends, Query, Request
-from fastapi.middleware.cors import CORSMiddleware
+from .cors import CorsPolicy, ExplicitOriginCORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 from .supabase import db1, db2, db3, db4
 from .runtime import resolve_widget, check_origin, eligibility, canonical_widget_config
@@ -15,7 +15,12 @@ from .ai import completion, embedding
 from .security import current_user, assert_automation_access, assert_conversation_access
 
 app = FastAPI(title='AntheticPlus FastAPI', version='1.2.0')
-app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=False, allow_methods=['GET','POST','OPTIONS'], allow_headers=['*'], expose_headers=['X-Request-ID'])
+app.add_middleware(ExplicitOriginCORSMiddleware, policy=CorsPolicy.from_settings(
+    environment=_cors_settings.environment,
+    allowed=_cors_settings.cors_allowed_origins,
+    dev=_cors_settings.cors_dev_origins,
+    allow_credentials=_cors_settings.cors_allow_credentials,
+))
 _rate_redis = redis.from_url('redis://localhost:6379/0', decode_responses=True)
 try:
     from .config import settings as _settings
