@@ -19,7 +19,8 @@ class SupabaseRest:
     async def table(self, table: str, *, select: str = '*', filters: list[tuple[str, str]] | None = None,
                     order: str | None = None, limit: int | None = None, single: bool = False,
                     insert: dict[str, Any] | None = None, update: dict[str, Any] | None = None,
-                    bearer: str | None = None) -> Any:
+                    bearer: str | None = None, on_conflict: str | None = None,
+                    ignore_duplicates: bool = False) -> Any:
         params: list[tuple[str, str]] = [('select', select)]
         for k, v in filters or []:
             params.append((k, v))
@@ -27,10 +28,16 @@ class SupabaseRest:
             params.append(('order', order))
         if limit is not None:
             params.append(('limit', str(limit)))
+        if insert is not None and on_conflict:
+            params.append(('on_conflict', on_conflict))
         headers = self._headers(bearer)
+        prefer = 'return=representation'
+        if insert is not None and ignore_duplicates:
+            # Idempotent insert: an existing row with the same conflict key is left untouched.
+            prefer = 'resolution=ignore-duplicates,return=representation'
         async with httpx.AsyncClient(timeout=20) as c:
             if insert is not None:
-                r = await c.post(f'{self.url}/rest/v1/{table}', params=params, headers={**headers, 'Prefer': 'return=representation'}, json=insert)
+                r = await c.post(f'{self.url}/rest/v1/{table}', params=params, headers={**headers, 'Prefer': prefer}, json=insert)
             elif update is not None:
                 r = await c.patch(f'{self.url}/rest/v1/{table}', params=params, headers={**headers, 'Prefer': 'return=representation'}, json=update)
             else:
