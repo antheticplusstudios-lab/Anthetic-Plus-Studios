@@ -39,7 +39,7 @@ export const Route = createFileRoute("/api/public/assistant/transcribe")({
           );
         }
         try {
-          const res = await resolveFromRequest(request, parsed.site);
+          const res = await resolveFromRequest(request, parsed.site, "voice");
           if (!res.ok)
             return jsonResponse(
               { ok: false, error: { code: "forbidden", message: res.message }, requestId },

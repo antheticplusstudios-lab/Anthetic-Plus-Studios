@@ -34,7 +34,7 @@ import {
 } from "@/lib/voice-agent.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/voice-agent")({
-  head: () => ({ meta: [{ title: "AI Voice Agent — AntheticPlus Control Center" }] }),
+  head: () => ({ meta: [{ title: "Voice Channel & Email — AntheticPlus Control Center" }] }),
   component: VoiceAgentAdminPage,
 });
 
@@ -196,8 +196,8 @@ function VoiceAgentAdminPage() {
 
   return (
     <AdminPage
-      title="AI Voice Agent"
-      subtitle="Control the homepage AI receptionist, its approved context, its account-data boundary, voice behavior and the server-side email channel."
+      title="Voice Channel & Email"
+      subtitle="Voice and email are channels of the one Website AI Agent — not a separate agent. Settings here apply to both text and voice replies on the AntheticPlus site."
       actions={
         <Button onClick={() => settingsMutation.mutate()} disabled={settingsMutation.isPending}>
           {settingsMutation.isPending ? <Save className="animate-pulse" /> : <Save />}

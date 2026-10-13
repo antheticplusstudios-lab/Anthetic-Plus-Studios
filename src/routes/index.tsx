@@ -26,6 +26,7 @@ import { livePricingQueryOptions, storefrontItems } from "@/lib/pricing";
 import { money } from "@/components/admin-ui";
 import { AssistantConsole } from "@/components/assistant/assistant-console";
 import { BlockDrift } from "@/components/block-drift";
+import { DepthFloat, HeroDepth, Scroll3D, ScrollProgress } from "@/components/scroll-3d";
 import { MovingGradientButton } from "@/components/moving-gradient-button";
 import { RollingLetters } from "@/components/rolling-letters";
 import {
@@ -138,14 +139,15 @@ function Index() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
+      <ScrollProgress />
       <SiteHeader />
       <main className="page-enter -mt-20">
         {/* Hero */}
-        <section className="relative isolate overflow-hidden border-b border-border px-4 pb-20 pt-32 sm:px-6 sm:pb-28 sm:pt-40">
+        <section className="relative isolate overflow-hidden px-4 pb-20 pt-32 sm:px-6 sm:pb-28 sm:pt-40">
           <BlockDrift />
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_70%_-10%,rgba(255,255,255,0.10),transparent_45%)]" />
           <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[1.05fr_.95fr]">
-            <div>
+            <HeroDepth>
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
                 <Sparkles className="h-3.5 w-3.5" /> The Autonomous Front Office
               </span>
@@ -184,227 +186,254 @@ function Index() {
                   </div>
                 ))}
               </dl>
-            </div>
+            </HeroDepth>
 
             {/* Interactive AI receptionist */}
-            <div className="relative mx-auto w-full max-w-xl">
+            <DepthFloat className="relative mx-auto w-full max-w-xl">
               <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-primary/5 blur-2xl" />
               <AssistantConsole />
-            </div>
+            </DepthFloat>
           </div>
         </section>
 
-        <FourSystems />
-        <JourneySection />
-        <WhyAnthetic />
-        <ReadinessReport />
+        <Scroll3D>
+          <FourSystems />
+        </Scroll3D>
+        <Scroll3D intensity={0.8}>
+          <JourneySection />
+        </Scroll3D>
+        <Scroll3D>
+          <WhyAnthetic />
+        </Scroll3D>
+        <Scroll3D intensity={0.7}>
+          <ReadinessReport />
+        </Scroll3D>
 
         {/* Automations */}
-        <section id="automations" className="px-4 py-20 sm:px-6 sm:py-28">
-          <div className="mx-auto max-w-7xl">
-            <div className="flex flex-wrap items-end justify-between gap-6">
-              <div className="max-w-2xl">
-                <p className="text-sm font-bold uppercase tracking-wide text-primary">
-                  Flagship systems
-                </p>
-                <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
-                  Pick the moment you want covered.
-                </h2>
-                <p className="mt-4 text-lg text-muted-foreground">
-                  Each system runs on its own subscription, so you start with the one costing you
-                  the most money today.
-                </p>
+        <Scroll3D intensity={0.6}>
+          <section id="automations" className="px-4 py-20 sm:px-6 sm:py-28">
+            <div className="mx-auto max-w-7xl">
+              <div className="flex flex-wrap items-end justify-between gap-6">
+                <div className="max-w-2xl">
+                  <p className="text-sm font-bold uppercase tracking-wide text-primary">
+                    Flagship systems
+                  </p>
+                  <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
+                    Pick the moment you want covered.
+                  </h2>
+                  <p className="mt-4 text-lg text-muted-foreground">
+                    Each system runs on its own subscription, so you start with the one costing you
+                    the most money today.
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 rounded-full border border-border bg-card p-1">
+                  <Button
+                    variant={!yearly ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setYearly(false)}
+                  >
+                    Monthly
+                  </Button>
+                  <Button
+                    variant={yearly ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setYearly(true)}
+                  >
+                    Yearly · save more
+                  </Button>
+                </div>
               </div>
-              <div className="grid grid-cols-2 rounded-full border border-border bg-card p-1">
-                <Button
-                  variant={!yearly ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setYearly(false)}
-                >
-                  Monthly
-                </Button>
-                <Button
-                  variant={yearly ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setYearly(true)}
-                >
-                  Yearly · save more
-                </Button>
-              </div>
-            </div>
 
-            <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {items.map((item) => (
-                <article
-                  key={item.slug}
-                  className="group flex min-h-[400px] flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-primary">
-                      <item.icon className="h-6 w-6" />
-                    </div>
-                    <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-accent-foreground">
-                      {item.badge}
-                    </span>
-                  </div>
-                  <h3 className="mt-6 text-xl font-extrabold tracking-tight">{item.name}</h3>
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.description}</p>
-                  <ul className="mt-5 space-y-2 text-sm">
-                    {item.features.slice(0, 3).map((feature) => (
-                      <li key={feature} className="flex gap-2">
-                        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-auto flex items-end justify-between border-t border-border pt-5">
-                    <div>
-                      <span className="text-2xl font-extrabold tabular-nums">
-                        {money(item.monthlyOf(yearly))}
+              <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {items.map((item) => (
+                  <article
+                    key={item.slug}
+                    className="group flex min-h-[400px] flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-primary">
+                        <item.icon className="h-6 w-6" />
+                      </div>
+                      <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-accent-foreground">
+                        {item.badge}
                       </span>
-                      <span className="text-sm text-muted-foreground">/mo</span>
-                      {yearly && (
-                        <p className="text-xs text-muted-foreground">
-                          {money(item.yearlyPrice)} billed after 1 year
-                        </p>
-                      )}
                     </div>
-                    <Button variant="outline" asChild>
-                      <Link to="/automations/$slug" params={{ slug: item.slug }}>
-                        Details <ArrowRight />
-                      </Link>
-                    </Button>
-                  </div>
-                </article>
-              ))}
+                    <h3 className="mt-6 text-xl font-extrabold tracking-tight">{item.name}</h3>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      {item.description}
+                    </p>
+                    <ul className="mt-5 space-y-2 text-sm">
+                      {item.features.slice(0, 3).map((feature) => (
+                        <li key={feature} className="flex gap-2">
+                          <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-auto flex items-end justify-between border-t border-border pt-5">
+                      <div>
+                        <span className="text-2xl font-extrabold tabular-nums">
+                          {money(item.monthlyOf(yearly))}
+                        </span>
+                        <span className="text-sm text-muted-foreground">/mo</span>
+                        {yearly && (
+                          <p className="text-xs text-muted-foreground">
+                            {money(item.yearlyPrice)} billed after 1 year
+                          </p>
+                        )}
+                      </div>
+                      <Button variant="outline" asChild>
+                        <Link to="/automations/$slug" params={{ slug: item.slug }}>
+                          Details <ArrowRight />
+                        </Link>
+                      </Button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <p className="mt-6 text-sm text-muted-foreground">
+                Prices are read live from the AntheticPlus price matrix — the same table our admin
+                team edits, so what you see is what you are billed.
+              </p>
             </div>
-            <p className="mt-6 text-sm text-muted-foreground">
-              Prices are read live from the AntheticPlus price matrix — the same table our admin
-              team edits, so what you see is what you are billed.
-            </p>
-          </div>
-        </section>
+          </section>
+        </Scroll3D>
 
         {/* How it works */}
-        <section className="border-y border-border bg-card/50 px-4 py-20 sm:px-6 sm:py-28">
-          <div className="mx-auto max-w-7xl">
-            <div className="max-w-2xl">
-              <p className="text-sm font-bold uppercase tracking-wide text-primary">Deployment</p>
-              <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
-                From order to first answered call.
-              </h2>
+        <Scroll3D intensity={0.6}>
+          <section className="border-y border-border bg-card/50 px-4 py-20 sm:px-6 sm:py-28">
+            <div className="mx-auto max-w-7xl">
+              <div className="max-w-2xl">
+                <p className="text-sm font-bold uppercase tracking-wide text-primary">Deployment</p>
+                <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                  From order to first answered call.
+                </h2>
+              </div>
+              <ol className="mt-12 grid gap-5 lg:grid-cols-3">
+                {steps.map((step, index) => (
+                  <li
+                    key={step.title}
+                    className="rounded-2xl border border-border bg-background p-6"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/10 text-sm font-extrabold text-primary">
+                        {index + 1}
+                      </span>
+                      <step.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="mt-5 text-lg font-extrabold">{step.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.body}</p>
+                  </li>
+                ))}
+              </ol>
             </div>
-            <ol className="mt-12 grid gap-5 lg:grid-cols-3">
-              {steps.map((step, index) => (
-                <li key={step.title} className="rounded-2xl border border-border bg-background p-6">
-                  <div className="flex items-center gap-3">
-                    <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/10 text-sm font-extrabold text-primary">
-                      {index + 1}
-                    </span>
-                    <step.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="mt-5 text-lg font-extrabold">{step.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.body}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
+          </section>
+        </Scroll3D>
 
         {/* Why us */}
-        <section className="px-4 py-20 sm:px-6 sm:py-28">
-          <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.9fr_1.1fr]">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-wide text-primary">
-                Why AntheticPlus
-              </p>
-              <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
-                Automation you can actually audit.
-              </h2>
-              <p className="mt-4 text-muted-foreground">
-                Most AI tools hand you a chat window. We hand you a system with a contract: a domain
-                lock, a written transcript, a usage ledger and a renewal calendar you can see from
-                your own dashboard.
-              </p>
-              <Button className="mt-8" asChild>
-                <Link to="/auth">
-                  Create your account <ArrowRight />
-                </Link>
-              </Button>
-            </div>
-            <div className="space-y-4">
-              {reasons.map((reason) => (
-                <div
-                  key={reason.title}
-                  className="flex gap-4 rounded-2xl border border-border bg-card p-6"
-                >
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
-                    <reason.icon className="h-5 w-5" />
+        <Scroll3D intensity={0.6}>
+          <section className="px-4 py-20 sm:px-6 sm:py-28">
+            <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.9fr_1.1fr]">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wide text-primary">
+                  Why AntheticPlus
+                </p>
+                <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                  Automation you can actually audit.
+                </h2>
+                <p className="mt-4 text-muted-foreground">
+                  Most AI tools hand you a chat window. We hand you a system with a contract: a
+                  domain lock, a written transcript, a usage ledger and a renewal calendar you can
+                  see from your own dashboard.
+                </p>
+                <Button className="mt-8" asChild>
+                  <Link to="/auth">
+                    Create your account <ArrowRight />
+                  </Link>
+                </Button>
+              </div>
+              <div className="space-y-4">
+                {reasons.map((reason) => (
+                  <div
+                    key={reason.title}
+                    className="flex gap-4 rounded-2xl border border-border bg-card p-6"
+                  >
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
+                      <reason.icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold">{reason.title}</h3>
+                      <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                        {reason.body}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-extrabold">{reason.title}</h3>
-                    <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{reason.body}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </Scroll3D>
 
         {/* Proof / voice */}
-        <section className="border-y border-border bg-card/50 px-4 py-16 sm:px-6">
-          <div className="mx-auto max-w-5xl">
-            <Quote className="h-8 w-8 text-primary/60" />
-            <blockquote className="mt-5 text-2xl font-bold leading-relaxed tracking-tight sm:text-3xl">
-              “We stopped losing after-hours enquiries the week the receptionist went live. The
-              transcripts are the part our team actually trusts — we can read exactly what was
-              promised to the patient.”
-            </blockquote>
-            <p className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock3 className="h-4 w-4 text-primary" />
-              Operations lead, multi-location clinic group · Voice &amp; SMS Receptionist
-            </p>
-          </div>
-        </section>
+        <Scroll3D intensity={0.6}>
+          <section className="border-y border-border bg-card/50 px-4 py-16 sm:px-6">
+            <div className="mx-auto max-w-5xl">
+              <Quote className="h-8 w-8 text-primary/60" />
+              <blockquote className="mt-5 text-2xl font-bold leading-relaxed tracking-tight sm:text-3xl">
+                “We stopped losing after-hours enquiries the week the receptionist went live. The
+                transcripts are the part our team actually trusts — we can read exactly what was
+                promised to the patient.”
+              </blockquote>
+              <p className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock3 className="h-4 w-4 text-primary" />
+                Operations lead, multi-location clinic group · Voice &amp; SMS Receptionist
+              </p>
+            </div>
+          </section>
+        </Scroll3D>
 
         {/* FAQ */}
-        <section className="px-4 py-20 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-4xl">
-            <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-              Questions before you order
-            </h2>
-            <Accordion type="single" collapsible className="mt-8">
-              {faqs.map((faq, index) => (
-                <AccordionItem key={faq.q} value={`item-${index}`}>
-                  <AccordionTrigger className="text-left font-bold">{faq.q}</AccordionTrigger>
-                  <AccordionContent className="text-sm leading-7 text-muted-foreground">
-                    {faq.a}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        </section>
+        <Scroll3D intensity={0.6}>
+          <section className="px-4 py-20 sm:px-6 sm:py-24">
+            <div className="mx-auto max-w-4xl">
+              <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+                Questions before you order
+              </h2>
+              <Accordion type="single" collapsible className="mt-8">
+                {faqs.map((faq, index) => (
+                  <AccordionItem key={faq.q} value={`item-${index}`}>
+                    <AccordionTrigger className="text-left font-bold">{faq.q}</AccordionTrigger>
+                    <AccordionContent className="text-sm leading-7 text-muted-foreground">
+                      {faq.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          </section>
+        </Scroll3D>
 
         {/* CTA */}
-        <section className="px-4 pb-24 sm:px-6">
-          <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl border border-primary/20 bg-secondary px-6 py-14 text-center sm:px-12">
-            <h2 className="mx-auto max-w-2xl text-3xl font-extrabold tracking-tight sm:text-4xl">
-              Put your first AI system to work this week.
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-              Open an account, tell us about your business, and submit your first order.
-              Verification is manual and personal — a person checks it, then your automation goes
-              live.
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <MovingGradientButton to="/auth">Get started</MovingGradientButton>
-              <Button size="lg" variant="outline" asChild>
-                <a href="mailto:antheticplusstudios@gmail.com">Talk to the team</a>
-              </Button>
+        <Scroll3D intensity={0.6}>
+          <section className="px-4 pb-24 sm:px-6">
+            <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl border border-primary/20 bg-secondary px-6 py-14 text-center sm:px-12">
+              <h2 className="mx-auto max-w-2xl text-3xl font-extrabold tracking-tight sm:text-4xl">
+                Put your first AI system to work this week.
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
+                Open an account, tell us about your business, and submit your first order.
+                Verification is manual and personal — a person checks it, then your automation goes
+                live.
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <MovingGradientButton to="/auth">Get started</MovingGradientButton>
+                <Button size="lg" variant="outline" asChild>
+                  <a href="mailto:antheticplusstudios@gmail.com">Talk to the team</a>
+                </Button>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </Scroll3D>
       </main>
 
       <SiteFooter />

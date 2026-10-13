@@ -1,5 +1,5 @@
 /** Client-safe registry for the AntheticPlus Web Assistant. */
-export const SITE_IDS = ["antheticplus"] as const;
+export const SITE_IDS = ["antheticplus", "ny-partners"] as const;
 export type SiteId = (typeof SITE_IDS)[number];
 
 export type SiteDefinition = {
@@ -13,6 +13,9 @@ export type SiteDefinition = {
 
 export const SITES: Record<SiteId, SiteDefinition> = {
   antheticplus: { id: "antheticplus", name: "AntheticPlus", domains: [], firstParty: true },
+  // The partner site is intentionally domain-configured in its own site settings.
+  // Do not guess a production hostname here: admins must register the exact allowed domain.
+  "ny-partners": { id: "ny-partners", name: "NY Partners", domains: [], firstParty: false },
 };
 
 export function isSiteId(v: unknown): v is SiteId {

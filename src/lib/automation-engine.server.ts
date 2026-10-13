@@ -7,7 +7,7 @@ import { parsePool } from "@/lib/provider-pool";
 import * as cfg from "@/lib/automation-config";
 const settingsOf = (ctx: { automation: Record<string, unknown> }) =>
   cfg.settingsFromConfig(ctx.automation.config);
-import { db2Admin, db4Admin } from "@/server/db/clients.server";
+import { db1Admin, db2Admin, db4Admin } from "@/server/db/clients.server";
 import type { Json } from "@/integrations/supabase/types";
 import { z } from "zod";
 
@@ -214,6 +214,7 @@ async function handleReceptionistCalendar(
   userText: string,
   contact: string,
   history: Array<{ role: "user" | "assistant"; content: string }>,
+  canBook = true,
 ) {
   const { routeChat } = await import("@/lib/llm-router.server");
   const now = new Date().toISOString();
@@ -276,7 +277,7 @@ async function handleReceptionistCalendar(
     const messageId = await addMessageAndReturnId(conversationId, "assistant", reply);
     return { reply, message_id: messageId, calendar: { action, available: false } };
   }
-  if (action === "availability") {
+  if (action === "availability" || !canBook) {
     const reply = `Yes, that time is available. If you’d like, I can book it for you.`;
     const messageId = await addMessageAndReturnId(conversationId, "assistant", reply);
     return {
@@ -332,6 +333,23 @@ async function handleReceptionistCalendar(
   };
 }
 
+/**
+ * Approved capability gate. When an automation has an activation record, only tools marked
+ * "active" may run. Automations without a record keep their pre-existing behaviour.
+ */
+async function capabilityGate(automationId: string) {
+  const { data } = await db1Admin
+    .from("platform_settings")
+    .select("value")
+    .eq("key", `tool_activation:${automationId}`)
+    .maybeSingle();
+  const { activeToolIds } = await import("@/lib/capability-lifecycle");
+  const state = (data?.value ?? null) as
+    import("@/lib/capability-lifecycle").ActivationState | null;
+  const active = activeToolIds(state);
+  return { managed: !!state, allows: (id: string) => !state || active.has(id), active };
+}
+
 // ---- Voice & SMS Receptionist (ai_receptionist) ----
 export async function runReceptionistTurn(ctx: Ctx, input: JsonRecord) {
   const channel = input.channel === "voice" ? "phone_call" : "sms";
@@ -351,16 +369,28 @@ export async function runReceptionistTurn(ctx: Ctx, input: JsonRecord) {
     };
   }
   const history = await recentConversationHistory(conv);
-  const calendarResult = await handleReceptionistCalendar(
+  const gate = await capabilityGate(ctx.exec.automation_id);
+  const calendarResult = !(gate.allows("check_availability") || gate.allows("create_booking"))
+    ? null
+    : await handleReceptionistCalendar(
+        ctx,
+        conv,
+        st,
+        String(input.body),
+        String(input.from),
+        history,
+        gate.allows("create_booking"),
+      );
+  if (calendarResult) return { ...calendarResult, conversation_id: conv, escalated: false };
+  const toolNote = gate.managed
+    ? `\n\nEnabled capabilities: ${[...gate.active].join(", ") || "answer questions only"}. Never claim to book, charge, or send anything outside these, and never claim success without a confirmed result.`
+    : "";
+  const reply = await aiReply(
     ctx,
-    conv,
-    st,
+    cfg.receptionistPrompt(st) + toolNote,
     String(input.body),
-    String(input.from),
     history,
   );
-  if (calendarResult) return { ...calendarResult, conversation_id: conv, escalated: false };
-  const reply = await aiReply(ctx, cfg.receptionistPrompt(st), String(input.body), history);
   if (!reply) throw new Error("no AI provider available");
   const messageId = await addMessageAndReturnId(conv, "assistant", reply);
   const assignment = await assignRoundRobin(ctx, "conversation", conv);

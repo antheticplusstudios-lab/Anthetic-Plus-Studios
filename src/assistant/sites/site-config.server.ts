@@ -52,6 +52,37 @@ social-dm-assistant`,
     knowledge: [],
     sources: [],
   },
+  "ny-partners": {
+    // Off until an admin saves verified details and an allowed domain.
+    enabled: false,
+    voiceEnabled: true,
+    displayName: "NY Partners Assistant",
+    persona: "A helpful, professional assistant for NY Partners.",
+    tone: "Warm, clear, professional, and concise.",
+    welcomeMessage: "Hi! I'm the NY Partners assistant. How can I help you today?",
+    instructions:
+      "Answer only from NY Partners' approved information and configured tools. Never claim a booking, payment, message, or other action has completed unless a trusted tool confirms it. Ask for clarification when necessary and hand off when information is missing.",
+    businessInfo:
+      "Configure NY Partners' verified business information before enabling production traffic.",
+    services: "",
+    products: "",
+    faqs: "",
+    terminology: "",
+    policies: "",
+    contact: "",
+    hours: "",
+    branding: { primary: "#7c5cff", accent: "#22d3ee", position: "right" as const },
+    voice: { lang: "en-US", rate: 1, pitch: 1 },
+    // Partner agents start with knowledge search only. No AntheticPlus account or admin tools.
+    allowedTools: ["search_site_knowledge"],
+    emailEnabled: false,
+    limits: { maxMessageChars: 1200, maxTurnsPerConversation: 40 },
+    extraDomains: [],
+    analyticsEnabled: true,
+    discovery: { enabled: false, refreshHours: 168 },
+    knowledge: [],
+    sources: [],
+  },
 };
 
 const rec = (v: unknown): Record<string, unknown> =>
@@ -156,6 +187,44 @@ export async function loadSiteConfig(id: SiteId): Promise<SiteConfig> {
     .maybeSingle();
   if (error) throw new Error(`site config: ${error.message}`);
   return normalizeConfig(id, data?.value);
+}
+
+export type SiteSetupStatus = {
+  saved: boolean;
+  updatedAt: string | null;
+  missing: string[];
+};
+
+/** Loads config plus whether a row really exists, so the UI never presents defaults as saved. */
+export async function loadSiteConfigWithStatus(
+  id: SiteId,
+): Promise<{ config: SiteConfig; status: SiteSetupStatus }> {
+  const { data, error } = await db1Admin
+    .from("platform_settings")
+    .select("value, updated_at")
+    .eq("key", keyFor(id))
+    .maybeSingle();
+  if (error) throw new Error(`site config: ${error.message}`);
+  const config = normalizeConfig(id, data?.value);
+  return { config, status: setupStatus(id, config, !!data, data?.updated_at ?? null) };
+}
+
+export function setupStatus(
+  id: SiteId,
+  c: SiteConfig,
+  saved: boolean,
+  updatedAt: string | null,
+): SiteSetupStatus {
+  const missing: string[] = [];
+  if (!saved) missing.push("Settings have never been saved");
+  if (!SITES[id].firstParty) {
+    if (SITES[id].domains.length + c.extraDomains.length === 0)
+      missing.push("Allowed website domain");
+    if (!c.businessInfo.trim() || c.businessInfo.startsWith("Configure "))
+      missing.push("Verified business information");
+    if (!c.contact.trim()) missing.push("Contact details");
+  }
+  return { saved, updatedAt, missing };
 }
 
 export async function saveSiteConfig(id: SiteId, next: SiteConfig): Promise<SiteConfig> {

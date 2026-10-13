@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as AssistantDotjsRouteImport } from './routes/assistant[.]js'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as WidgetDotjsRouteImport } from './routes/widget[.]js'
@@ -24,7 +25,9 @@ import { Route as AutomationsIndexRouteImport } from './routes/automations.index
 import { Route as AutomationsSlugRouteImport } from './routes/automations.$slug'
 import { Route as CheckoutIndexRouteImport } from './routes/checkout.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
+import { Route as AuthenticatedAdminAgentPublishingRouteImport } from './routes/_authenticated.admin.agent-publishing'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated.admin.analytics'
+import { Route as AuthenticatedAdminCapabilityRequestsRouteImport } from './routes/_authenticated.admin.capability-requests'
 import { Route as AuthenticatedAdminCatalogRouteImport } from './routes/_authenticated.admin.catalog'
 import { Route as AuthenticatedAdminCreatorRouteImport } from './routes/_authenticated.admin.creator'
 import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated.admin.crm'
@@ -40,6 +43,7 @@ import { Route as AuthenticatedAdminPricingRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminReceptionistRouteImport } from './routes/_authenticated.admin.receptionist'
 import { Route as AuthenticatedAdminSearchRouteImport } from './routes/_authenticated.admin.search'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
+import { Route as AuthenticatedAdminSiteKeysRouteImport } from './routes/_authenticated.admin.site-keys'
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated.admin.team'
 import { Route as AuthenticatedAdminTranscriptsRouteImport } from './routes/_authenticated.admin.transcripts'
 import { Route as AuthenticatedAdminVerificationRouteImport } from './routes/_authenticated.admin.verification'
@@ -105,6 +109,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SecurityRoute = SecurityRouteImport.update({
   id: '/security',
   path: '/security',
@@ -155,10 +164,22 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminAgentPublishingRoute =
+  AuthenticatedAdminAgentPublishingRouteImport.update({
+    id: '/agent-publishing',
+    path: '/agent-publishing',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAnalyticsRoute =
   AuthenticatedAdminAnalyticsRouteImport.update({
     id: '/analytics',
     path: '/analytics',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCapabilityRequestsRoute =
+  AuthenticatedAdminCapabilityRequestsRouteImport.update({
+    id: '/capability-requests',
+    path: '/capability-requests',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminCatalogRoute =
@@ -248,6 +269,12 @@ const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: '/settings',
     path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminSiteKeysRoute =
+  AuthenticatedAdminSiteKeysRouteImport.update({
+    id: '/site-keys',
+    path: '/site-keys',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminTeamRoute = AuthenticatedAdminTeamRouteImport.update({
@@ -489,6 +516,7 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AssistantRoute
   '/assistant.js': typeof AssistantDotjsRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/widget.js': typeof WidgetDotjsRoute
@@ -498,7 +526,9 @@ export interface FileRoutesByFullPath {
   '/automations/$slug': typeof AutomationsSlugRoute
   '/automations/': typeof AutomationsIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
+  '/admin/agent-publishing': typeof AuthenticatedAdminAgentPublishingRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/capability-requests': typeof AuthenticatedAdminCapabilityRequestsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/admin/creator': typeof AuthenticatedAdminCreatorRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -514,6 +544,7 @@ export interface FileRoutesByFullPath {
   '/admin/receptionist': typeof AuthenticatedAdminReceptionistRoute
   '/admin/search': typeof AuthenticatedAdminSearchRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/site-keys': typeof AuthenticatedAdminSiteKeysRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/admin/transcripts': typeof AuthenticatedAdminTranscriptsRoute
   '/admin/verification': typeof AuthenticatedAdminVerificationRoute
@@ -561,6 +592,7 @@ export interface FileRoutesByTo {
   '/assistant': typeof AssistantRoute
   '/assistant.js': typeof AssistantDotjsRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/widget.js': typeof WidgetDotjsRoute
@@ -568,7 +600,9 @@ export interface FileRoutesByTo {
   '/automations/$slug': typeof AutomationsSlugRoute
   '/automations': typeof AutomationsIndexRoute
   '/checkout': typeof CheckoutIndexRoute
+  '/admin/agent-publishing': typeof AuthenticatedAdminAgentPublishingRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/capability-requests': typeof AuthenticatedAdminCapabilityRequestsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/admin/creator': typeof AuthenticatedAdminCreatorRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -584,6 +618,7 @@ export interface FileRoutesByTo {
   '/admin/receptionist': typeof AuthenticatedAdminReceptionistRoute
   '/admin/search': typeof AuthenticatedAdminSearchRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/site-keys': typeof AuthenticatedAdminSiteKeysRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/admin/transcripts': typeof AuthenticatedAdminTranscriptsRoute
   '/admin/verification': typeof AuthenticatedAdminVerificationRoute
@@ -633,6 +668,7 @@ export interface FileRoutesById {
   '/assistant': typeof AssistantRoute
   '/assistant.js': typeof AssistantDotjsRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/widget.js': typeof WidgetDotjsRoute
@@ -642,7 +678,9 @@ export interface FileRoutesById {
   '/automations/$slug': typeof AutomationsSlugRoute
   '/automations/': typeof AutomationsIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
+  '/_authenticated/admin/agent-publishing': typeof AuthenticatedAdminAgentPublishingRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/_authenticated/admin/capability-requests': typeof AuthenticatedAdminCapabilityRequestsRoute
   '/_authenticated/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/_authenticated/admin/creator': typeof AuthenticatedAdminCreatorRoute
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -658,6 +696,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/receptionist': typeof AuthenticatedAdminReceptionistRoute
   '/_authenticated/admin/search': typeof AuthenticatedAdminSearchRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/_authenticated/admin/site-keys': typeof AuthenticatedAdminSiteKeysRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/admin/transcripts': typeof AuthenticatedAdminTranscriptsRoute
   '/_authenticated/admin/verification': typeof AuthenticatedAdminVerificationRoute
@@ -707,6 +746,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/assistant.js'
     | '/auth'
+    | '/contact'
     | '/security'
     | '/status'
     | '/widget.js'
@@ -716,7 +756,9 @@ export interface FileRouteTypes {
     | '/automations/$slug'
     | '/automations/'
     | '/checkout/'
+    | '/admin/agent-publishing'
     | '/admin/analytics'
+    | '/admin/capability-requests'
     | '/admin/catalog'
     | '/admin/creator'
     | '/admin/crm'
@@ -732,6 +774,7 @@ export interface FileRouteTypes {
     | '/admin/receptionist'
     | '/admin/search'
     | '/admin/settings'
+    | '/admin/site-keys'
     | '/admin/team'
     | '/admin/transcripts'
     | '/admin/verification'
@@ -779,6 +822,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/assistant.js'
     | '/auth'
+    | '/contact'
     | '/security'
     | '/status'
     | '/widget.js'
@@ -786,7 +830,9 @@ export interface FileRouteTypes {
     | '/automations/$slug'
     | '/automations'
     | '/checkout'
+    | '/admin/agent-publishing'
     | '/admin/analytics'
+    | '/admin/capability-requests'
     | '/admin/catalog'
     | '/admin/creator'
     | '/admin/crm'
@@ -802,6 +848,7 @@ export interface FileRouteTypes {
     | '/admin/receptionist'
     | '/admin/search'
     | '/admin/settings'
+    | '/admin/site-keys'
     | '/admin/team'
     | '/admin/transcripts'
     | '/admin/verification'
@@ -850,6 +897,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/assistant.js'
     | '/auth'
+    | '/contact'
     | '/security'
     | '/status'
     | '/widget.js'
@@ -859,7 +907,9 @@ export interface FileRouteTypes {
     | '/automations/$slug'
     | '/automations/'
     | '/checkout/'
+    | '/_authenticated/admin/agent-publishing'
     | '/_authenticated/admin/analytics'
+    | '/_authenticated/admin/capability-requests'
     | '/_authenticated/admin/catalog'
     | '/_authenticated/admin/creator'
     | '/_authenticated/admin/crm'
@@ -875,6 +925,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/receptionist'
     | '/_authenticated/admin/search'
     | '/_authenticated/admin/settings'
+    | '/_authenticated/admin/site-keys'
     | '/_authenticated/admin/team'
     | '/_authenticated/admin/transcripts'
     | '/_authenticated/admin/verification'
@@ -924,6 +975,7 @@ export interface RootRouteChildren {
   AssistantRoute: typeof AssistantRoute
   AssistantDotjsRoute: typeof AssistantDotjsRoute
   AuthRoute: typeof AuthRouteWithChildren
+  ContactRoute: typeof ContactRoute
   SecurityRoute: typeof SecurityRoute
   StatusRoute: typeof StatusRoute
   WidgetDotjsRoute: typeof WidgetDotjsRoute
@@ -981,6 +1033,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/security': {
@@ -1053,11 +1112,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/agent-publishing': {
+      id: '/_authenticated/admin/agent-publishing'
+      path: '/agent-publishing'
+      fullPath: '/admin/agent-publishing'
+      preLoaderRoute: typeof AuthenticatedAdminAgentPublishingRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/analytics': {
       id: '/_authenticated/admin/analytics'
       path: '/analytics'
       fullPath: '/admin/analytics'
       preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/capability-requests': {
+      id: '/_authenticated/admin/capability-requests'
+      path: '/capability-requests'
+      fullPath: '/admin/capability-requests'
+      preLoaderRoute: typeof AuthenticatedAdminCapabilityRequestsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/catalog': {
@@ -1163,6 +1236,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/site-keys': {
+      id: '/_authenticated/admin/site-keys'
+      path: '/site-keys'
+      fullPath: '/admin/site-keys'
+      preLoaderRoute: typeof AuthenticatedAdminSiteKeysRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/team': {
@@ -1449,7 +1529,9 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAgentPublishingRoute: typeof AuthenticatedAdminAgentPublishingRoute
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
+  AuthenticatedAdminCapabilityRequestsRoute: typeof AuthenticatedAdminCapabilityRequestsRoute
   AuthenticatedAdminCatalogRoute: typeof AuthenticatedAdminCatalogRoute
   AuthenticatedAdminCreatorRoute: typeof AuthenticatedAdminCreatorRoute
   AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
@@ -1465,6 +1547,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminReceptionistRoute: typeof AuthenticatedAdminReceptionistRoute
   AuthenticatedAdminSearchRoute: typeof AuthenticatedAdminSearchRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
+  AuthenticatedAdminSiteKeysRoute: typeof AuthenticatedAdminSiteKeysRoute
   AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRoute
   AuthenticatedAdminTranscriptsRoute: typeof AuthenticatedAdminTranscriptsRoute
   AuthenticatedAdminVerificationRoute: typeof AuthenticatedAdminVerificationRoute
@@ -1485,7 +1568,11 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAgentPublishingRoute:
+    AuthenticatedAdminAgentPublishingRoute,
   AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
+  AuthenticatedAdminCapabilityRequestsRoute:
+    AuthenticatedAdminCapabilityRequestsRoute,
   AuthenticatedAdminCatalogRoute: AuthenticatedAdminCatalogRoute,
   AuthenticatedAdminCreatorRoute: AuthenticatedAdminCreatorRoute,
   AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,
@@ -1501,6 +1588,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminReceptionistRoute: AuthenticatedAdminReceptionistRoute,
   AuthenticatedAdminSearchRoute: AuthenticatedAdminSearchRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+  AuthenticatedAdminSiteKeysRoute: AuthenticatedAdminSiteKeysRoute,
   AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRoute,
   AuthenticatedAdminTranscriptsRoute: AuthenticatedAdminTranscriptsRoute,
   AuthenticatedAdminVerificationRoute: AuthenticatedAdminVerificationRoute,
@@ -1594,6 +1682,7 @@ const rootRouteChildren: RootRouteChildren = {
   AssistantRoute: AssistantRoute,
   AssistantDotjsRoute: AssistantDotjsRoute,
   AuthRoute: AuthRouteWithChildren,
+  ContactRoute: ContactRoute,
   SecurityRoute: SecurityRoute,
   StatusRoute: StatusRoute,
   WidgetDotjsRoute: WidgetDotjsRoute,

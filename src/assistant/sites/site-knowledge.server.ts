@@ -368,6 +368,11 @@ export async function scanSource(
   const hasApprovedManualPricing = config.knowledge.some(
     (k) => k.kind === "manual" && k.category === "pricing" && k.status === "approved",
   );
+  const previouslyApproved = new Set(
+    config.knowledge
+      .filter((k) => k.sourceId === sourceId && k.status === "approved")
+      .map((k) => k.content),
+  );
   const items: KnowledgeItem[] = unique.map((s) => {
     const category = classify(`${s.heading} ${s.text}`);
     return {
@@ -376,7 +381,12 @@ export async function scanSource(
       content: s.text.slice(0, 2500),
       kind: "discovered",
       category,
-      status: category === "pricing" && hasApprovedManualPricing ? "needs_review" : "approved",
+      // Discovered content waits for review. Unchanged, previously approved passages keep approval.
+      status:
+        !(category === "pricing" && hasApprovedManualPricing) &&
+        previouslyApproved.has(s.text.slice(0, 2500))
+          ? "approved"
+          : "needs_review",
       sourceId,
       updatedAt: now,
     };
