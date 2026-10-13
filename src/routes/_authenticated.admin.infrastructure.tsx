@@ -29,6 +29,7 @@ import {
 import { useAssistantStatus, useSaveAssistantSettings } from "@/hooks/use-assistant";
 
 export const Route = createFileRoute("/_authenticated/admin/infrastructure")({
+  head: () => ({ meta: [{ title: "AI Infrastructure — AntheticPlus" }] }),
   component: InfrastructurePage,
 });
 
@@ -53,6 +54,8 @@ function InfrastructurePage() {
   const [label, setLabel] = useState("");
   const [keyValue, setKeyValue] = useState("");
   const [isPrimary, setIsPrimary] = useState(false);
+  const [provider, setProvider] = useState<"groq" | "openrouter" | "openai" | "anthropic">("groq");
+  const [model, setModel] = useState("");
   const [promptDrafts, setPromptDrafts] = useState<Record<string, string>>({});
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const savePromptFn = useAdminSavePrompt();
@@ -93,9 +96,16 @@ function InfrastructurePage() {
       return;
     }
     createKey.mutate(
-      { label: label.trim(), keyValue: keyValue.trim(), isPrimary },
+      {
+        label: label.trim(),
+        keyValue: keyValue.trim(),
+        isPrimary,
+        provider,
+        model: model.trim() || null,
+      },
       {
         onSuccess: () => {
+          setModel("");
           setLabel("");
           setKeyValue("");
           setIsPrimary(false);
@@ -107,10 +117,28 @@ function InfrastructurePage() {
   return (
     <div className="page-enter space-y-8">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Infrastructure & Groq Pool</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">AI Infrastructure</h1>
         <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
-          The key rotation pool, failover history and the global prompt baseline.
+          One place for AI provider keys (Groq, OpenRouter, OpenAI, Anthropic): rotation by
+          priority, automatic cooldown on errors, failover history and the global prompt baseline.
+          Owner only.
         </p>
+        <nav className="mt-4 flex flex-wrap gap-2 text-xs font-bold">
+          {[
+            ["#key-pool", "Key pool & rotation"],
+            ["#add-key", "Add a key"],
+            ["#failover", "Failover log"],
+            ["#prompts", "Prompt baseline"],
+          ].map(([href, text]) => (
+            <a
+              key={href}
+              href={href}
+              className="rounded-full border border-border px-3 py-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            >
+              {text}
+            </a>
+          ))}
+        </nav>
       </div>
 
       <Panel
@@ -173,7 +201,11 @@ function InfrastructurePage() {
         </div>
       </Panel>
 
-      <Panel title="Key pool">
+      <div id="key-pool" className="scroll-mt-20" />
+      <Panel
+        title="Key pool & rotation"
+        description="Keys are tried by priority; a key that errors cools down and the next one takes over."
+      >
         {keys.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">
             No keys configured yet. Add one below to enable the widget.
@@ -187,7 +219,12 @@ function InfrastructurePage() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="font-bold">{key.label}</p>
-                      <p className="text-xs text-muted-foreground">{key.key_hint}</p>
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-semibold uppercase">
+                          {key.provider_key ?? "groq"}
+                        </span>
+                        {key.model ? ` · ${key.model}` : ""} · {key.key_hint}
+                      </p>
                     </div>
                     {key.is_primary && (
                       <span className="rounded-full bg-primary/12 px-2 py-0.5 text-xs font-bold text-primary">
@@ -242,8 +279,40 @@ function InfrastructurePage() {
         )}
       </Panel>
 
+      <div id="add-key" className="scroll-mt-20" />
       <Panel title="Add a key" description="Values are stored server-side and never shown again">
         <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Provider">
+            <select
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={provider}
+              onChange={(e) => {
+                const v = (["groq", "openrouter", "openai", "anthropic"] as const).find(
+                  (x) => x === e.target.value,
+                );
+                if (v) setProvider(v);
+              }}
+            >
+              <option value="groq">Groq</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic</option>
+            </select>
+          </Field>
+          <Field
+            label="Model"
+            hint={
+              provider === "anthropic"
+                ? "Required for Anthropic — skipped otherwise."
+                : "Optional — a default is used when empty."
+            }
+          >
+            <TextField
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              placeholder="optional"
+            />
+          </Field>
           <Field label="Label">
             <TextField
               value={label}
@@ -269,6 +338,7 @@ function InfrastructurePage() {
         </Button>
       </Panel>
 
+      <div id="failover" className="scroll-mt-20" />
       <Panel title="Failover log">
         <DataTable
           head={["When", "Status", "Key", "Message"]}
@@ -286,6 +356,7 @@ function InfrastructurePage() {
         />
       </Panel>
 
+      <div id="prompts" className="scroll-mt-20" />
       <Panel
         title="Global prompt baseline"
         description="{company} is replaced per client at send time"

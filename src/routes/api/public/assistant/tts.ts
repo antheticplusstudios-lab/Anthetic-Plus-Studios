@@ -43,7 +43,7 @@ export const Route = createFileRoute("/api/public/assistant/tts")({
         }
 
         try {
-          const resolved = await resolveFromRequest(request, parsed.site);
+          const resolved = await resolveFromRequest(request, parsed.site, "voice");
           if (!resolved.ok) {
             return new Response(
               JSON.stringify({

@@ -6,6 +6,8 @@
 import { SITES, isSiteId, type SiteId } from "./site-registry";
 import { loadSiteConfig } from "./site-config.server";
 import type { SiteConfig } from "./site-config.types";
+import { effectiveDomains } from "./site-publishing";
+import { loadDomains } from "./site-publishing.server";
 
 export type ResolvedSite = { id: SiteId; config: SiteConfig };
 
@@ -48,7 +50,9 @@ export async function resolveSiteForOrigin(
   const firstPartyOrigin = !!host && host === app;
   const allowed =
     (def.firstParty && firstPartyOrigin) ||
-    [...def.domains, ...config.extraDomains].some((d) => matches(host, d));
+    effectiveDomains(claimed, config.extraDomains, await loadDomains(claimed)).some((d) =>
+      matches(host, d),
+    );
   if (!allowed)
     return {
       ok: false,

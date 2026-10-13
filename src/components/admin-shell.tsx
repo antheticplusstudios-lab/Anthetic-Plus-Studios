@@ -21,6 +21,8 @@ import {
   Wand2,
   BookOpenText,
   Globe2,
+  KeyRound,
+  Rocket,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { HomeBrand } from "@/components/home-brand";
@@ -34,134 +36,202 @@ export const adminNav = [
   {
     label: "Command Center",
     to: "/admin",
+    group: "Overview",
     icon: LayoutDashboard,
     roles: ["owner", "admin", "partner"],
   },
   {
     label: "Global Search",
     to: "/admin/search",
+    group: "Overview",
     icon: Search,
     roles: ["owner", "admin", "partner"],
   },
-  { label: "Emergency Controls", to: "/admin/emergency", icon: ShieldAlert, roles: ["owner"] },
+  {
+    label: "Emergency Controls",
+    to: "/admin/emergency",
+    group: "Platform & Security",
+    icon: ShieldAlert,
+    roles: ["owner"],
+  },
   {
     label: "Orders Ledger",
     to: "/admin/orders",
+    group: "Finance & Subscriptions",
     icon: BadgeDollarSign,
     roles: ["owner", "admin", "partner"],
   },
   {
     label: "Verification Queue",
     to: "/admin/verification",
+    group: "Finance & Subscriptions",
     icon: ClipboardCheck,
     roles: ["owner", "admin", "partner", "verifier"],
   },
   {
+    label: "Capability Requests",
+    to: "/admin/capability-requests",
+    group: "Automations & Workflows",
+    icon: ClipboardCheck,
+    roles: ["owner", "admin", "partner"],
+  },
+  {
     label: "Automation Creator",
     to: "/admin/creator",
+    group: "Automations & Workflows",
     icon: Wand2,
     roles: ["owner", "admin", "partner"],
   },
   {
-    label: "Knowledge Drafts",
+    label: "Agent Knowledge & Learning",
     to: "/admin/knowledge",
+    group: "AI & Website Agent",
     icon: BookOpenText,
     roles: ["owner", "admin", "partner"],
   },
   {
-    label: "AI Assistants (AntheticPlus)",
+    label: "Website AI Agent (Text + Voice)",
     to: "/admin/assistants",
+    group: "AI & Website Agent",
     icon: Globe2,
     roles: ["owner", "admin"],
   },
   {
-    label: "AI Voice Agent",
+    label: "Website Agent: Draft & Publish",
+    to: "/admin/agent-publishing",
+    group: "AI & Website Agent",
+    icon: Rocket,
+    roles: ["owner", "admin"],
+  },
+  {
+    label: "Website Installation Keys",
+    to: "/admin/site-keys",
+    group: "AI & Website Agent",
+    icon: KeyRound,
+    roles: ["owner", "admin"],
+  },
+  {
+    label: "Voice Channel & Email",
     to: "/admin/voice-agent",
+    group: "AI & Website Agent",
     icon: Sparkles,
     roles: ["owner", "admin", "partner"],
   },
   {
-    label: "Automations & Transcripts",
+    label: "Automations Overview",
     to: "/admin/automations",
+    group: "Automations & Workflows",
     icon: Bot,
     roles: ["owner", "admin", "partner"],
   },
   {
-    label: "Round-Robin",
+    label: "CRM Lead Assignment (Round-Robin)",
     to: "/admin/automations/round-robin",
+    group: "Clients & Operations",
     icon: Users,
     roles: ["owner", "admin", "partner"],
   },
   {
-    label: "All Automations",
+    label: "Automation Product Catalog",
     to: "/admin/catalog",
+    group: "Automations & Workflows",
     icon: Boxes,
     roles: ["owner", "admin", "partner"],
   },
   {
     label: "Analytics",
     to: "/admin/analytics",
+    group: "Clients & Operations",
     icon: BarChart3,
     roles: ["owner", "admin", "partner"],
   },
   {
     label: "Client CRM & Tags",
     to: "/admin/crm",
+    group: "Clients & Operations",
     icon: Tags,
     roles: ["owner", "admin", "partner"],
   },
   {
     label: "Subscription Lifecycle",
     to: "/admin/lifecycle",
+    group: "Finance & Subscriptions",
     icon: Clock,
     roles: ["owner", "admin", "partner"],
   },
   {
     label: "Pricing Configurator",
     to: "/admin/pricing",
+    group: "Finance & Subscriptions",
     icon: Sparkles,
     roles: ["owner", "admin", "partner"],
   },
   {
-    label: "Infrastructure & Groq Pool",
+    label: "AI Keys, Rotation & Failover",
     to: "/admin/infrastructure",
+    group: "AI Infrastructure",
     icon: ServerCog,
     roles: ["owner"],
   },
   {
     label: "Team & Audit Trail",
     to: "/admin/team",
+    group: "Platform & Security",
     icon: Users,
     roles: ["owner", "admin", "partner"],
   },
   {
-    label: "Live Automations",
+    label: "Automation Health Monitor",
     to: "/admin/receptionist",
+    group: "Automations & Workflows",
     icon: Bot,
     roles: ["owner", "admin", "partner"],
   },
   {
     label: "Payment Methods",
     to: "/admin/payment-methods",
+    group: "Finance & Subscriptions",
     icon: BadgeDollarSign,
     roles: ["owner"],
   },
-  { label: "AI Key Pool", to: "/admin/llm-keys", icon: ServerCog, roles: ["owner"] },
   {
-    label: "Conversation Diagnostics",
+    label: "Agent Conversation Diagnostics",
     to: "/admin/diagnostics",
+    group: "AI & Website Agent",
     icon: Wand2,
     roles: ["owner", "admin", "partner", "verifier"],
   },
-  { label: "System Settings", to: "/admin/settings", icon: SlidersHorizontal, roles: ["owner"] },
+  {
+    label: "System Settings",
+    to: "/admin/settings",
+    group: "Platform & Security",
+    icon: SlidersHorizontal,
+    roles: ["owner"],
+  },
 ] as const;
+
+type AdminNavItem = (typeof adminNav)[number];
+function adminNavGroup(item: AdminNavItem): string {
+  return item.group;
+}
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const path = useRouterState({ select: (state) => state.location.pathname });
   const { data: role } = useRole();
   const { data: user } = useCurrentUser();
-  const nav = adminNav.filter((item) => (item.roles as readonly string[]).includes(role ?? ""));
+  const groupOrder = [
+    "Overview",
+    "AI & Website Agent",
+    "Automations & Workflows",
+    "AI Infrastructure",
+    "Clients & Operations",
+    "Finance & Subscriptions",
+    "Platform & Security",
+  ];
+  const nav = adminNav
+    .filter((item) => (item.roles as readonly string[]).includes(role ?? ""))
+    .sort((a, b) => groupOrder.indexOf(adminNavGroup(a)) - groupOrder.indexOf(adminNavGroup(b)));
   const initial = (user?.email ?? "A").charAt(0).toUpperCase();
 
   return (
@@ -190,25 +260,38 @@ export function AdminShell({ children }: { children: ReactNode }) {
           aria-label="Admin"
           className="line-nav grid min-h-0 flex-1 content-start gap-1 overflow-y-auto"
         >
-          {nav.map((item) => {
-            const active = path === item.to || (item.to !== "/admin" && path.startsWith(item.to));
+          {nav.map((item, index) => {
+            const matches = (to: string) =>
+              path === to || (to !== "/admin" && path.startsWith(`${to}/`));
+            const best = nav
+              .filter((n) => matches(n.to))
+              .sort((a, b) => b.to.length - a.to.length)[0];
+            const active = best?.to === item.to;
+            const group = adminNavGroup(item);
+            const previousGroup = index > 0 ? adminNavGroup(nav[index - 1]!) : null;
             return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setOpen(false)}
-                data-active={active}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "line-nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  active
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              <div key={item.to} className="contents">
+                {group !== previousGroup && (
+                  <p className="mt-3 border-t border-border px-3 pb-1 pt-4 text-[10px] font-extrabold uppercase tracking-[0.16em] text-muted-foreground first:mt-0 first:border-t-0 first:pt-1">
+                    {group}
+                  </p>
                 )}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                {item.label}
-              </Link>
+                <Link
+                  to={item.to}
+                  onClick={() => setOpen(false)}
+                  data-active={active}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "line-nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    active
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  )}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {item.label}
+                </Link>
+              </div>
             );
           })}
         </nav>

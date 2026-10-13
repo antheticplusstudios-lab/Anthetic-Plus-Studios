@@ -62,7 +62,10 @@ function SiteAssistantPage() {
   const qc = useQueryClient();
   const key = ["web-assistant", id];
   const q = useQuery({ queryKey: key, queryFn: () => get({ data: { siteId: id } }) });
-  const setConfig = (config: SiteConfig) => qc.setQueryData(key, { siteId: id, config });
+  const setConfig = (config: SiteConfig) => {
+    qc.setQueryData(key, (old: typeof q.data) => (old ? { ...old, config } : old));
+    void qc.invalidateQueries({ queryKey: key });
+  };
   const c = q.data?.config;
 
   return (
@@ -83,103 +86,124 @@ function SiteAssistantPage() {
           </Button>
         </Panel>
       ) : (
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="flex h-auto flex-wrap justify-start gap-1">
-            {[
-              "overview",
-              "persona",
-              "business",
-              "services",
-              "knowledge",
-              "sources",
-              "discovery",
-              "tools",
-              "voice",
-              "analytics",
-              "test",
-            ].map((t) => (
-              <TabsTrigger key={t} value={t} className="capitalize">
-                {(
-                  {
-                    persona: "Persona & Tone",
-                    business: "Business Context",
-                    sources: "Knowledge Sources",
-                    discovery: "Automatic Discovery",
-                    tools: "Tools & Permissions",
-                    test: "Test Chat",
-                  } as Record<string, string>
-                )[t] ?? t}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value="overview">
-            <Overview id={id} c={c} onSaved={setConfig} />
-          </TabsContent>
-          <TabsContent value="persona">
-            <SettingsForm
-              id={id}
-              c={c}
-              onSaved={setConfig}
-              title="Persona & Tone"
-              fields={[
-                ["displayName", "Assistant name", false],
-                ["persona", "Persona", true],
-                ["tone", "Tone", false],
-                ["welcomeMessage", "Welcome message", true],
-                ["instructions", "System instructions", true],
-              ]}
-            />
-          </TabsContent>
-          <TabsContent value="business">
-            <SettingsForm
-              id={id}
-              c={c}
-              onSaved={setConfig}
-              title="Business Context"
-              fields={[
-                ["businessInfo", "Business information", true],
-                ["contact", "Contact details", true],
-                ["hours", "Hours", true],
-                ["policies", "Policies", true],
-                ["terminology", "Terminology", true],
-              ]}
-            />
-          </TabsContent>
-          <TabsContent value="services">
-            <SettingsForm
-              id={id}
-              c={c}
-              onSaved={setConfig}
-              title="Services, Products & FAQs"
-              fields={[
-                ["services", "Services", true],
-                ["products", "Products", true],
-                ["faqs", "FAQs", true],
-              ]}
-            />
-          </TabsContent>
-          <TabsContent value="knowledge">
-            <KnowledgeTab id={id} c={c} onSaved={setConfig} />
-          </TabsContent>
-          <TabsContent value="sources">
-            <SourcesTab id={id} c={c} onSaved={setConfig} />
-          </TabsContent>
-          <TabsContent value="discovery">
-            <DiscoveryTab id={id} c={c} onSaved={setConfig} />
-          </TabsContent>
-          <TabsContent value="tools">
-            <ToolsTab id={id} c={c} onSaved={setConfig} />
-          </TabsContent>
-          <TabsContent value="voice">
-            <VoiceTab id={id} c={c} onSaved={setConfig} />
-          </TabsContent>
-          <TabsContent value="analytics">
-            <AnalyticsTab id={id} c={c} onSaved={setConfig} />
-          </TabsContent>
-          <TabsContent value="test">
-            <TestChat id={id} />
-          </TabsContent>
-        </Tabs>
+        <>
+          {q.data?.status && (q.data.status.missing.length > 0 || !q.data.status.saved) && (
+            <Panel title={q.data.status.saved ? "Setup incomplete" : "Not set up yet"}>
+              <p className="text-sm text-muted-foreground">
+                {q.data.status.saved
+                  ? "Saved settings exist, but these are still needed before going live:"
+                  : "Nothing is saved for this site yet. The values below are starting defaults — save any tab to create its settings."}
+              </p>
+              <ul className="mt-2 list-disc pl-5 text-sm">
+                {q.data.status.missing.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+          {q.data?.status?.saved && q.data.status.updatedAt && (
+            <p className="text-xs text-muted-foreground">
+              Last saved {new Date(q.data.status.updatedAt).toLocaleString()}
+            </p>
+          )}
+          <Tabs defaultValue="overview" className="space-y-4">
+            <TabsList className="flex h-auto flex-wrap justify-start gap-1">
+              {[
+                "overview",
+                "persona",
+                "business",
+                "services",
+                "knowledge",
+                "sources",
+                "discovery",
+                "tools",
+                "voice",
+                "analytics",
+                "test",
+              ].map((t) => (
+                <TabsTrigger key={t} value={t} className="capitalize">
+                  {(
+                    {
+                      persona: "Persona & Tone",
+                      business: "Business Context",
+                      sources: "Knowledge Sources",
+                      discovery: "Automatic Discovery",
+                      tools: "Tools & Permissions",
+                      test: "Test Chat",
+                    } as Record<string, string>
+                  )[t] ?? t}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <TabsContent value="overview">
+              <Overview id={id} c={c} onSaved={setConfig} />
+            </TabsContent>
+            <TabsContent value="persona">
+              <SettingsForm
+                id={id}
+                c={c}
+                onSaved={setConfig}
+                title="Persona & Tone"
+                fields={[
+                  ["displayName", "Assistant name", false],
+                  ["persona", "Persona", true],
+                  ["tone", "Tone", false],
+                  ["welcomeMessage", "Welcome message", true],
+                  ["instructions", "System instructions", true],
+                ]}
+              />
+            </TabsContent>
+            <TabsContent value="business">
+              <SettingsForm
+                id={id}
+                c={c}
+                onSaved={setConfig}
+                title="Business Context"
+                fields={[
+                  ["businessInfo", "Business information", true],
+                  ["contact", "Contact details", true],
+                  ["hours", "Hours", true],
+                  ["policies", "Policies", true],
+                  ["terminology", "Terminology", true],
+                ]}
+              />
+            </TabsContent>
+            <TabsContent value="services">
+              <SettingsForm
+                id={id}
+                c={c}
+                onSaved={setConfig}
+                title="Services, Products & FAQs"
+                fields={[
+                  ["services", "Services", true],
+                  ["products", "Products", true],
+                  ["faqs", "FAQs", true],
+                ]}
+              />
+            </TabsContent>
+            <TabsContent value="knowledge">
+              <KnowledgeTab id={id} c={c} onSaved={setConfig} />
+            </TabsContent>
+            <TabsContent value="sources">
+              <SourcesTab id={id} c={c} onSaved={setConfig} />
+            </TabsContent>
+            <TabsContent value="discovery">
+              <DiscoveryTab id={id} c={c} onSaved={setConfig} />
+            </TabsContent>
+            <TabsContent value="tools">
+              <ToolsTab id={id} c={c} onSaved={setConfig} />
+            </TabsContent>
+            <TabsContent value="voice">
+              <VoiceTab id={id} c={c} onSaved={setConfig} />
+            </TabsContent>
+            <TabsContent value="analytics">
+              <AnalyticsTab id={id} c={c} onSaved={setConfig} />
+            </TabsContent>
+            <TabsContent value="test">
+              <TestChat id={id} />
+            </TabsContent>
+          </Tabs>
+        </>
       )}
     </AdminPage>
   );
@@ -197,7 +221,9 @@ function useSave({ id, onSaved }: Pick<TabProps, "id" | "onSaved">) {
       const r = await save({ data: { siteId: id, config: patch as Record<string, unknown> } });
       if (!r?.ok) throw new Error("Save was not confirmed.");
       onSaved(r.config);
-      toast.success(`Saved to ${SITES[id].name}`);
+      toast.success(
+        `Draft saved for ${SITES[id].name}. Publish it in Website Agent: Draft & Publish.`,
+      );
       return true;
     } catch (e) {
       toast.error(errMsg(e));

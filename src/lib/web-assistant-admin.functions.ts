@@ -1,5 +1,5 @@
 /**
- * Admin RPCs for the two Web Assistant sites. Every call re-checks admin RBAC
+ * Admin RPCs for each registered website assistant. Every call re-checks admin RBAC
  * on the server and only ever reads/writes the one site named in the request.
  */
 import { createServerFn } from "@tanstack/react-start";
@@ -9,7 +9,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertAdmin } from "@/lib/rbac.server";
 import { auditMutation } from "@/lib/platform-access.server";
 import { SITE_IDS } from "@/assistant/sites/site-registry";
-import { loadSiteConfig, saveSiteConfig } from "@/assistant/sites/site-config.server";
+import {
+  loadSiteConfig,
+  loadSiteConfigWithStatus,
+  saveSiteConfig,
+} from "@/assistant/sites/site-config.server";
 import {
   scanSource,
   sourceAllowed,
@@ -36,12 +40,37 @@ function audit(
   }).catch((e) => console.error("web assistant audit failed", e));
 }
 
+const HOST_RE = /^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+
+/** Returns an error message when submitted domains are not bare hostnames. */
+export function validateDomains(v: unknown): string | null {
+  if (v === undefined) return null;
+  if (!Array.isArray(v)) return "Domains must be a list.";
+  for (const d of v) {
+    if (typeof d !== "string" || !HOST_RE.test(d.trim().toLowerCase()))
+      return `"${String(d)}" is not a valid domain. Use a bare hostname like example.com.`;
+  }
+  return null;
+}
+
 export const adminGetSiteConfig = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) => z.object({ siteId: siteSchema }).parse(d))
   .handler(async ({ data, context }) => {
     assertAdmin(context);
-    return { siteId: data.siteId, config: await loadSiteConfig(data.siteId) };
+    const { loadAgent } = await import("@/assistant/sites/site-publishing.server");
+    const [{ config, status }, agent] = await Promise.all([
+      loadSiteConfigWithStatus(data.siteId),
+      loadAgent(data.siteId),
+    ]);
+    // The editor shows the working draft (or live settings when no draft exists).
+    return {
+      siteId: data.siteId,
+      config: { ...config, ...agent.working } as SiteConfig,
+      status,
+      agentState: agent.state,
+      draftChanged: agent.changed,
+    };
   });
 
 /** Saves settings fields. Knowledge and sources are managed by their own RPCs and preserved here. */
@@ -52,21 +81,14 @@ export const adminSaveSiteSettings = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     assertAdmin(context);
+    const domainErr = validateDomains(data.config["extraDomains"]);
+    if (domainErr) throw new Error(domainErr);
+    // Edits are saved as a DRAFT. Visitors keep the published settings until an admin publishes.
+    const { saveDraft } = await import("@/assistant/sites/site-publishing.server");
     const current = await loadSiteConfig(data.siteId);
-    const next = {
-      ...current,
-      ...data.config,
-      knowledge: current.knowledge,
-      sources: current.sources,
-    } as SiteConfig;
-    const saved = await saveSiteConfig(data.siteId, next);
-    const changed = Object.keys(data.config).filter(
-      (k) =>
-        JSON.stringify(current[k as keyof typeof current]) !==
-        JSON.stringify(saved[k as keyof typeof saved]),
-    );
-    await audit(context, data.siteId, "settings.updated", { fields: changed });
-    return { ok: true, config: saved };
+    const draft = await saveDraft(data.siteId, data.config as Partial<SiteConfig>, context.userId);
+    await audit(context, data.siteId, "draft.saved", { fields: Object.keys(data.config) });
+    return { ok: true, draft: true, config: { ...current, ...draft.settings } as SiteConfig };
   });
 
 const knowledgeSchema = z.object({
@@ -110,7 +132,8 @@ export const adminUpsertKnowledge = createServerFn({ method: "POST" })
           title: data.item.title,
           content: data.item.content,
           category: data.item.category,
-          status: data.item.status,
+          // New submissions always wait for an explicit review.
+          status: "needs_review",
           kind: "manual",
           sourceId: null,
           updatedAt: now,

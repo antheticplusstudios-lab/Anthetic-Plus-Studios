@@ -1,0 +1,14 @@
+# Roadmap
+- [x] Admin menu in 7 sections; CRM Round-Robin separate from AI key rotation
+- [x] Contact page: validated form, server send, spam guard, honest "not connected" state
+- [x] NY Partners visible on AI Assistant page + manageable domain (verify on live data)
+- [x] Website Agent: draft/publish, test console (draft vs live), version history + rollback, knowledge approval gate, verified domains for partner sites, key enforcement tests
+- [x] Homepage: block field blends into page, scroll-driven 3D section motion, progress bar
+- [ ] Live admin click-through of publishing page (needs signed-in admin session)
+- [~] AI Receptionist: 10 service areas + tools in catalog (done); dashboard service view + order/payment handoff flow (next)
+- [ ] Other 3 automations upgrades
+- [x] Website installation keys: create/rotate/revoke, scopes, one-time secret, connection test, widget + headless instructions (verified on live main DB)
+- [x] Client tool request builder (AI proposal from safe catalog, saved for approval)
+- [x] Capability requests: admin approve/reject with reason, re-validation, integration-gated activation, test, revoke, rollback, history; receptionist execution honours active tools; tests
+- [ ] Merge Groq pool page into AI Infrastructure
+- [ ] Tool proposals use own provider keys (Groq pool) — done; Website Agent AI must also use own keys only

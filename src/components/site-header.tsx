@@ -85,10 +85,10 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <a
-              href="mailto:antheticplusstudios@gmail.com"
+            <Link
+              to="/contact"
               onMouseEnter={() => setHovered("contact")}
-              className="relative rounded-full px-3.5 py-2 text-muted-foreground transition-colors hover:text-foreground"
+              className="relative rounded-full px-3.5 py-2 text-muted-foreground transition-colors hover:text-foreground data-[status=active]:text-foreground"
             >
               {hovered === "contact" && (
                 <motion.span
@@ -98,7 +98,7 @@ export function SiteHeader() {
                 />
               )}
               Contact
-            </a>
+            </Link>
           </nav>
 
           <div className="flex shrink-0 items-center gap-1.5">

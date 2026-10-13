@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { ReactivationModal } from "@/components/reactivation-modal";
 import { generateMyInstallScript } from "@/lib/client-platform.functions";
 import { TestChatPanel } from "@/components/test-chat-panel";
+import { ToolRequestBuilder } from "@/components/tool-request-builder";
+import { ServiceMatcher } from "@/components/service-matcher";
 import { TranscriptEvaluator } from "@/components/transcript-evaluator";
 import { useInstances } from "@/hooks/use-portal";
 import { useFeatureFlag } from "@/hooks/use-system-settings";
@@ -187,6 +189,10 @@ function Page() {
       </div>
 
       {testChatOn && <TestChatPanel automationId={instance.id} disabled={!active} />}
+      {instance.automation_slug === "voice-sms-receptionist" && (
+        <ServiceMatcher automationId={instance.id} disabled={!active} />
+      )}
+      <ToolRequestBuilder automationId={instance.id} disabled={!active} />
 
       {evaluatorOn && (
         <div className="mt-6">

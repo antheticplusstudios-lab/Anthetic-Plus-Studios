@@ -18,6 +18,7 @@ export const Route = createFileRoute("/api/public/assistant/config")({
           const res = await resolveFromRequest(
             request,
             new URL(request.url).searchParams.get("site"),
+            "config",
           );
           if (!res.ok)
             return jsonResponse(

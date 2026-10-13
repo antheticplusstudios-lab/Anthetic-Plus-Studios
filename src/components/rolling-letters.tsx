@@ -30,21 +30,32 @@ export function RollingLetters({
 
   return (
     <Tag className={`overflow-hidden ${className}`} style={style}>
-      {chars.map((char, index) => (
-        <motion.span
-          key={`${char}-${index}`}
-          className="inline-block"
-          initial={{ y: "115%", opacity: 0 }}
-          animate={{ y: "0%", opacity: 1 }}
-          transition={{
-            duration: 0.72,
-            delay: delay + Math.abs(index - (chars.length - 1) / 2) * stagger,
-            ease: [0.22, 0.9, 0.2, 1],
-          }}
-        >
-          {char === " " ? "\u00A0" : char}
-        </motion.span>
-      ))}
+      {text.split(" ").map((word, w, words) => {
+        const start = words.slice(0, w).reduce((n, x) => n + x.length + 1, 0);
+        return (
+          <span key={`${word}-${w}`} className="inline-block whitespace-nowrap">
+            {Array.from(word).map((char, i) => {
+              const index = start + i;
+              return (
+                <motion.span
+                  key={`${char}-${index}`}
+                  className="inline-block"
+                  initial={{ y: "115%", opacity: 0 }}
+                  animate={{ y: "0%", opacity: 1 }}
+                  transition={{
+                    duration: 0.72,
+                    delay: delay + Math.abs(index - (chars.length - 1) / 2) * stagger,
+                    ease: [0.22, 0.9, 0.2, 1],
+                  }}
+                >
+                  {char}
+                </motion.span>
+              );
+            })}
+            {w < words.length - 1 && "\u00A0"}
+          </span>
+        );
+      })}
     </Tag>
   );
 }

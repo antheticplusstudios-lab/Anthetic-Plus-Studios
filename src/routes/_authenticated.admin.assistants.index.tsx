@@ -23,7 +23,7 @@ function AssistantsOverview() {
   return (
     <AdminPage
       title="AI Assistants"
-      subtitle="One shared assistant engine, two isolated website contexts. Each site has its own settings, knowledge and tools."
+      subtitle="One website AI agent per site — chat and voice are the same agent. Admin AI and the four automations are managed separately."
     >
       <div className="grid gap-4 md:grid-cols-2">
         {SITE_IDS.map((id, i) => {
@@ -45,7 +45,15 @@ function AssistantsOverview() {
               description={
                 SITES[id].firstParty
                   ? "This website (first-party)"
-                  : `Partner website · ${SITES[id].domains.join(", ")}`
+                  : (() => {
+                      const domains = [
+                        ...SITES[id].domains,
+                        ...(q.data?.config?.extraDomains ?? []),
+                      ];
+                      return domains.length
+                        ? `Partner website · ${domains.join(", ")}`
+                        : "Partner website · domain not configured yet — add it in Manage to go live";
+                    })()
               }
             >
               {q.isLoading ? (
@@ -55,6 +63,13 @@ function AssistantsOverview() {
               ) : (
                 <div className="space-y-4">
                   <div className="flex flex-wrap gap-2 text-xs">
+                    <Pill tone={q.data?.status.missing.length ? "warn" : "ok"}>
+                      {!q.data?.status.saved
+                        ? "Not set up yet"
+                        : q.data.status.missing.length
+                          ? "Setup incomplete"
+                          : "Ready"}
+                    </Pill>
                     <Pill tone={c.enabled ? "ok" : "off"}>
                       {c.enabled ? "Enabled" : "Disabled"}
                     </Pill>
@@ -69,6 +84,13 @@ function AssistantsOverview() {
                     {stale > 0 && <Pill tone="warn">{stale} stale source(s)</Pill>}
                     {review > 0 && <Pill tone="warn">{review} need review</Pill>}
                   </div>
+                  {q.data?.status.missing.length ? (
+                    <ul className="list-disc pl-5 text-xs text-muted-foreground">
+                      {q.data.status.missing.map((m) => (
+                        <li key={m}>Needed: {m}</li>
+                      ))}
+                    </ul>
+                  ) : null}
                   <Link
                     to="/admin/assistants/$site"
                     params={{ site: id }}
