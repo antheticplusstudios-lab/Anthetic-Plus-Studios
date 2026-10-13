@@ -48,10 +48,10 @@ function Page() {
   useEffect(() => {
     if (profile) {
       setForm({
-        company_name: profile.company_name,
-        company_email: profile.company_email,
-        website_url: profile.website_url,
-        category: profile.category,
+        company_name: profile.company_name ?? "",
+        company_email: profile.company_email ?? "",
+        website_url: profile.website_url ?? "",
+        category: profile.category ?? "",
       });
     } else if (user?.email) {
       setForm((f) => ({ ...f, company_email: user.email! }));
