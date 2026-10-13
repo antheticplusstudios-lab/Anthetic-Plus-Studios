@@ -13,6 +13,7 @@ from .supabase import db1, db2, db3, db4
 from .runtime import resolve_widget, check_origin, eligibility, canonical_widget_config
 from .ai import completion, embedding
 from .security import current_user, assert_automation_access, assert_conversation_access
+from .config import settings as _cors_settings
 
 app = FastAPI(title='AntheticPlus FastAPI', version='1.2.0')
 app.add_middleware(ExplicitOriginCORSMiddleware, policy=CorsPolicy.from_settings(
