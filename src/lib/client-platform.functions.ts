@@ -73,6 +73,7 @@ export const updateMyProfile = createServerFn({ method: "POST" })
       company_email: data.company_email,
       website_url: data.website_url,
       category: data.category,
+      profile_completed: true,
       registered_origin_domain: new URL(
         /^https?:\/\//i.test(data.website_url) ? data.website_url : `https://${data.website_url}`,
       ).hostname
