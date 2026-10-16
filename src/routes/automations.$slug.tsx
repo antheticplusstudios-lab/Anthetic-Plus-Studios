@@ -203,7 +203,7 @@ function AutomationDetail() {
               </p>
             </div>
             <Button size="lg" variant="outline" asChild>
-              <a href="mailto:antheticplusstudios@gmail.com">Talk to the team</a>
+              <Link to="/contact">Talk to the team</Link>
             </Button>
           </div>
         </section>

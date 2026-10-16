@@ -48,21 +48,21 @@ describe("resolveTenantContext", () => {
   });
 
   it("grants platform privileges only from user_roles", async () => {
-    rows.user_roles = ok([{ role: "client" }, { role: "admin" }]);
+    rows["user_roles"] = ok([{ role: "client" }, { role: "admin" }]);
     const ctx = await resolveTenantContext("t", { sub: USER });
     expect(ctx.isSuperAdmin).toBe(true);
     expect(ctx.role).toBe("admin");
   });
 
   it("ignores a user-writable default_organization_id that has no active membership", async () => {
-    rows.profiles = ok({ id: USER, email: "u@example.com", default_organization_id: ORG_B });
+    rows["profiles"] = ok({ id: USER, email: "u@example.com", default_organization_id: ORG_B });
     const ctx = await resolveTenantContext("t", { sub: USER });
     expect(ctx.organizationId).toBe(ORG_A);
   });
 
   it("honours default_organization_id when the user is an active member of it", async () => {
-    rows.profiles = ok({ id: USER, email: "u@example.com", default_organization_id: ORG_B });
-    rows.organization_members = ok([
+    rows["profiles"] = ok({ id: USER, email: "u@example.com", default_organization_id: ORG_B });
+    rows["organization_members"] = ok([
       { organization_id: ORG_A, role: "owner", is_active: true },
       { organization_id: ORG_B, role: "member", is_active: true },
     ]);
@@ -72,12 +72,12 @@ describe("resolveTenantContext", () => {
   });
 
   it("fails closed when a lookup errors", async () => {
-    rows.user_roles = { data: null, error: { message: "boom" } };
+    rows["user_roles"] = { data: null, error: { message: "boom" } };
     await expect(resolveTenantContext("t", { sub: USER })).rejects.toBeInstanceOf(Response);
   });
 
   it("rejects an account with no active membership", async () => {
-    rows.organization_members = ok([]);
+    rows["organization_members"] = ok([]);
     await expect(resolveTenantContext("t", { sub: USER })).rejects.toThrow(
       /missing an organization/,
     );

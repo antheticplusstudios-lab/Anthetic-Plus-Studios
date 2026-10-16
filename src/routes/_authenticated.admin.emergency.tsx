@@ -36,18 +36,18 @@ function EmergencyPage() {
         return kill({ data: { slug: null, killed: task === "pause" } });
       }
       if (task === "widget") {
-        const next = flags.public_widget === false;
+        const next = flags["public_widget"] === false;
         return save({ data: { key: "feature_flags", value: { public_widget: next } } });
       }
       if (task === "storefront") {
-        const next = flags.public_storefront === false;
+        const next = flags["public_storefront"] === false;
         return save({ data: { key: "feature_flags", value: { public_storefront: next } } });
       }
-      const next = maint.enabled === true;
+      const next = maint["enabled"] === true;
       return save({
         data: {
           key: "maintenance",
-          value: { enabled: !next, message: String(maint.message ?? "") },
+          value: { enabled: !next, message: String(maint["message"] ?? "") },
         },
       });
     },
@@ -71,11 +71,11 @@ function EmergencyPage() {
   if (error)
     return <Panel title="Emergency controls unavailable">{(error as Error).message}</Panel>;
 
-  const flags = settings.feature_flags ?? {};
-  const maint = settings.maintenance ?? {};
-  const widgetOn = flags.public_widget !== false;
-  const storefrontOn = flags.public_storefront !== false;
-  const maintenanceOn = maint.enabled === true;
+  const flags = settings["feature_flags"] ?? {};
+  const maint = settings["maintenance"] ?? {};
+  const widgetOn = flags["public_widget"] !== false;
+  const storefrontOn = flags["public_storefront"] !== false;
+  const maintenanceOn = maint["enabled"] === true;
 
   const act = (
     task: "pause" | "resume" | "widget" | "storefront" | "maintenance",

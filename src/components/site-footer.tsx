@@ -145,12 +145,9 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <a
-                  href="mailto:antheticplusstudios@gmail.com"
-                  className="transition-colors hover:text-primary"
-                >
+                <Link to="/contact" className="transition-colors hover:text-primary">
                   Talk to the team
-                </a>
+                </Link>
               </li>
               <li>
                 <a

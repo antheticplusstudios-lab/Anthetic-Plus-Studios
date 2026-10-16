@@ -320,7 +320,7 @@ function ControlCenter() {
           hint={
             a["requires_reinstallation"]
               ? "Reinstall required"
-              : (data.installations as Row[]).some((x) => x.status === "active")
+              : (data.installations as Row[]).some((x) => x["status"] === "active")
                 ? "Installed"
                 : "Not installed"
           }
@@ -527,10 +527,10 @@ function ControlCenter() {
             <DataTable
               head={["Domain", "Status", "Verified", "Last seen"]}
               rows={(data.installations as Row[]).map((x) => [
-                String(x.domain),
-                String(x.status),
-                x.verified_at ? timeAgo(String(x.verified_at)) : "—",
-                x.last_seen_at ? timeAgo(String(x.last_seen_at)) : "—",
+                String(x["domain"]),
+                String(x["status"]),
+                x["verified_at"] ? timeAgo(String(x["verified_at"])) : "—",
+                x["last_seen_at"] ? timeAgo(String(x["last_seen_at"])) : "—",
               ])}
               empty="No installations recorded."
             />
@@ -598,12 +598,12 @@ function ControlCenter() {
           <DataTable
             head={["Period", "Tokens", "Messages", "SMS", "Call minutes", "Workflow runs"]}
             rows={(data.usage as Row[]).map((u) => [
-              String(u.billing_period),
-              Number(u.tokens_used ?? 0).toLocaleString(),
-              Number(u.messages_count_used ?? 0).toLocaleString(),
-              Number(u.sms_count_used ?? 0).toLocaleString(),
-              Number(u.call_minutes_used ?? 0),
-              Number(u.workflow_runs_used ?? 0),
+              String(u["billing_period"]),
+              Number(u["tokens_used"] ?? 0).toLocaleString(),
+              Number(u["messages_count_used"] ?? 0).toLocaleString(),
+              Number(u["sms_count_used"] ?? 0).toLocaleString(),
+              Number(u["call_minutes_used"] ?? 0),
+              Number(u["workflow_runs_used"] ?? 0),
             ])}
             empty="No usage meters recorded."
           />
@@ -619,14 +619,14 @@ function ControlCenter() {
             head={["ID", "Domain", "Status", "Installed", "Verified", "Revoked", "Last seen"]}
             rows={(data.installations as Row[]).map((x) => [
               <span key="id" className="font-mono text-xs">
-                {String(x.id).slice(0, 8)}…
+                {String(x["id"]).slice(0, 8)}…
               </span>,
-              String(x.domain),
-              String(x.status),
-              x.installed_at ? timeAgo(String(x.installed_at)) : "—",
-              x.verified_at ? timeAgo(String(x.verified_at)) : "—",
-              x.revoked_at ? timeAgo(String(x.revoked_at)) : "—",
-              x.last_seen_at ? timeAgo(String(x.last_seen_at)) : "—",
+              String(x["domain"]),
+              String(x["status"]),
+              x["installed_at"] ? timeAgo(String(x["installed_at"])) : "—",
+              x["verified_at"] ? timeAgo(String(x["verified_at"])) : "—",
+              x["revoked_at"] ? timeAgo(String(x["revoked_at"])) : "—",
+              x["last_seen_at"] ? timeAgo(String(x["last_seen_at"])) : "—",
             ])}
             empty="No installations have been created."
           />
@@ -661,11 +661,11 @@ function ControlCenter() {
               head={["Hint", "Created", "Invalidated", "Reason"]}
               rows={(data.scripts as Row[]).map((x) => [
                 <span key="h" className="font-mono">
-                  {String(x.token_hint ?? "")}
+                  {String(x["token_hint"] ?? "")}
                 </span>,
-                shortDate(String(x.created_at)),
-                x.invalidated_at ? shortDate(String(x.invalidated_at)) : "Active",
-                String(x.invalidated_reason ?? "—"),
+                shortDate(String(x["created_at"])),
+                x["invalidated_at"] ? shortDate(String(x["invalidated_at"])) : "Active",
+                String(x["invalidated_reason"] ?? "—"),
               ])}
               empty="No script generations recorded."
             />
@@ -720,12 +720,12 @@ function ControlCenter() {
             <DataTable
               head={["Key", "Version", "Active", "Created", "Content"]}
               rows={(data.prompts as Row[]).map((x) => [
-                String(x.prompt_key),
-                String(x.version),
-                x.is_active ? "Yes" : "No",
-                shortDate(String(x.created_at)),
+                String(x["prompt_key"]),
+                String(x["version"]),
+                x["is_active"] ? "Yes" : "No",
+                shortDate(String(x["created_at"])),
                 <span key="c" className="line-clamp-2 text-xs">
-                  {String(x.content)}
+                  {String(x["content"])}
                 </span>,
               ])}
               empty="No automation prompt versions."
@@ -744,7 +744,7 @@ function ControlCenter() {
             <dt className="text-muted-foreground">Twilio status</dt>
             <dd className="font-semibold">
               {String(
-                (data.integrations as Row[]).find((x) => x.provider === "twilio")?.status ??
+                (data.integrations as Row[]).find((x) => x["provider"] === "twilio")?.["status"] ??
                   "Not configured",
               )}
             </dd>
@@ -752,8 +752,8 @@ function ControlCenter() {
             <dd className="font-semibold">
               {String(
                 (data.integrations as Row[]).find((x) =>
-                  ["google_calendar", "google"].includes(String(x.provider)),
-                )?.status ?? "Not configured",
+                  ["google_calendar", "google"].includes(String(x["provider"])),
+                )?.["status"] ?? "Not configured",
               )}
             </dd>
           </dl>
@@ -765,12 +765,12 @@ function ControlCenter() {
           <DataTable
             head={["Provider", "Account", "Status", "Last verified", "Last error"]}
             rows={(data.integrations as Row[]).map((x) => [
-              String(x.provider),
-              String(x.account_label ?? "—"),
-              String(x.status),
-              x.last_verified_at ? timeAgo(String(x.last_verified_at)) : "—",
+              String(x["provider"]),
+              String(x["account_label"] ?? "—"),
+              String(x["status"]),
+              x["last_verified_at"] ? timeAgo(String(x["last_verified_at"])) : "—",
               <span key="e" className="text-xs text-muted-foreground">
-                {String(x.last_error ?? "—")}
+                {String(x["last_error"] ?? "—")}
               </span>,
             ])}
             empty="No provider connections."
@@ -786,11 +786,11 @@ function ControlCenter() {
           <DataTable
             head={["Provider", "Status", "Priority", "Default model", "Base URL"]}
             rows={(data.providers as Row[]).map((x) => [
-              String(x.display_name),
-              String(x.status),
-              String(x.priority),
-              String(x.default_model ?? "—"),
-              String(x.base_url),
+              String(x["display_name"]),
+              String(x["status"]),
+              String(x["priority"]),
+              String(x["default_model"] ?? "—"),
+              String(x["base_url"]),
             ])}
             empty="No providers configured."
           />
@@ -802,13 +802,13 @@ function ControlCenter() {
           <DataTable
             head={["Provider", "Model", "Status", "HTTP", "Latency", "Tokens", "When"]}
             rows={(data.llm as Row[]).map((x) => [
-              String(x.provider_key),
-              String(x.model),
-              String(x.status),
-              String(x.http_status ?? "—"),
-              x.latency_ms ? `${x.latency_ms}ms` : "—",
-              `${x.tokens_in ?? 0}/${x.tokens_out ?? 0}`,
-              timeAgo(String(x.created_at)),
+              String(x["provider_key"]),
+              String(x["model"]),
+              String(x["status"]),
+              String(x["http_status"] ?? "—"),
+              x["latency_ms"] ? `${x["latency_ms"]}ms` : "—",
+              `${x["tokens_in"] ?? 0}/${x["tokens_out"] ?? 0}`,
+              timeAgo(String(x["created_at"])),
             ])}
             empty="No LLM requests recorded."
           />
@@ -821,10 +821,10 @@ function ControlCenter() {
             <DataTable
               head={["Task", "Enabled", "Config"]}
               rows={(data.tasks as Row[]).map((x) => [
-                String(x.task_key),
-                x.enabled ? "Yes" : "No",
+                String(x["task_key"]),
+                x["enabled"] ? "Yes" : "No",
                 <pre key="c" className="max-w-md overflow-auto text-xs">
-                  {JSON.stringify(x.config ?? {}, null, 0)}
+                  {JSON.stringify(x["config"] ?? {}, null, 0)}
                 </pre>,
               ])}
               empty="No tasks configured."
@@ -849,11 +849,11 @@ function ControlCenter() {
             <DataTable
               head={["Team", "Strategy", "Active", "Priority", "Overflow"]}
               rows={(data.rrTeams as Row[]).map((x) => [
-                String(x.name),
-                String(x.assignment_strategy),
-                x.is_active ? "Yes" : "No",
-                String(x.priority),
-                String(x.overflow_behavior),
+                String(x["name"]),
+                String(x["assignment_strategy"]),
+                x["is_active"] ? "Yes" : "No",
+                String(x["priority"]),
+                String(x["overflow_behavior"]),
               ])}
               empty="No round-robin teams configured."
             />
@@ -862,10 +862,10 @@ function ControlCenter() {
             <DataTable
               head={["Subject", "Strategy", "Status", "Assigned"]}
               rows={(data.rrAssignments as Row[]).map((x) => [
-                String(x.subject_type),
-                String(x.strategy),
-                String(x.status),
-                timeAgo(String(x.assigned_at)),
+                String(x["subject_type"]),
+                String(x["strategy"]),
+                String(x["status"]),
+                timeAgo(String(x["assigned_at"])),
               ])}
               empty="No assignments yet."
             />
@@ -1251,14 +1251,14 @@ function ControlCenter() {
             <DataTable
               head={["Severity", "What went wrong", "Recommended fix", "Created"]}
               rows={(data.diagnostics as Row[]).map((x) => [
-                String(x.severity),
+                String(x["severity"]),
                 <span key="w" className="text-xs">
-                  {String(x.what_went_wrong)}
+                  {String(x["what_went_wrong"])}
                 </span>,
                 <span key="r" className="text-xs">
-                  {String(x.recommended_fix)}
+                  {String(x["recommended_fix"])}
                 </span>,
-                timeAgo(String(x.created_at)),
+                timeAgo(String(x["created_at"])),
               ])}
               empty="No conversation diagnostics."
             />
@@ -1267,13 +1267,13 @@ function ControlCenter() {
             <DataTable
               head={["Check", "Status", "Error", "Checked"]}
               rows={(data.checks as Row[])
-                .filter((x) => x.status === "fail" || x.status === "warn")
+                .filter((x) => x["status"] === "fail" || x["status"] === "warn")
                 .slice(0, 50)
                 .map((x) => [
-                  String(x.check_type),
-                  String(x.status),
-                  String(x.error ?? "—"),
-                  timeAgo(String(x.checked_at)),
+                  String(x["check_type"]),
+                  String(x["status"]),
+                  String(x["error"] ?? "—"),
+                  timeAgo(String(x["checked_at"])),
                 ])}
               empty="No warnings or failures in the latest history."
             />
@@ -1295,7 +1295,7 @@ function ControlCenter() {
               ["Reinstallation required", a["requires_reinstallation"] ? "Yes" : "No"],
               [
                 "Active installation count",
-                (data.installations as Row[]).filter((x) => x.status === "active").length,
+                (data.installations as Row[]).filter((x) => x["status"] === "active").length,
               ],
             ].map(([k, v]) => (
               <div key={String(k)}>

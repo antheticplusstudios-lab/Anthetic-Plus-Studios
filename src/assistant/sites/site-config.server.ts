@@ -100,15 +100,15 @@ const color = (v: unknown, fb: string) =>
 export function normalizeConfig(id: SiteId, raw: unknown): SiteConfig {
   const d = DEFAULTS[id];
   const v = rec(raw);
-  const b = rec(v.branding);
-  const vo = rec(v.voice);
-  const l = rec(v.limits);
-  const di = rec(v.discovery);
+  const b = rec(v["branding"]);
+  const vo = rec(v["voice"]);
+  const l = rec(v["limits"]);
+  const di = rec(v["discovery"]);
   const known = new Set(
     SITE_TOOL_CATALOG.filter((t) => SITES[id].firstParty || !t.firstPartyOnly).map((t) => t.name),
   );
-  const rawStoredTools = Array.isArray(v.allowedTools)
-    ? v.allowedTools.filter((t): t is string => typeof t === "string")
+  const rawStoredTools = Array.isArray(v["allowedTools"])
+    ? v["allowedTools"].filter((t): t is string => typeof t === "string")
     : d.allowedTools;
   const migratedTools = rawStoredTools.map((tool) => {
     if (tool === "get_subscriptions") return "get_subscription";
@@ -127,55 +127,59 @@ export function normalizeConfig(id: SiteId, raw: unknown): SiteConfig {
       ? [...storedTools, "get_dashboard_guide"]
       : storedTools;
   return {
-    enabled: bool(v.enabled, d.enabled),
-    voiceEnabled: bool(v.voiceEnabled, d.voiceEnabled),
-    displayName: str(v.displayName, d.displayName, 80) || d.displayName,
-    persona: str(v.persona, d.persona, 2000),
-    tone: str(v.tone, d.tone, 1000),
-    welcomeMessage: str(v.welcomeMessage, d.welcomeMessage, 600) || d.welcomeMessage,
-    instructions: str(v.instructions, d.instructions, 6000),
-    businessInfo: str(v.businessInfo, d.businessInfo, 8000),
-    services: str(v.services, d.services, 8000),
-    products: str(v.products, d.products, 8000),
-    faqs: str(v.faqs, d.faqs, 12000),
-    terminology: str(v.terminology, d.terminology, 4000),
-    policies: str(v.policies, d.policies, 8000),
-    contact: str(v.contact, d.contact, 2000),
-    hours: str(v.hours, d.hours, 1000),
+    enabled: bool(v["enabled"], d["enabled"]),
+    voiceEnabled: bool(v["voiceEnabled"], d["voiceEnabled"]),
+    displayName: str(v["displayName"], d["displayName"], 80) || d["displayName"],
+    persona: str(v["persona"], d["persona"], 2000),
+    tone: str(v["tone"], d["tone"], 1000),
+    welcomeMessage: str(v["welcomeMessage"], d["welcomeMessage"], 600) || d["welcomeMessage"],
+    instructions: str(v["instructions"], d["instructions"], 6000),
+    businessInfo: str(v["businessInfo"], d["businessInfo"], 8000),
+    services: str(v["services"], d["services"], 8000),
+    products: str(v["products"], d["products"], 8000),
+    faqs: str(v["faqs"], d["faqs"], 12000),
+    terminology: str(v["terminology"], d["terminology"], 4000),
+    policies: str(v["policies"], d["policies"], 8000),
+    contact: str(v["contact"], d["contact"], 2000),
+    hours: str(v["hours"], d["hours"], 1000),
     branding: {
-      primary: color(b.primary, d.branding.primary),
-      accent: color(b.accent, d.branding.accent),
-      position: b.position === "left" ? "left" : "right",
+      primary: color(b["primary"], d.branding["primary"]),
+      accent: color(b["accent"], d.branding["accent"]),
+      position: b["position"] === "left" ? "left" : "right",
     },
     voice: {
-      lang: str(vo.lang, d.voice.lang, 12) || "en-US",
-      rate: num(vo.rate, 0.5, 1.6, 1),
-      pitch: num(vo.pitch, 0.5, 1.6, 1),
+      lang: str(vo["lang"], d.voice["lang"], 12) || "en-US",
+      rate: num(vo["rate"], 0.5, 1.6, 1),
+      pitch: num(vo["pitch"], 0.5, 1.6, 1),
     },
     allowedTools: tools,
-    emailEnabled: SITES[id].firstParty ? bool(v.emailEnabled, d.emailEnabled) : false,
+    emailEnabled: SITES[id].firstParty ? bool(v["emailEnabled"], d["emailEnabled"]) : false,
     limits: {
-      maxMessageChars: Math.round(num(l.maxMessageChars, 100, 1200, d.limits.maxMessageChars)),
+      maxMessageChars: Math.round(
+        num(l["maxMessageChars"], 100, 1200, d.limits["maxMessageChars"]),
+      ),
       maxTurnsPerConversation: Math.round(
-        num(l.maxTurnsPerConversation, 4, 200, d.limits.maxTurnsPerConversation),
+        num(l["maxTurnsPerConversation"], 4, 200, d.limits["maxTurnsPerConversation"]),
       ),
     },
-    extraDomains: Array.isArray(v.extraDomains)
-      ? v.extraDomains
+    extraDomains: Array.isArray(v["extraDomains"])
+      ? v["extraDomains"]
           .filter((x): x is string => typeof x === "string")
           .map((x) => x.trim().toLowerCase())
           .filter(Boolean)
           .slice(0, 10)
       : d.extraDomains,
-    analyticsEnabled: bool(v.analyticsEnabled, d.analyticsEnabled),
+    analyticsEnabled: bool(v["analyticsEnabled"], d["analyticsEnabled"]),
     discovery: {
-      enabled: bool(di.enabled, d.discovery.enabled),
-      refreshHours: Math.round(num(di.refreshHours, 6, 720, d.discovery.refreshHours)),
+      enabled: bool(di["enabled"], d.discovery["enabled"]),
+      refreshHours: Math.round(num(di["refreshHours"], 6, 720, d.discovery["refreshHours"])),
     },
-    knowledge: Array.isArray(v.knowledge)
-      ? (v.knowledge as KnowledgeItem[]).slice(0, 400)
+    knowledge: Array.isArray(v["knowledge"])
+      ? (v["knowledge"] as KnowledgeItem[]).slice(0, 400)
       : d.knowledge,
-    sources: Array.isArray(v.sources) ? (v.sources as KnowledgeSource[]).slice(0, 50) : d.sources,
+    sources: Array.isArray(v["sources"])
+      ? (v["sources"] as KnowledgeSource[]).slice(0, 50)
+      : d["sources"],
   };
 }
 

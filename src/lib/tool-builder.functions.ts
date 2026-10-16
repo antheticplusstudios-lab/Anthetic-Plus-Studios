@@ -43,15 +43,15 @@ async function realDeps(): Promise<CapabilityDeps> {
       if (error) throw new Error(error.message);
       if (!data) return null;
       const r = data as Record<string, unknown>;
-      const t = String(r.automation_type ?? r.product_type ?? "");
+      const t = String(r["automation_type"] ?? r["product_type"] ?? "");
       const kind =
         t in SLUG_BY_ENGINE_KIND ? t : ENGINE_KIND_BY_SLUG[t as keyof typeof ENGINE_KIND_BY_SLUG];
       if (!kind) return null;
       return {
-        id: String(r.id),
-        clientId: String(r.client_id),
+        id: String(r["id"]),
+        clientId: String(r["client_id"]),
         kind: kind as never,
-        name: String(r.name ?? t),
+        name: String(r["name"] ?? t),
       };
     },
     async listAutomationIdsWithRequests() {
@@ -80,11 +80,11 @@ async function realDeps(): Promise<CapabilityDeps> {
         db2Admin.from("client_automations").select("config").eq("id", id).maybeSingle(),
       ]);
       const cfg = (auto?.config ?? {}) as Record<string, unknown>;
-      const settings = (cfg.settings ?? {}) as Record<string, unknown>;
+      const settings = (cfg["settings"] ?? {}) as Record<string, unknown>;
       return connectedNeeds(
         (conns ?? []).map((c) => String(c.provider)),
         settings,
-        { resend: !!process.env.RESEND_API_KEY && !!process.env.RESEND_FROM_EMAIL },
+        { resend: !!process.env["RESEND_API_KEY"] && !!process.env["RESEND_FROM_EMAIL"] },
       );
     },
     audit: (ctx, action, automationId, meta) =>

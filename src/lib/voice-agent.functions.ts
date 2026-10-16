@@ -33,7 +33,7 @@ export type VoiceAgentSettings = {
   emailProvider: "resend" | "none";
   emailEnabled: boolean;
   emailTemplates: Record<VoiceEmailType, { subject: string; body: string }>;
-  ttsProvider: "elevenlabs";
+  ttsProvider: "inworld";
   ttsModel: string;
   ttsVoiceId: string;
 };
@@ -73,7 +73,7 @@ const settingsInput = z.object({
     z.enum(emailTypes),
     z.object({ subject: z.string().max(180), body: z.string().max(6000) }),
   ),
-  ttsProvider: z.literal("elevenlabs"),
+  ttsProvider: z.literal("inworld"),
   ttsModel: z.string().trim().min(1).max(80),
   ttsVoiceId: z.string().trim().max(120),
 });

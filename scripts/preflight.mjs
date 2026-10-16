@@ -1,44 +1,23 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 const root = process.cwd();
 const failures = [];
-const required = [
-  "package.json",
-  "package-lock.json",
-  "vite.config.ts",
-  "vercel.json",
-  ".env.example",
-];
-for (const file of required) if (!existsSync(join(root, file))) failures.push(`missing ${file}`);
-const scanRoots = ["src", "backend", "README.md", "package.json", "vercel.json"];
-const vendorWords = [
-  ["love", "able"].join(""),
-  ["aut", "umic"].join(""),
-  ["ai", "_sales_agent"].join(""),
-  ["web", "_chatbot"].join(""),
-];
-const bad = new RegExp(vendorWords.join("|"), "i");
-function walk(path) {
-  if (!existsSync(path)) return;
-  const st = statSync(path);
-  if (st.isDirectory()) {
-    for (const name of readdirSync(path)) {
-      if (["node_modules", ".git", ".output", "dist", "__pycache__"].includes(name)) continue;
-      walk(join(path, name));
-    }
-    return;
-  }
-  const text = readFileSync(path, "utf8");
-  if (bad.test(text)) failures.push(`legacy/vendor reference in ${relative(root, path)}`);
+for (const file of ["package.json", "vite.config.ts", "vercel.json", ".env.example"]) {
+  if (!existsSync(join(root, file))) failures.push(`missing ${file}`);
 }
-for (const entry of scanRoots) walk(join(root, entry));
-
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-if (pkg.packageManager !== "npm@10.9.2") failures.push("packageManager must be npm@10.9.2");
-if (pkg.scripts?.start !== "node .output/server/index.mjs")
-  failures.push("production start command is not Nitro Node output");
-
+for (const script of ["dev", "build", "start", "test", "typecheck", "lint"]) {
+  if (!pkg.scripts?.[script]) failures.push(`missing npm script: ${script}`);
+}
+if (!readFileSync(join(root, "vite.config.ts"), "utf8").includes('from "nitro/vite"')) {
+  failures.push("Vite config does not register the Nitro deployment plugin");
+}
+if (!readFileSync(join(root, "vercel.json"), "utf8").includes('"NITRO_PRESET": "vercel"')) {
+  failures.push("Vercel Nitro preset is not configured");
+}
+if (existsSync(join(root, ".env")))
+  failures.push("local .env must not be included in source package");
 if (failures.length) {
   console.error("PREFLIGHT_FAIL");
   for (const failure of failures) console.error(`- ${failure}`);

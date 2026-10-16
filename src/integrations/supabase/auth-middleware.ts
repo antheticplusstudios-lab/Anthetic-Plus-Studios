@@ -12,7 +12,7 @@ function required(name: string): string {
 
 function createAuthClient(token: string): SupabaseClient<Database> {
   const url = required("DB1_URL");
-  const key = process.env.DB1_ANON_KEY ?? process.env.DB1_PUBLISHABLE_KEY;
+  const key = process.env["DB1_ANON_KEY"] ?? process.env["DB1_PUBLISHABLE_KEY"];
   if (!key) throw new Error("Missing required server environment variable: DB1_ANON_KEY");
   return createClient<Database>(url, key, {
     global: { headers: { Authorization: `Bearer ${token}` } },

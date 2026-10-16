@@ -34,9 +34,11 @@ import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminDiagnosticsRouteImport } from './routes/_authenticated.admin.diagnostics'
 import { Route as AuthenticatedAdminEmergencyRouteImport } from './routes/_authenticated.admin.emergency'
 import { Route as AuthenticatedAdminInfrastructureRouteImport } from './routes/_authenticated.admin.infrastructure'
+import { Route as AuthenticatedAdminIntegrationKeysRouteImport } from './routes/_authenticated.admin.integration-keys'
 import { Route as AuthenticatedAdminKnowledgeRouteImport } from './routes/_authenticated.admin.knowledge'
 import { Route as AuthenticatedAdminLifecycleRouteImport } from './routes/_authenticated.admin.lifecycle'
 import { Route as AuthenticatedAdminLlmKeysRouteImport } from './routes/_authenticated.admin.llm-keys'
+import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated.admin.messages'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated.admin.orders'
 import { Route as AuthenticatedAdminPaymentMethodsRouteImport } from './routes/_authenticated.admin.payment-methods'
 import { Route as AuthenticatedAdminPricingRouteImport } from './routes/_authenticated.admin.pricing'
@@ -45,7 +47,9 @@ import { Route as AuthenticatedAdminSearchRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
 import { Route as AuthenticatedAdminSiteKeysRouteImport } from './routes/_authenticated.admin.site-keys'
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated.admin.team'
+import { Route as AuthenticatedAdminTrainingRouteImport } from './routes/_authenticated.admin.training'
 import { Route as AuthenticatedAdminTranscriptsRouteImport } from './routes/_authenticated.admin.transcripts'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
 import { Route as AuthenticatedAdminVerificationRouteImport } from './routes/_authenticated.admin.verification'
 import { Route as AuthenticatedAdminVoiceAgentRouteImport } from './routes/_authenticated.admin.voice-agent'
 import { Route as AuthenticatedCheckoutSlugRouteImport } from './routes/_authenticated.checkout.$slug'
@@ -67,6 +71,8 @@ import { Route as AuthenticatedAdminAutomationsVoiceSmsReceptionistRouteImport }
 import { Route as AuthenticatedAdminAutomationsWorkflowRouteImport } from './routes/_authenticated.admin.automations.workflow'
 import { Route as AuthenticatedAdminClientsIndexRouteImport } from './routes/_authenticated.admin.clients.index'
 import { Route as AuthenticatedAdminClientsIdRouteImport } from './routes/_authenticated.admin.clients.$id'
+import { Route as AuthenticatedAdminSuiteIndexRouteImport } from './routes/_authenticated.admin.suite.index'
+import { Route as AuthenticatedAdminSuiteSlugRouteImport } from './routes/_authenticated.admin.suite.$slug'
 import { Route as AuthenticatedDashboardAutomationsIndexRouteImport } from './routes/_authenticated.dashboard.automations.index'
 import { Route as AuthenticatedDashboardAutomationsIdRouteImport } from './routes/_authenticated.dashboard.automations.$id'
 import { Route as AuthenticatedDashboardPortalIdRouteImport } from './routes/_authenticated.dashboard.portal.$id'
@@ -78,6 +84,7 @@ import { Route as ApiPublicAutomationsWebhookRouteImport } from './routes/api/pu
 import { Route as ApiPublicAutomationsWorkerRouteImport } from './routes/api/public/automations/worker'
 import { Route as ApiPublicHooksAiKnowledgeRouteImport } from './routes/api/public/hooks/ai-knowledge'
 import { Route as ApiPublicHooksLifecycleRouteImport } from './routes/api/public/hooks/lifecycle'
+import { Route as ApiPublicTrainingRunRouteImport } from './routes/api/public/training/run'
 import { Route as ApiPublicWidgetChatRouteImport } from './routes/api/public/widget/chat'
 import { Route as ApiPublicWidgetConfigRouteImport } from './routes/api/public/widget/config'
 import { Route as ApiPublicWidgetScriptRouteImport } from './routes/api/public/widget/script'
@@ -217,6 +224,12 @@ const AuthenticatedAdminInfrastructureRoute =
     path: '/infrastructure',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminIntegrationKeysRoute =
+  AuthenticatedAdminIntegrationKeysRouteImport.update({
+    id: '/integration-keys',
+    path: '/integration-keys',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminKnowledgeRoute =
   AuthenticatedAdminKnowledgeRouteImport.update({
     id: '/knowledge',
@@ -233,6 +246,12 @@ const AuthenticatedAdminLlmKeysRoute =
   AuthenticatedAdminLlmKeysRouteImport.update({
     id: '/llm-keys',
     path: '/llm-keys',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminMessagesRoute =
+  AuthenticatedAdminMessagesRouteImport.update({
+    id: '/messages',
+    path: '/messages',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminOrdersRoute =
@@ -282,12 +301,23 @@ const AuthenticatedAdminTeamRoute = AuthenticatedAdminTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminTrainingRoute =
+  AuthenticatedAdminTrainingRouteImport.update({
+    id: '/training',
+    path: '/training',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminTranscriptsRoute =
   AuthenticatedAdminTranscriptsRouteImport.update({
     id: '/transcripts',
     path: '/transcripts',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminVerificationRoute =
   AuthenticatedAdminVerificationRouteImport.update({
     id: '/verification',
@@ -414,6 +444,18 @@ const AuthenticatedAdminClientsIdRoute =
     path: '/clients/$id',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminSuiteIndexRoute =
+  AuthenticatedAdminSuiteIndexRouteImport.update({
+    id: '/suite/',
+    path: '/suite/',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminSuiteSlugRoute =
+  AuthenticatedAdminSuiteSlugRouteImport.update({
+    id: '/suite/$slug',
+    path: '/suite/$slug',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedDashboardAutomationsIndexRoute =
   AuthenticatedDashboardAutomationsIndexRouteImport.update({
     id: '/automations/',
@@ -477,6 +519,11 @@ const ApiPublicHooksLifecycleRoute = ApiPublicHooksLifecycleRouteImport.update({
   path: '/api/public/hooks/lifecycle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTrainingRunRoute = ApiPublicTrainingRunRouteImport.update({
+  id: '/api/public/training/run',
+  path: '/api/public/training/run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWidgetChatRoute = ApiPublicWidgetChatRouteImport.update({
   id: '/api/public/widget/chat',
   path: '/api/public/widget/chat',
@@ -535,9 +582,11 @@ export interface FileRoutesByFullPath {
   '/admin/diagnostics': typeof AuthenticatedAdminDiagnosticsRoute
   '/admin/emergency': typeof AuthenticatedAdminEmergencyRoute
   '/admin/infrastructure': typeof AuthenticatedAdminInfrastructureRoute
+  '/admin/integration-keys': typeof AuthenticatedAdminIntegrationKeysRoute
   '/admin/knowledge': typeof AuthenticatedAdminKnowledgeRoute
   '/admin/lifecycle': typeof AuthenticatedAdminLifecycleRoute
   '/admin/llm-keys': typeof AuthenticatedAdminLlmKeysRoute
+  '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/payment-methods': typeof AuthenticatedAdminPaymentMethodsRoute
   '/admin/pricing': typeof AuthenticatedAdminPricingRoute
@@ -546,7 +595,9 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/site-keys': typeof AuthenticatedAdminSiteKeysRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
+  '/admin/training': typeof AuthenticatedAdminTrainingRoute
   '/admin/transcripts': typeof AuthenticatedAdminTranscriptsRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verification': typeof AuthenticatedAdminVerificationRoute
   '/admin/voice-agent': typeof AuthenticatedAdminVoiceAgentRoute
   '/checkout/$slug': typeof AuthenticatedCheckoutSlugRoute
@@ -566,6 +617,7 @@ export interface FileRoutesByFullPath {
   '/admin/automations/voice-sms-receptionist': typeof AuthenticatedAdminAutomationsVoiceSmsReceptionistRoute
   '/admin/automations/workflow': typeof AuthenticatedAdminAutomationsWorkflowRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRoute
+  '/admin/suite/$slug': typeof AuthenticatedAdminSuiteSlugRoute
   '/dashboard/automations/$id': typeof AuthenticatedDashboardAutomationsIdRoute
   '/dashboard/portal/$id': typeof AuthenticatedDashboardPortalIdRoute
   '/api/public/assistant/chat': typeof ApiPublicAssistantChatRoute
@@ -576,12 +628,14 @@ export interface FileRoutesByFullPath {
   '/api/public/automations/worker': typeof ApiPublicAutomationsWorkerRoute
   '/api/public/hooks/ai-knowledge': typeof ApiPublicHooksAiKnowledgeRoute
   '/api/public/hooks/lifecycle': typeof ApiPublicHooksLifecycleRoute
+  '/api/public/training/run': typeof ApiPublicTrainingRunRoute
   '/api/public/widget/chat': typeof ApiPublicWidgetChatRoute
   '/api/public/widget/config': typeof ApiPublicWidgetConfigRoute
   '/api/public/widget/script': typeof ApiPublicWidgetScriptRoute
   '/admin/assistants/': typeof AuthenticatedAdminAssistantsIndexRoute
   '/admin/automations/': typeof AuthenticatedAdminAutomationsIndexRoute
   '/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
+  '/admin/suite/': typeof AuthenticatedAdminSuiteIndexRoute
   '/dashboard/automations/': typeof AuthenticatedDashboardAutomationsIndexRoute
   '/api/public/integrations/meta/webhook': typeof ApiPublicIntegrationsMetaWebhookRoute
   '/api/public/integrations/twilio/sms': typeof ApiPublicIntegrationsTwilioSmsRoute
@@ -609,9 +663,11 @@ export interface FileRoutesByTo {
   '/admin/diagnostics': typeof AuthenticatedAdminDiagnosticsRoute
   '/admin/emergency': typeof AuthenticatedAdminEmergencyRoute
   '/admin/infrastructure': typeof AuthenticatedAdminInfrastructureRoute
+  '/admin/integration-keys': typeof AuthenticatedAdminIntegrationKeysRoute
   '/admin/knowledge': typeof AuthenticatedAdminKnowledgeRoute
   '/admin/lifecycle': typeof AuthenticatedAdminLifecycleRoute
   '/admin/llm-keys': typeof AuthenticatedAdminLlmKeysRoute
+  '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/payment-methods': typeof AuthenticatedAdminPaymentMethodsRoute
   '/admin/pricing': typeof AuthenticatedAdminPricingRoute
@@ -620,7 +676,9 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/site-keys': typeof AuthenticatedAdminSiteKeysRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
+  '/admin/training': typeof AuthenticatedAdminTrainingRoute
   '/admin/transcripts': typeof AuthenticatedAdminTranscriptsRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verification': typeof AuthenticatedAdminVerificationRoute
   '/admin/voice-agent': typeof AuthenticatedAdminVoiceAgentRoute
   '/checkout/$slug': typeof AuthenticatedCheckoutSlugRoute
@@ -640,6 +698,7 @@ export interface FileRoutesByTo {
   '/admin/automations/voice-sms-receptionist': typeof AuthenticatedAdminAutomationsVoiceSmsReceptionistRoute
   '/admin/automations/workflow': typeof AuthenticatedAdminAutomationsWorkflowRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRoute
+  '/admin/suite/$slug': typeof AuthenticatedAdminSuiteSlugRoute
   '/dashboard/automations/$id': typeof AuthenticatedDashboardAutomationsIdRoute
   '/dashboard/portal/$id': typeof AuthenticatedDashboardPortalIdRoute
   '/api/public/assistant/chat': typeof ApiPublicAssistantChatRoute
@@ -650,12 +709,14 @@ export interface FileRoutesByTo {
   '/api/public/automations/worker': typeof ApiPublicAutomationsWorkerRoute
   '/api/public/hooks/ai-knowledge': typeof ApiPublicHooksAiKnowledgeRoute
   '/api/public/hooks/lifecycle': typeof ApiPublicHooksLifecycleRoute
+  '/api/public/training/run': typeof ApiPublicTrainingRunRoute
   '/api/public/widget/chat': typeof ApiPublicWidgetChatRoute
   '/api/public/widget/config': typeof ApiPublicWidgetConfigRoute
   '/api/public/widget/script': typeof ApiPublicWidgetScriptRoute
   '/admin/assistants': typeof AuthenticatedAdminAssistantsIndexRoute
   '/admin/automations': typeof AuthenticatedAdminAutomationsIndexRoute
   '/admin/clients': typeof AuthenticatedAdminClientsIndexRoute
+  '/admin/suite': typeof AuthenticatedAdminSuiteIndexRoute
   '/dashboard/automations': typeof AuthenticatedDashboardAutomationsIndexRoute
   '/api/public/integrations/meta/webhook': typeof ApiPublicIntegrationsMetaWebhookRoute
   '/api/public/integrations/twilio/sms': typeof ApiPublicIntegrationsTwilioSmsRoute
@@ -687,9 +748,11 @@ export interface FileRoutesById {
   '/_authenticated/admin/diagnostics': typeof AuthenticatedAdminDiagnosticsRoute
   '/_authenticated/admin/emergency': typeof AuthenticatedAdminEmergencyRoute
   '/_authenticated/admin/infrastructure': typeof AuthenticatedAdminInfrastructureRoute
+  '/_authenticated/admin/integration-keys': typeof AuthenticatedAdminIntegrationKeysRoute
   '/_authenticated/admin/knowledge': typeof AuthenticatedAdminKnowledgeRoute
   '/_authenticated/admin/lifecycle': typeof AuthenticatedAdminLifecycleRoute
   '/_authenticated/admin/llm-keys': typeof AuthenticatedAdminLlmKeysRoute
+  '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/_authenticated/admin/payment-methods': typeof AuthenticatedAdminPaymentMethodsRoute
   '/_authenticated/admin/pricing': typeof AuthenticatedAdminPricingRoute
@@ -698,7 +761,9 @@ export interface FileRoutesById {
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/site-keys': typeof AuthenticatedAdminSiteKeysRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
+  '/_authenticated/admin/training': typeof AuthenticatedAdminTrainingRoute
   '/_authenticated/admin/transcripts': typeof AuthenticatedAdminTranscriptsRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/verification': typeof AuthenticatedAdminVerificationRoute
   '/_authenticated/admin/voice-agent': typeof AuthenticatedAdminVoiceAgentRoute
   '/_authenticated/checkout/$slug': typeof AuthenticatedCheckoutSlugRoute
@@ -718,6 +783,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/automations/voice-sms-receptionist': typeof AuthenticatedAdminAutomationsVoiceSmsReceptionistRoute
   '/_authenticated/admin/automations/workflow': typeof AuthenticatedAdminAutomationsWorkflowRoute
   '/_authenticated/admin/clients/$id': typeof AuthenticatedAdminClientsIdRoute
+  '/_authenticated/admin/suite/$slug': typeof AuthenticatedAdminSuiteSlugRoute
   '/_authenticated/dashboard/automations/$id': typeof AuthenticatedDashboardAutomationsIdRoute
   '/_authenticated/dashboard/portal/$id': typeof AuthenticatedDashboardPortalIdRoute
   '/api/public/assistant/chat': typeof ApiPublicAssistantChatRoute
@@ -728,12 +794,14 @@ export interface FileRoutesById {
   '/api/public/automations/worker': typeof ApiPublicAutomationsWorkerRoute
   '/api/public/hooks/ai-knowledge': typeof ApiPublicHooksAiKnowledgeRoute
   '/api/public/hooks/lifecycle': typeof ApiPublicHooksLifecycleRoute
+  '/api/public/training/run': typeof ApiPublicTrainingRunRoute
   '/api/public/widget/chat': typeof ApiPublicWidgetChatRoute
   '/api/public/widget/config': typeof ApiPublicWidgetConfigRoute
   '/api/public/widget/script': typeof ApiPublicWidgetScriptRoute
   '/_authenticated/admin/assistants/': typeof AuthenticatedAdminAssistantsIndexRoute
   '/_authenticated/admin/automations/': typeof AuthenticatedAdminAutomationsIndexRoute
   '/_authenticated/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
+  '/_authenticated/admin/suite/': typeof AuthenticatedAdminSuiteIndexRoute
   '/_authenticated/dashboard/automations/': typeof AuthenticatedDashboardAutomationsIndexRoute
   '/api/public/integrations/meta/webhook': typeof ApiPublicIntegrationsMetaWebhookRoute
   '/api/public/integrations/twilio/sms': typeof ApiPublicIntegrationsTwilioSmsRoute
@@ -765,9 +833,11 @@ export interface FileRouteTypes {
     | '/admin/diagnostics'
     | '/admin/emergency'
     | '/admin/infrastructure'
+    | '/admin/integration-keys'
     | '/admin/knowledge'
     | '/admin/lifecycle'
     | '/admin/llm-keys'
+    | '/admin/messages'
     | '/admin/orders'
     | '/admin/payment-methods'
     | '/admin/pricing'
@@ -776,7 +846,9 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/site-keys'
     | '/admin/team'
+    | '/admin/training'
     | '/admin/transcripts'
+    | '/admin/users'
     | '/admin/verification'
     | '/admin/voice-agent'
     | '/checkout/$slug'
@@ -796,6 +868,7 @@ export interface FileRouteTypes {
     | '/admin/automations/voice-sms-receptionist'
     | '/admin/automations/workflow'
     | '/admin/clients/$id'
+    | '/admin/suite/$slug'
     | '/dashboard/automations/$id'
     | '/dashboard/portal/$id'
     | '/api/public/assistant/chat'
@@ -806,12 +879,14 @@ export interface FileRouteTypes {
     | '/api/public/automations/worker'
     | '/api/public/hooks/ai-knowledge'
     | '/api/public/hooks/lifecycle'
+    | '/api/public/training/run'
     | '/api/public/widget/chat'
     | '/api/public/widget/config'
     | '/api/public/widget/script'
     | '/admin/assistants/'
     | '/admin/automations/'
     | '/admin/clients/'
+    | '/admin/suite/'
     | '/dashboard/automations/'
     | '/api/public/integrations/meta/webhook'
     | '/api/public/integrations/twilio/sms'
@@ -839,9 +914,11 @@ export interface FileRouteTypes {
     | '/admin/diagnostics'
     | '/admin/emergency'
     | '/admin/infrastructure'
+    | '/admin/integration-keys'
     | '/admin/knowledge'
     | '/admin/lifecycle'
     | '/admin/llm-keys'
+    | '/admin/messages'
     | '/admin/orders'
     | '/admin/payment-methods'
     | '/admin/pricing'
@@ -850,7 +927,9 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/site-keys'
     | '/admin/team'
+    | '/admin/training'
     | '/admin/transcripts'
+    | '/admin/users'
     | '/admin/verification'
     | '/admin/voice-agent'
     | '/checkout/$slug'
@@ -870,6 +949,7 @@ export interface FileRouteTypes {
     | '/admin/automations/voice-sms-receptionist'
     | '/admin/automations/workflow'
     | '/admin/clients/$id'
+    | '/admin/suite/$slug'
     | '/dashboard/automations/$id'
     | '/dashboard/portal/$id'
     | '/api/public/assistant/chat'
@@ -880,12 +960,14 @@ export interface FileRouteTypes {
     | '/api/public/automations/worker'
     | '/api/public/hooks/ai-knowledge'
     | '/api/public/hooks/lifecycle'
+    | '/api/public/training/run'
     | '/api/public/widget/chat'
     | '/api/public/widget/config'
     | '/api/public/widget/script'
     | '/admin/assistants'
     | '/admin/automations'
     | '/admin/clients'
+    | '/admin/suite'
     | '/dashboard/automations'
     | '/api/public/integrations/meta/webhook'
     | '/api/public/integrations/twilio/sms'
@@ -916,9 +998,11 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/diagnostics'
     | '/_authenticated/admin/emergency'
     | '/_authenticated/admin/infrastructure'
+    | '/_authenticated/admin/integration-keys'
     | '/_authenticated/admin/knowledge'
     | '/_authenticated/admin/lifecycle'
     | '/_authenticated/admin/llm-keys'
+    | '/_authenticated/admin/messages'
     | '/_authenticated/admin/orders'
     | '/_authenticated/admin/payment-methods'
     | '/_authenticated/admin/pricing'
@@ -927,7 +1011,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/site-keys'
     | '/_authenticated/admin/team'
+    | '/_authenticated/admin/training'
     | '/_authenticated/admin/transcripts'
+    | '/_authenticated/admin/users'
     | '/_authenticated/admin/verification'
     | '/_authenticated/admin/voice-agent'
     | '/_authenticated/checkout/$slug'
@@ -947,6 +1033,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/automations/voice-sms-receptionist'
     | '/_authenticated/admin/automations/workflow'
     | '/_authenticated/admin/clients/$id'
+    | '/_authenticated/admin/suite/$slug'
     | '/_authenticated/dashboard/automations/$id'
     | '/_authenticated/dashboard/portal/$id'
     | '/api/public/assistant/chat'
@@ -957,12 +1044,14 @@ export interface FileRouteTypes {
     | '/api/public/automations/worker'
     | '/api/public/hooks/ai-knowledge'
     | '/api/public/hooks/lifecycle'
+    | '/api/public/training/run'
     | '/api/public/widget/chat'
     | '/api/public/widget/config'
     | '/api/public/widget/script'
     | '/_authenticated/admin/assistants/'
     | '/_authenticated/admin/automations/'
     | '/_authenticated/admin/clients/'
+    | '/_authenticated/admin/suite/'
     | '/_authenticated/dashboard/automations/'
     | '/api/public/integrations/meta/webhook'
     | '/api/public/integrations/twilio/sms'
@@ -990,6 +1079,7 @@ export interface RootRouteChildren {
   ApiPublicAutomationsWorkerRoute: typeof ApiPublicAutomationsWorkerRoute
   ApiPublicHooksAiKnowledgeRoute: typeof ApiPublicHooksAiKnowledgeRoute
   ApiPublicHooksLifecycleRoute: typeof ApiPublicHooksLifecycleRoute
+  ApiPublicTrainingRunRoute: typeof ApiPublicTrainingRunRoute
   ApiPublicWidgetChatRoute: typeof ApiPublicWidgetChatRoute
   ApiPublicWidgetConfigRoute: typeof ApiPublicWidgetConfigRoute
   ApiPublicWidgetScriptRoute: typeof ApiPublicWidgetScriptRoute
@@ -1175,6 +1265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminInfrastructureRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/integration-keys': {
+      id: '/_authenticated/admin/integration-keys'
+      path: '/integration-keys'
+      fullPath: '/admin/integration-keys'
+      preLoaderRoute: typeof AuthenticatedAdminIntegrationKeysRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/knowledge': {
       id: '/_authenticated/admin/knowledge'
       path: '/knowledge'
@@ -1194,6 +1291,13 @@ declare module '@tanstack/react-router' {
       path: '/llm-keys'
       fullPath: '/admin/llm-keys'
       preLoaderRoute: typeof AuthenticatedAdminLlmKeysRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/messages': {
+      id: '/_authenticated/admin/messages'
+      path: '/messages'
+      fullPath: '/admin/messages'
+      preLoaderRoute: typeof AuthenticatedAdminMessagesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/orders': {
@@ -1252,11 +1356,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTeamRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/training': {
+      id: '/_authenticated/admin/training'
+      path: '/training'
+      fullPath: '/admin/training'
+      preLoaderRoute: typeof AuthenticatedAdminTrainingRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/transcripts': {
       id: '/_authenticated/admin/transcripts'
       path: '/transcripts'
       fullPath: '/admin/transcripts'
       preLoaderRoute: typeof AuthenticatedAdminTranscriptsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/verification': {
@@ -1406,6 +1524,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminClientsIdRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/suite/': {
+      id: '/_authenticated/admin/suite/'
+      path: '/suite'
+      fullPath: '/admin/suite/'
+      preLoaderRoute: typeof AuthenticatedAdminSuiteIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/suite/$slug': {
+      id: '/_authenticated/admin/suite/$slug'
+      path: '/suite/$slug'
+      fullPath: '/admin/suite/$slug'
+      preLoaderRoute: typeof AuthenticatedAdminSuiteSlugRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/dashboard/automations/': {
       id: '/_authenticated/dashboard/automations/'
       path: '/automations'
@@ -1483,6 +1615,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksLifecycleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/training/run': {
+      id: '/api/public/training/run'
+      path: '/api/public/training/run'
+      fullPath: '/api/public/training/run'
+      preLoaderRoute: typeof ApiPublicTrainingRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/widget/chat': {
       id: '/api/public/widget/chat'
       path: '/api/public/widget/chat'
@@ -1538,9 +1677,11 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminDiagnosticsRoute: typeof AuthenticatedAdminDiagnosticsRoute
   AuthenticatedAdminEmergencyRoute: typeof AuthenticatedAdminEmergencyRoute
   AuthenticatedAdminInfrastructureRoute: typeof AuthenticatedAdminInfrastructureRoute
+  AuthenticatedAdminIntegrationKeysRoute: typeof AuthenticatedAdminIntegrationKeysRoute
   AuthenticatedAdminKnowledgeRoute: typeof AuthenticatedAdminKnowledgeRoute
   AuthenticatedAdminLifecycleRoute: typeof AuthenticatedAdminLifecycleRoute
   AuthenticatedAdminLlmKeysRoute: typeof AuthenticatedAdminLlmKeysRoute
+  AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
   AuthenticatedAdminPaymentMethodsRoute: typeof AuthenticatedAdminPaymentMethodsRoute
   AuthenticatedAdminPricingRoute: typeof AuthenticatedAdminPricingRoute
@@ -1549,7 +1690,9 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminSiteKeysRoute: typeof AuthenticatedAdminSiteKeysRoute
   AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRoute
+  AuthenticatedAdminTrainingRoute: typeof AuthenticatedAdminTrainingRoute
   AuthenticatedAdminTranscriptsRoute: typeof AuthenticatedAdminTranscriptsRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminVerificationRoute: typeof AuthenticatedAdminVerificationRoute
   AuthenticatedAdminVoiceAgentRoute: typeof AuthenticatedAdminVoiceAgentRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -1562,9 +1705,11 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAutomationsVoiceSmsReceptionistRoute: typeof AuthenticatedAdminAutomationsVoiceSmsReceptionistRoute
   AuthenticatedAdminAutomationsWorkflowRoute: typeof AuthenticatedAdminAutomationsWorkflowRoute
   AuthenticatedAdminClientsIdRoute: typeof AuthenticatedAdminClientsIdRoute
+  AuthenticatedAdminSuiteSlugRoute: typeof AuthenticatedAdminSuiteSlugRoute
   AuthenticatedAdminAssistantsIndexRoute: typeof AuthenticatedAdminAssistantsIndexRoute
   AuthenticatedAdminAutomationsIndexRoute: typeof AuthenticatedAdminAutomationsIndexRoute
   AuthenticatedAdminClientsIndexRoute: typeof AuthenticatedAdminClientsIndexRoute
+  AuthenticatedAdminSuiteIndexRoute: typeof AuthenticatedAdminSuiteIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -1579,9 +1724,12 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminDiagnosticsRoute: AuthenticatedAdminDiagnosticsRoute,
   AuthenticatedAdminEmergencyRoute: AuthenticatedAdminEmergencyRoute,
   AuthenticatedAdminInfrastructureRoute: AuthenticatedAdminInfrastructureRoute,
+  AuthenticatedAdminIntegrationKeysRoute:
+    AuthenticatedAdminIntegrationKeysRoute,
   AuthenticatedAdminKnowledgeRoute: AuthenticatedAdminKnowledgeRoute,
   AuthenticatedAdminLifecycleRoute: AuthenticatedAdminLifecycleRoute,
   AuthenticatedAdminLlmKeysRoute: AuthenticatedAdminLlmKeysRoute,
+  AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
   AuthenticatedAdminPaymentMethodsRoute: AuthenticatedAdminPaymentMethodsRoute,
   AuthenticatedAdminPricingRoute: AuthenticatedAdminPricingRoute,
@@ -1590,7 +1738,9 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminSiteKeysRoute: AuthenticatedAdminSiteKeysRoute,
   AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRoute,
+  AuthenticatedAdminTrainingRoute: AuthenticatedAdminTrainingRoute,
   AuthenticatedAdminTranscriptsRoute: AuthenticatedAdminTranscriptsRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminVerificationRoute: AuthenticatedAdminVerificationRoute,
   AuthenticatedAdminVoiceAgentRoute: AuthenticatedAdminVoiceAgentRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
@@ -1609,11 +1759,13 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAutomationsWorkflowRoute:
     AuthenticatedAdminAutomationsWorkflowRoute,
   AuthenticatedAdminClientsIdRoute: AuthenticatedAdminClientsIdRoute,
+  AuthenticatedAdminSuiteSlugRoute: AuthenticatedAdminSuiteSlugRoute,
   AuthenticatedAdminAssistantsIndexRoute:
     AuthenticatedAdminAssistantsIndexRoute,
   AuthenticatedAdminAutomationsIndexRoute:
     AuthenticatedAdminAutomationsIndexRoute,
   AuthenticatedAdminClientsIndexRoute: AuthenticatedAdminClientsIndexRoute,
+  AuthenticatedAdminSuiteIndexRoute: AuthenticatedAdminSuiteIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -1697,6 +1849,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAutomationsWorkerRoute: ApiPublicAutomationsWorkerRoute,
   ApiPublicHooksAiKnowledgeRoute: ApiPublicHooksAiKnowledgeRoute,
   ApiPublicHooksLifecycleRoute: ApiPublicHooksLifecycleRoute,
+  ApiPublicTrainingRunRoute: ApiPublicTrainingRunRoute,
   ApiPublicWidgetChatRoute: ApiPublicWidgetChatRoute,
   ApiPublicWidgetConfigRoute: ApiPublicWidgetConfigRoute,
   ApiPublicWidgetScriptRoute: ApiPublicWidgetScriptRoute,

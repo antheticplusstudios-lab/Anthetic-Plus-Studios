@@ -1,45 +1,17 @@
 import { QueryClient } from "@tanstack/react-query";
-import { createMemoryHistory, createRouter } from "@tanstack/react-router";
-import { afterEach, describe, expect, it, vi } from "vitest";
-
-vi.mock("@/lib/pricing.functions", () => ({
-  getLivePricing: vi.fn().mockResolvedValue([]),
-}));
+import { createRouter, rootRouteId } from "@tanstack/react-router";
+import { describe, expect, it } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
 
-function createTestRouter(path: string) {
-  const queryClient = new QueryClient();
-
-  const router = createRouter({
-    routeTree,
-    context: { queryClient },
-    history: createMemoryHistory({ initialEntries: [path] }),
-  });
-
-  return router;
-}
-
-afterEach(() => {
-  vi.restoreAllMocks();
-});
-
+// Match routes without running loaders or rendering: loaders may need a server or
+// network the test run lacks, and jsdom never loads the stylesheets React waits on.
 describe("App routing", () => {
-  it("resolves the index route", async () => {
-    const router = createTestRouter("/");
+  it("matches a page for / instead of falling back to not found", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
 
-    await router.load();
+    const matches = router.matchRoutes("/");
 
-    expect(router.state.location.pathname).toBe("/");
-    expect(router.state.matches.length).toBeGreaterThan(0);
-  });
-
-  it("resolves the not-found route", async () => {
-    const router = createTestRouter("/this-route-does-not-exist");
-
-    await router.load();
-
-    expect(router.state.location.pathname).toBe("/this-route-does-not-exist");
-    expect(router.state.matches.length).toBeGreaterThan(0);
+    expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
 });

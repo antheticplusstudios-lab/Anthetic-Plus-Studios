@@ -42,7 +42,7 @@ export const Route = createFileRoute("/api/public/integrations/twilio/sms")({
       POST: async ({ request }) => {
         try {
           const p = await form(request);
-          const automation = await findAutomation(str(p.To));
+          const automation = await findAutomation(str(p["To"]));
           if (!automation) return new Response("Not found", { status: 404 });
           const { data: row, error } = await db2Admin
             .from("integration_connections")
@@ -58,12 +58,12 @@ export const Route = createFileRoute("/api/public/integrations/twilio/sms")({
             unknown
           >;
           const sig = request.headers.get("x-twilio-signature") || "";
-          const url = `${process.env.VITE_APP_URL || new URL(request.url).origin}/api/public/integrations/twilio/sms`;
-          if (!valid(url, p, sig, str(c.authToken)))
+          const url = `${process.env["VITE_APP_URL"] || new URL(request.url).origin}/api/public/integrations/twilio/sms`;
+          if (!valid(url, p, sig, str(c["authToken"])))
             return new Response("Forbidden", { status: 403 });
           const ctx = {
             exec: {
-              id: `sms-${p.MessageSid || crypto.randomUUID()}`,
+              id: `sms-${p["MessageSid"] || crypto.randomUUID()}`,
               automation_id: String(automation.id),
               client_id: String(automation.client_id),
               automation_kind: "ai_receptionist" as const,
@@ -76,14 +76,14 @@ export const Route = createFileRoute("/api/public/integrations/twilio/sms")({
           };
           const result = await runReceptionistTurn(ctx, {
             channel: "sms",
-            from: str(p.From),
-            body: str(p.Body),
-            message_id: str(p.MessageSid),
+            from: str(p["From"]),
+            body: str(p["Body"]),
+            message_id: str(p["MessageSid"]),
           });
           if (result.reply && result.message_id) {
             const sent = await sendTwilioMessage({
               automationId: String(automation.id),
-              to: str(p.From),
+              to: str(p["From"]),
               body: result.reply,
             });
             await markMessageDelivered(result.message_id, sent);

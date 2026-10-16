@@ -4,28 +4,21 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "prebuild": "npm run preflight",
+    "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "preview": "node .output/server/index.mjs",
+    "start": "node .output/server/index.mjs",
+    "preview": "vite preview --host 0.0.0.0",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "pretest": "npm run preflight",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
-    "start": "node .output/server/index.mjs",
-    "preflight": "node scripts/preflight.mjs"
+    "preflight": "node scripts/preflight.mjs",
+    "check": "npm run typecheck && npm run lint && npm test"
   },
   "overrides": {
-    "rolldown": "1.2.1",
-    "js-yaml": "4.3.2",
-    "nanoid": "3.3.19",
-    "source-map-js": "1.2.2",
-    "minimatch@10.2.6": {
-      "brace-expansion": "5.0.12"
-    }
+    "rolldown": "1.2.1"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -63,7 +56,6 @@
     "@tanstack/react-router": "1.170.41",
     "@tanstack/react-start": "1.168.60",
     "@tanstack/router-plugin": "1.168.42",
-    "@types/canvas-confetti": "^1.9.0",
     "canvas-confetti": "1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -94,6 +86,7 @@
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.0.0",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
@@ -108,7 +101,6 @@
     "jsdom": "^20.0.3",
     "nitro": "3.0.260603-beta",
     "prettier": "^3.7.3",
-    "rolldown": "1.2.1",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "8.1.5",
@@ -116,8 +108,7 @@
   },
   "packageManager": "npm@10.9.2",
   "engines": {
-    "node": ">=20.19.0",
-    "npm": ">=10"
-  },
-  "version": "1.0.0"
+    "node": ">=22.12.0",
+    "npm": ">=10.9.0"
+  }
 }

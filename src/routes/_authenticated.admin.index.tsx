@@ -1,6 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, Ban, KeyRound, TimerReset, UserCheck } from "lucide-react";
-import { Loading, Panel, StatCard, money, timeAgo } from "@/components/admin-ui";
+import {
+  AlertTriangle,
+  Ban,
+  KeyRound,
+  TimerReset,
+  UserCheck,
+  RefreshCw,
+  ArrowUpRight,
+  MessageSquare,
+  Zap,
+  Users,
+  CreditCard,
+} from "lucide-react";
+import { AdminPage, Loading, Panel, StatCard, money, timeAgo } from "@/components/admin-ui";
 import {
   useAllInstances,
   useAllPayments,
@@ -8,26 +20,78 @@ import {
   useFailoverLog,
   useGroqKeys,
 } from "@/hooks/use-admin";
+import { useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { useRole } from "@/hooks/use-portal";
 import { daysRemaining, isLive } from "@/lib/portal";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
+  head: () => ({
+    meta: [
+      { title: "Overview — AntheticPlus Control Center" },
+      {
+        name: "description",
+        content: "Live automation operations, payments, and recent platform activity.",
+      },
+      { property: "og:title", content: "AntheticPlus Operations Overview" },
+      { property: "og:description", content: "Automation operations and real platform activity." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AdminCommandCenter,
 });
 
 function AdminCommandCenter() {
-  const { data: payments = [], isLoading: paymentsLoading } = useAllPayments();
-  const { data: instances = [], isLoading: instancesLoading } = useAllInstances();
-  const { data: groqKeys = [], isLoading: keysLoading } = useGroqKeys();
-  const { data: failoverLog = [], isLoading: failoverLoading } = useFailoverLog();
-  const { data: auditLog = [], isLoading: auditLoading } = useAuditLog();
+  const paymentQuery = useAllPayments();
+  const instanceQuery = useAllInstances();
+  const keyQuery = useGroqKeys();
+  const failoverQuery = useFailoverLog();
+  const auditQuery = useAuditLog();
+  const { data: role } = useRole();
+  const [period, setPeriod] = useState("30");
+  const [refreshing, setRefreshing] = useState(false);
+  const required = [paymentQuery, instanceQuery, auditQuery];
+  const failed = required.some((query) => query.isError);
+  const payments = paymentQuery.data ?? [];
+  const instances = instanceQuery.data ?? [];
+  const groqKeys = keyQuery.data ?? [];
+  const failoverLog = failoverQuery.data ?? [];
+  const auditLog = auditQuery.data ?? [];
+  const since = Date.now() - Number(period) * 86400000;
+  const periodPayments = payments.filter((p) => Date.parse(p.created_at) >= since);
+  async function refresh() {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        paymentQuery.refetch(),
+        instanceQuery.refetch(),
+        auditQuery.refetch(),
+        ...(role === "owner" ? [keyQuery.refetch(), failoverQuery.refetch()] : []),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }
+  if (required.some((query) => query.isLoading)) return <Loading label="Loading operations" />;
+  if (failed)
+    return (
+      <AdminPage title="Overview" subtitle="Operational data could not be loaded.">
+        <div role="alert" className="space-y-4">
+          <p className="text-sm text-destructive">
+            Some services did not respond. No missing data is shown as zero.
+          </p>
+          <Button variant="outline" disabled={refreshing} onClick={() => void refresh()}>
+            <RefreshCw /> Retry connection
+          </Button>
+        </div>
+      </AdminPage>
+    );
 
-  if (paymentsLoading || instancesLoading || keysLoading || failoverLoading || auditLoading)
-    return <Loading />;
-
-  const approved = payments.filter((p) => p.status === "approved");
-  const mrr = approved.reduce((sum: number, p) => {
+  const approved = periodPayments.filter((p) => p.status === "approved");
+  const approvedAmount = approved.reduce((sum: number, p) => {
     const amount = Number(p.amount ?? 0);
-    return sum + (p.billing_plan === "yearly" ? amount / 12 : amount);
+    return sum + amount;
   }, 0);
 
   const activeAutomations = instances.filter((i) => isLive(i)).length;
@@ -38,11 +102,11 @@ function AdminCommandCenter() {
   );
 
   const originCounts = new Map<string, number>();
-  for (const p of payments) {
+  for (const p of periodPayments) {
     const origin = p.origin || "unknown";
     originCounts.set(origin, (originCounts.get(origin) ?? 0) + 1);
   }
-  const totalPayments = payments.length || 1;
+  const totalPayments = periodPayments.length || 1;
 
   const enabledKeys = groqKeys.filter((k) => k.enabled);
   const primaryKey = groqKeys.find((k) => k.is_primary);
@@ -61,11 +125,15 @@ function AdminCommandCenter() {
   const stoppedRevoked = instances.filter((i) => i.status === "stopped" || i.status === "revoked");
   const awaitingSetup = instances.filter((i) => i.status === "paid" && !i.client_id);
 
-  const recentAudit = [...auditLog]
+  const recentAudit = [...auditLog.filter((a) => Date.parse(a.created_at) >= since)]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 8);
 
-  const urgentItems: { icon: React.ReactNode; text: string; to: string }[] = [];
+  const urgentItems: {
+    icon: ReactNode;
+    text: string;
+    to: "/admin/verification" | "/admin/automations" | "/admin/infrastructure" | "/admin/creator";
+  }[] = [];
   if (pendingPayments.length)
     urgentItems.push({
       icon: <AlertTriangle className="h-4 w-4 text-foreground" />,
@@ -84,7 +152,7 @@ function AdminCommandCenter() {
       text: `${stoppedRevoked.length} automation${stoppedRevoked.length === 1 ? "" : "s"} stopped or revoked`,
       to: "/admin/automations",
     });
-  if (cooldownKeys.length)
+  if (role === "owner" && cooldownKeys.length)
     urgentItems.push({
       icon: <KeyRound className="h-4 w-4 text-destructive" />,
       text: `${cooldownKeys.length} Groq key${cooldownKeys.length === 1 ? "" : "s"} in cooldown`,
@@ -98,24 +166,63 @@ function AdminCommandCenter() {
     });
 
   return (
-    <div className="page-enter space-y-8">
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Global Command Center</h1>
-        <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
-          Is the business healthy and what needs me right now.
-        </p>
-      </div>
-
+    <AdminPage
+      title="Overview"
+      subtitle="Your operations, conversations, and what needs attention."
+      actions={
+        <>
+          <select
+            aria-label="Reporting period"
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className="rounded-md border border-border bg-card px-3 py-2 text-xs"
+          >
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+          <Button variant="outline" size="sm" disabled={refreshing} onClick={() => void refresh()}>
+            <RefreshCw className={refreshing ? "animate-spin" : ""} /> Refresh
+          </Button>
+          <Button asChild size="sm">
+            <Link to="/admin/assistants">
+              Manage assistants <ArrowUpRight />
+            </Link>
+          </Button>
+        </>
+      }
+    >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="MRR" value={money(mrr)} hint="Normalized monthly, approved payments" />
-        <StatCard label="Active automations" value={activeAutomations} tone="good" />
-        <StatCard label="Leads captured" value={leadsCaptured.toLocaleString()} />
-        <StatCard label="Conversations handled" value={conversationsHandled.toLocaleString()} />
+        <StatCard
+          label="Approved order value"
+          value={money(approvedAmount)}
+          hint={`Orders created in the last ${period} days`}
+          icon={<CreditCard className="size-4" />}
+        />
+        <StatCard
+          label="Active automations"
+          value={activeAutomations}
+          tone="good"
+          hint="Current backend lifecycle status"
+          icon={<Zap className="size-4" />}
+        />
+        <StatCard
+          label="Leads captured"
+          value={leadsCaptured.toLocaleString()}
+          hint="Lifetime recorded total"
+          icon={<Users className="size-4" />}
+        />
+        <StatCard
+          label="Conversations handled"
+          value={conversationsHandled.toLocaleString()}
+          hint="Lifetime recorded total"
+          icon={<MessageSquare className="size-4" />}
+        />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <Panel title="Attribution split" description="Where payments originate">
-          {payments.length === 0 ? (
+        <Panel title="Attribution split" description={`Order origins · last ${period} days`}>
+          {periodPayments.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">
               No payments recorded yet.
             </p>
@@ -144,63 +251,92 @@ function AdminCommandCenter() {
           )}
         </Panel>
 
-        <Panel title="Infrastructure pulse" description="Groq pool health & recent failovers">
-          {groqKeys.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No Groq keys configured.{" "}
-              <Link to="/admin/infrastructure" className="font-bold text-primary underline">
-                Add keys in Infrastructure
-              </Link>
-              .
-            </p>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-xl bg-muted/40 p-3">
-                  <p className="text-lg font-extrabold tabular-nums">{groqKeys.length}</p>
-                  <p className="text-xs text-muted-foreground">Total keys</p>
+        {role === "owner" ? (
+          <Panel title="Infrastructure pulse" description="Groq pool health & recent failovers">
+            {keyQuery.isError || failoverQuery.isError ? (
+              <p role="alert" className="text-sm text-destructive">
+                Provider health could not be loaded. Retry using Refresh.
+              </p>
+            ) : groqKeys.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No Groq keys configured.{" "}
+                <Link to="/admin/infrastructure" className="font-bold text-primary underline">
+                  Add keys in Infrastructure
+                </Link>
+                .
+              </p>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="rounded-xl bg-muted/40 p-3">
+                    <p className="text-lg font-extrabold tabular-nums">{groqKeys.length}</p>
+                    <p className="text-xs text-muted-foreground">Total keys</p>
+                  </div>
+                  <div className="rounded-xl bg-muted/40 p-3">
+                    <p className="text-lg font-extrabold tabular-nums">{enabledKeys.length}</p>
+                    <p className="text-xs text-muted-foreground">Enabled</p>
+                  </div>
+                  <div className="rounded-xl bg-muted/40 p-3">
+                    <p className="truncate text-sm font-extrabold">{primaryKey?.label ?? "—"}</p>
+                    <p className="text-xs text-muted-foreground">Primary</p>
+                  </div>
                 </div>
-                <div className="rounded-xl bg-muted/40 p-3">
-                  <p className="text-lg font-extrabold tabular-nums">{enabledKeys.length}</p>
-                  <p className="text-xs text-muted-foreground">Enabled</p>
-                </div>
-                <div className="rounded-xl bg-muted/40 p-3">
-                  <p className="truncate text-sm font-extrabold">{primaryKey?.label ?? "—"}</p>
-                  <p className="text-xs text-muted-foreground">Primary</p>
-                </div>
-              </div>
-              {cooldownKeys.length > 0 && (
-                <p className="text-xs font-semibold text-destructive">
-                  {cooldownKeys.length} key(s) in cooldown until{" "}
-                  {cooldownKeys
-                    .map((k) => new Date(k.cooldown_until ?? 0).toLocaleTimeString())
-                    .join(", ")}
-                </p>
-              )}
-              <div>
-                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                  Recent failovers
-                </p>
-                {recentFailover.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No failover events.</p>
-                ) : (
-                  <ul className="space-y-2">
-                    {recentFailover.map((f) => (
-                      <li key={f.id} className="flex items-center justify-between text-sm">
-                        <span className="font-semibold">
-                          {f.status_code} · {f.message}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {timeAgo(f.created_at)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                {cooldownKeys.length > 0 && (
+                  <p className="text-xs font-semibold text-destructive">
+                    {cooldownKeys.length} key(s) in cooldown until{" "}
+                    {cooldownKeys
+                      .map((k) => new Date(k.cooldown_until ?? 0).toLocaleTimeString())
+                      .join(", ")}
+                  </p>
                 )}
+                <div>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    Recent failovers
+                  </p>
+                  {recentFailover.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No failover events.</p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {recentFailover.map((f) => (
+                        <li key={f.id} className="flex items-center justify-between text-sm">
+                          <span className="font-semibold">
+                            {f.status_code} · {f.message}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {timeAgo(f.created_at)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
+            )}
+          </Panel>
+        ) : (
+          <Panel
+            title="Assistant workspace"
+            description="Configure knowledge, test replies, and manage deployments."
+          >
+            <div className="grid gap-4">
+              <Link
+                to="/admin/knowledge"
+                className="flex items-center justify-between border-b border-border pb-4 text-sm"
+              >
+                Knowledge & sources <ArrowUpRight className="size-4" />
+              </Link>
+              <Link
+                to="/admin/automations"
+                className="flex items-center justify-between border-b border-border pb-4 text-sm"
+              >
+                Automation operations <ArrowUpRight className="size-4" />
+              </Link>
+              <Link to="/admin/analytics" className="flex items-center justify-between text-sm">
+                Usage analytics <ArrowUpRight className="size-4" />
+              </Link>
             </div>
-          )}
-        </Panel>
+          </Panel>
+        )}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
@@ -251,6 +387,6 @@ function AdminCommandCenter() {
           )}
         </Panel>
       </div>
-    </div>
+    </AdminPage>
   );
 }

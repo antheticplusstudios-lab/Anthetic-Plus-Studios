@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -129,7 +129,7 @@ function VoiceAgentAdminPage() {
     mutationFn: () => saveTts({ data: { keyValue: ttsKey } }),
     onSuccess: (result) => {
       setTtsKey("");
-      toast.success(`ElevenLabs TTS key saved (${result.hint})`);
+      toast.success(`Voice key saved (${result.hint})`);
       void qc.invalidateQueries({ queryKey: ["voice-agent-settings"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -138,7 +138,7 @@ function VoiceAgentAdminPage() {
   const clearTtsMutation = useMutation({
     mutationFn: () => clearTts(),
     onSuccess: () => {
-      toast.success("ElevenLabs TTS key cleared");
+      toast.success("Voice key cleared");
       void qc.invalidateQueries({ queryKey: ["voice-agent-settings"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -430,7 +430,7 @@ function VoiceAgentAdminPage() {
 
           <Panel
             title="Multilingual TTS"
-            description="ElevenLabs is the server-side speech engine. The browser never receives the API key. The same voice ID is reused across supported languages so language switching does not require a separate client speech engine."
+            description="Inworld is the speech engine. Keys stay on the server and rotate automatically."
           >
             <div className="flex items-center gap-2 text-sm font-semibold">
               <Volume2 className="h-4 w-4 text-primary" />
@@ -438,66 +438,36 @@ function VoiceAgentAdminPage() {
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label="Provider">
-                <TextField value="ElevenLabs" disabled />
+                <TextField value="Inworld" disabled />
               </Field>
               <Field label="TTS model">
                 <TextField
                   value={settings.ttsModel}
                   onChange={(e) => update("ttsModel", e.target.value)}
-                  placeholder="eleven_v4"
+                  placeholder="inworld-tts-1"
                 />
               </Field>
             </div>
             <div className="mt-4">
               <Field
                 label="Voice ID"
-                hint="Use one multilingual ElevenLabs voice. Save settings below."
+                hint="An Inworld voice name, e.g. Ashley, Dennis, Olivia. Save settings below."
               >
                 <TextField
                   value={settings.ttsVoiceId}
                   onChange={(e) => update("ttsVoiceId", e.target.value)}
-                  placeholder="ElevenLabs voice ID"
+                  placeholder="Ashley"
                 />
               </Field>
             </div>
-            <div className="mt-4 space-y-4">
-              <Field
-                label="New ElevenLabs API key"
-                hint={
-                  isOwner
-                    ? "Encrypted at rest in DB3. Leave blank to keep the current key."
-                    : "Only an owner can change this secret."
-                }
-              >
-                <TextField
-                  type="password"
-                  autoComplete="new-password"
-                  value={ttsKey}
-                  onChange={(e) => setTtsKey(e.target.value)}
-                  disabled={!isOwner}
-                  placeholder={
-                    data?.ttsConfigured ? "••••••••••••" : "Paste server-side ElevenLabs key"
-                  }
-                />
-              </Field>
-              {isOwner && (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => ttsMutation.mutate()}
-                    disabled={!ttsKey.trim() || ttsMutation.isPending}
-                  >
-                    {ttsMutation.isPending ? <Loader2 /> : <KeyRound />} Save TTS key
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => clearTtsMutation.mutate()}
-                    disabled={!data?.ttsConfigured || clearTtsMutation.isPending}
-                  >
-                    Clear key
-                  </Button>
-                </div>
-              )}
-            </div>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Inworld keys are managed in{" "}
+              <Link to="/admin/integration-keys" className="font-semibold text-primary underline">
+                Automation API keys
+              </Link>{" "}
+              (up to 5 for the website assistant, 10 for the AI Receptionist). When one key hits its
+              limit the next one speaks instantly.
+            </p>
             <div className="mt-5 rounded-2xl border border-border bg-muted/30 p-4">
               <Field
                 label="TTS test"

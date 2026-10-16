@@ -5,6 +5,16 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AdminPage, AreaField, Loading, Panel } from "@/components/admin-ui";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { getSystemSettings } from "@/lib/admin-data.functions";
 import { saveSetting } from "@/lib/admin-center.functions";
@@ -19,18 +29,21 @@ type Settings = Record<string, Record<string, unknown>>;
 function SettingsPage() {
   const qc = useQueryClient();
   const save = useServerFn(saveSetting);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["system-settings"],
     queryFn: () => getSystemSettings(),
   });
   const [s, setS] = useState<Settings>({});
+  const [confirm, setConfirm] = useState<"maintenance" | "feature_flags" | null>(null);
   useEffect(() => {
     if (data) setS(data);
   }, [data]);
   const m = useMutation({
     mutationFn: (key: "banner" | "maintenance" | "feature_flags") =>
       save({ data: { key, value: s[key] ?? {} } }),
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (!result.ok) throw new Error("The server did not confirm the change.");
+      setConfirm(null);
       toast.success("Settings saved");
       void qc.invalidateQueries({ queryKey: ["system-settings"] });
       void qc.invalidateQueries({ queryKey: ["system-settings-public"] });
@@ -38,6 +51,19 @@ function SettingsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
   if (isLoading) return <Loading />;
+  if (error || !data)
+    return (
+      <AdminPage title="Platform settings" subtitle="Settings are unavailable.">
+        <p role="alert" className="text-sm text-destructive">
+          The saved settings could not be loaded. No defaults will overwrite your configuration.
+        </p>
+        <Button variant="outline" onClick={() => void refetch()}>
+          Retry
+        </Button>
+      </AdminPage>
+    );
+  const dirty = (key: string) => JSON.stringify(s[key] ?? {}) !== JSON.stringify(data[key] ?? {});
+  const discard = (key: string) => setS((current) => ({ ...current, [key]: data[key] ?? {} }));
   const patch = (key: string, field: string, v: unknown) =>
     setS((x) => ({ ...x, [key]: { ...(x[key] ?? {}), [field]: v } }));
   const banner = s["banner"] ?? {};
@@ -52,7 +78,7 @@ function SettingsPage() {
 
   return (
     <AdminPage
-      title="System Settings"
+      title="Platform settings"
       subtitle="Site-wide banner, maintenance mode and feature switches. Every change is written to the audit trail."
     >
       <Panel
@@ -67,6 +93,7 @@ function SettingsPage() {
           Show banner
         </label>
         <AreaField
+          aria-label="Announcement message"
           rows={2}
           value={String(banner["message"] ?? "")}
           onChange={(e) => patch("banner", "message", e.target.value)}
@@ -76,9 +103,22 @@ function SettingsPage() {
           className="mt-3"
           size="sm"
           onClick={() => m.mutate("banner")}
-          disabled={m.isPending}
+          disabled={
+            m.isPending ||
+            !dirty("banner") ||
+            (!!banner["enabled"] && !String(banner["message"] ?? "").trim())
+          }
         >
-          Save banner
+          {m.isPending && m.variables === "banner" ? "Saving…" : "Save banner"}
+        </Button>
+        <Button
+          className="ml-2"
+          size="sm"
+          variant="ghost"
+          disabled={m.isPending || !dirty("banner")}
+          onClick={() => discard("banner")}
+        >
+          Discard
         </Button>
       </Panel>
       <Panel
@@ -93,6 +133,7 @@ function SettingsPage() {
           Maintenance mode on
         </label>
         <AreaField
+          aria-label="Maintenance message"
           rows={2}
           value={String(maint["message"] ?? "")}
           onChange={(e) => patch("maintenance", "message", e.target.value)}
@@ -100,10 +141,19 @@ function SettingsPage() {
         <Button
           className="mt-3"
           size="sm"
-          onClick={() => m.mutate("maintenance")}
-          disabled={m.isPending}
+          onClick={() => setConfirm("maintenance")}
+          disabled={m.isPending || !dirty("maintenance")}
         >
-          Save
+          Save maintenance
+        </Button>
+        <Button
+          className="ml-2"
+          size="sm"
+          variant="ghost"
+          disabled={m.isPending || !dirty("maintenance")}
+          onClick={() => discard("maintenance")}
+        >
+          Discard
         </Button>
       </Panel>
       <Panel title="Feature switches">
@@ -121,12 +171,55 @@ function SettingsPage() {
         <Button
           className="mt-3"
           size="sm"
-          onClick={() => m.mutate("feature_flags")}
-          disabled={m.isPending}
+          onClick={() => setConfirm("feature_flags")}
+          disabled={m.isPending || !dirty("feature_flags")}
         >
-          Save switches
+          {m.isPending && m.variables === "feature_flags" ? "Saving…" : "Save switches"}
+        </Button>
+        <Button
+          className="ml-2"
+          size="sm"
+          variant="ghost"
+          disabled={m.isPending || !dirty("feature_flags")}
+          onClick={() => discard("feature_flags")}
+        >
+          Discard
         </Button>
       </Panel>
+      {m.error && (
+        <p role="alert" className="text-sm text-destructive">
+          {m.error.message}
+        </p>
+      )}
+      <AlertDialog
+        open={!!confirm}
+        onOpenChange={(open) => {
+          if (!open && !m.isPending) setConfirm(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Apply platform-wide changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirm === "maintenance"
+                ? "This changes access to the storefront and client workspace. Staff administration remains available."
+                : "Feature changes affect client and public workflows immediately. Disabled capabilities may stop serving visitors."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={m.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={m.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                if (confirm) m.mutate(confirm);
+              }}
+            >
+              {m.isPending ? "Saving…" : "Apply changes"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminPage>
   );
 }

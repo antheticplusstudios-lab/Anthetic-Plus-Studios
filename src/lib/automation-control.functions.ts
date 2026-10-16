@@ -30,38 +30,38 @@ function pct(n: number, d: number) {
 }
 
 export function summarize(execs: Row[], llm: Row[]) {
-  const done = execs.filter((e) => ["succeeded", "failed"].includes(e.status));
-  const ok = execs.filter((e) => e.status === "succeeded").length;
-  const failed = execs.filter((e) => e.status === "failed").length;
+  const done = execs.filter((e) => ["succeeded", "failed"].includes(e["status"]));
+  const ok = execs.filter((e) => e["status"] === "succeeded").length;
+  const failed = execs.filter((e) => e["status"] === "failed").length;
   const durations = execs
-    .filter((e) => e.started_at && e.finished_at)
-    .map((e) => new Date(e.finished_at).getTime() - new Date(e.started_at).getTime());
+    .filter((e) => e["started_at"] && e["finished_at"])
+    .map((e) => new Date(e["finished_at"]).getTime() - new Date(e["started_at"]).getTime());
   const providers: Record<string, { total: number; errors: number; latency: number }> = {};
   for (const r of llm) {
-    const p = (providers[r.provider_key] ??= { total: 0, errors: 0, latency: 0 });
+    const p = (providers[r["provider_key"]] ??= { total: 0, errors: 0, latency: 0 });
     p.total++;
-    if (r.status !== "success") p.errors++;
-    p.latency += Number(r.latency_ms ?? 0);
+    if (r["status"] !== "success") p.errors++;
+    p.latency += Number(r["latency_ms"] ?? 0);
   }
   const reasons: Record<string, number> = {};
   for (const e of execs)
-    if (e.status === "failed" && e.last_error) {
-      const k = String(e.last_error).slice(0, 80);
+    if (e["status"] === "failed" && e["last_error"]) {
+      const k = String(e["last_error"]).slice(0, 80);
       reasons[k] = (reasons[k] ?? 0) + 1;
     }
   return {
     executions: execs.length,
     succeeded: ok,
     failed,
-    queued: execs.filter((e) => ["queued", "retrying"].includes(e.status)).length,
-    running: execs.filter((e) => e.status === "running").length,
-    blocked: execs.filter((e) => ["paused", "disabled"].includes(e.status)).length,
+    queued: execs.filter((e) => ["queued", "retrying"].includes(e["status"])).length,
+    running: execs.filter((e) => e["status"] === "running").length,
+    blocked: execs.filter((e) => ["paused", "disabled"].includes(e["status"])).length,
     successRate: pct(ok, done.length),
     failureRate: pct(failed, done.length),
     avgDurationMs: durations.length
       ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
       : null,
-    tokens: llm.reduce((s, r) => s + Number(r.tokens_in ?? 0) + Number(r.tokens_out ?? 0), 0),
+    tokens: llm.reduce((s, r) => s + Number(r["tokens_in"] ?? 0) + Number(r["tokens_out"] ?? 0), 0),
     providers: Object.entries(providers).map(([provider, v]) => ({
       provider,
       requests: v.total,
@@ -76,13 +76,13 @@ export function summarize(execs: Row[], llm: Row[]) {
 }
 
 function deploymentState(d: Row, now = Date.now()) {
-  if (d.expires_at && new Date(d.expires_at).getTime() < now) return "expired";
-  if (d.is_active === false || d.enabled === false) return "disabled";
-  const s = String(d.run_state || d.status || "");
+  if (d["expires_at"] && new Date(d["expires_at"]).getTime() < now) return "expired";
+  if (d["is_active"] === false || d["enabled"] === false) return "disabled";
+  const s = String(d["run_state"] || d["status"] || "");
   if (["paused", "stopped", "suspended"].includes(s)) return "paused";
   if (s === "testing") return "testing";
   if (s === "provisioning") return "provisioning";
-  return d.status === "active" || s === "active" ? "active" : s || "unknown";
+  return d["status"] === "active" || s === "active" ? "active" : s || "unknown";
 }
 
 async function loadKind(kind: (typeof KINDS)[number], hours: number) {
@@ -136,27 +136,27 @@ export const getCommandCenter = createServerFn({ method: "GET" })
         return {
           kind,
           deployments: deps.length,
-          clients: new Set(deps.map((d) => d.client_id)).size,
+          clients: new Set(deps.map((d) => d["client_id"])).size,
           activeClients: new Set(
-            deps.filter((_, i) => states[i] === "active").map((d) => d.client_id),
+            deps.filter((_, i) => states[i] === "active").map((d) => d["client_id"]),
           ).size,
           active: states.filter((x) => x === "active").length,
           testing: states.filter((x) => x === "testing").length,
           paused: states.filter((x) => x === "paused").length,
           expired: states.filter((x) => x === "expired").length,
           provisioning: states.filter((x) => x === "provisioning").length,
-          setupIssues: deps.filter((d) => d.last_error).length,
+          setupIssues: deps.filter((d) => d["last_error"]).length,
           executions24h: s.executions,
           succeeded24h: s.succeeded,
           queued: s.queued,
           failed24h: s.failed,
           recentFailures: s.topFailures.slice(0, 3),
-          lastActivity: execs[0]?.queued_at ?? null,
+          lastActivity: execs[0]?.["queued_at"] ?? null,
           successRate: s.successRate,
           providerErrors: s.providers.reduce((a, p) => a + p.errors, 0),
           lastSuccess:
             deps
-              .map((d) => d.last_success_at)
+              .map((d) => d["last_success_at"])
               .filter(Boolean)
               .sort()
               .at(-1) ?? null,
@@ -184,7 +184,7 @@ export const getControlRoom = createServerFn({ method: "GET" })
       );
     const lastByAuto: Record<string, string> = {};
     for (const e of execs)
-      if (!lastByAuto[e.automation_id]) lastByAuto[e.automation_id] = e.queued_at;
+      if (!lastByAuto[e["automation_id"]]) lastByAuto[e["automation_id"]] = e["queued_at"];
     const states = deps.map((d) => deploymentState(d));
     return {
       kind: data.kind,
@@ -195,48 +195,48 @@ export const getControlRoom = createServerFn({ method: "GET" })
         testing: states.filter((s) => s === "testing").length,
         paused: states.filter((s) => s === "paused").length,
         expired: states.filter((s) => s === "expired").length,
-        clients: new Set(deps.map((d) => d.client_id)).size,
+        clients: new Set(deps.map((d) => d["client_id"])).size,
       },
       stats: summarize(execs, llm),
       deployments: deps.map((d, i) => ({
-        id: d.id,
-        clientId: d.client_id,
-        client: d.company_name || d.client_name || d.client_id,
-        domain: d.domain_url,
+        id: d["id"],
+        clientId: d["client_id"],
+        client: d["company_name"] || d["client_name"] || d["client_id"],
+        domain: d["domain_url"],
         state: states[i],
-        activatedAt: d.activated_at,
-        expiresAt: d.expires_at,
-        lastExecution: lastByAuto[d.id] ?? null,
-        lastSuccess: d.last_success_at,
-        lastError: d.last_error,
-        usage: d.usage_count ?? 0,
-        config: d.config ?? {},
+        activatedAt: d["activated_at"],
+        expiresAt: d["expires_at"],
+        lastExecution: lastByAuto[d["id"]] ?? null,
+        lastSuccess: d["last_success_at"],
+        lastError: d["last_error"],
+        usage: d["usage_count"] ?? 0,
+        config: d["config"] ?? {},
       })),
       executions: execs.slice(0, 200).map((e) => ({
-        id: e.id,
-        automationId: e.automation_id,
-        clientId: e.client_id,
-        status: e.status,
-        attempts: `${e.attempt_count}/${e.max_attempts}`,
-        trigger: e.trigger_type,
-        queuedAt: e.queued_at,
+        id: e["id"],
+        automationId: e["automation_id"],
+        clientId: e["client_id"],
+        status: e["status"],
+        attempts: `${e["attempt_count"]}/${e["max_attempts"]}`,
+        trigger: e["trigger_type"],
+        queuedAt: e["queued_at"],
         durationMs:
-          e.started_at && e.finished_at
-            ? new Date(e.finished_at).getTime() - new Date(e.started_at).getTime()
+          e["started_at"] && e["finished_at"]
+            ? new Date(e["finished_at"]).getTime() - new Date(e["started_at"]).getTime()
             : null,
-        error: e.last_error ? String(e.last_error).slice(0, 300) : null,
+        error: e["last_error"] ? String(e["last_error"]).slice(0, 300) : null,
       })),
       keys: (keys ?? []).map((k) => ({
         ...k,
         coolingDown: !!k.cooldown_until && new Date(k.cooldown_until).getTime() > Date.now(),
       })),
       queue: {
-        pending: execs.filter((e) => ["queued", "retrying"].includes(e.status)).length,
-        running: execs.filter((e) => e.status === "running").length,
+        pending: execs.filter((e) => ["queued", "retrying"].includes(e["status"])).length,
+        running: execs.filter((e) => e["status"] === "running").length,
         oldestPending:
           execs
-            .filter((e) => e.status === "queued")
-            .map((e) => e.queued_at)
+            .filter((e) => e["status"] === "queued")
+            .map((e) => e["queued_at"])
             .sort()[0] ?? null,
       },
     };
@@ -324,7 +324,7 @@ export const saveDeploymentConfig = createServerFn({ method: "POST" })
     const curCfg = (cur.config ?? {}) as Row;
     const config = {
       ...curCfg,
-      ...(data.settings ? { settings: { ...(curCfg.settings ?? {}), ...data.settings } } : {}),
+      ...(data.settings ? { settings: { ...(curCfg["settings"] ?? {}), ...data.settings } } : {}),
       ...(data.pool ? { provider_pool: data.pool } : {}),
     };
     const { error } = await db2Admin

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { CheckCircle2, Loader2, Mail, Send } from "lucide-react";
+import { CheckCircle2, Clock, Loader2, Mail, Send, ShieldCheck, Sparkles } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
@@ -83,17 +83,43 @@ function ContactPage() {
       <SiteHeader />
       <main className="mx-auto grid max-w-5xl gap-10 px-4 py-14 md:grid-cols-[1fr_1.4fr]">
         <section>
-          <h1 className="text-3xl font-extrabold tracking-tight">Let's talk</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">Let's talk</h1>
           <p className="mt-3 text-muted-foreground">
             Questions about an automation, your account, or working together? Send us a message and
             we'll reply by email.
           </p>
-          <a
-            href="mailto:antheticplusstudios@gmail.com"
-            className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary"
-          >
+          <ul className="mt-8 space-y-4">
+            {[
+              {
+                icon: Clock,
+                title: "Reply within 1 business day",
+                body: "A real person reads every message.",
+              },
+              {
+                icon: Sparkles,
+                title: "Free automation advice",
+                body: "Tell us where leads slip — we'll suggest the smallest fix.",
+              },
+              {
+                icon: ShieldCheck,
+                title: "Private by default",
+                body: "Your details are only used to answer you.",
+              },
+            ].map((i) => (
+              <li key={i.title} className="flex gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <i.icon className="h-4 w-4" />
+                </span>
+                <div>
+                  <div className="text-sm font-bold">{i.title}</div>
+                  <div className="text-sm text-muted-foreground">{i.body}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-8 inline-flex items-center gap-2 text-sm text-muted-foreground">
             <Mail className="h-4 w-4" /> antheticplusstudios@gmail.com
-          </a>
+          </p>
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -108,10 +134,10 @@ function ContactPage() {
           ) : (
             <form onSubmit={onSubmit} noValidate className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
-                <FieldBox id="name" label="Name" error={errors.name}>
+                <FieldBox id="name" label="Name" error={errors["name"]}>
                   <Input id="name" value={form.name} onChange={set("name")} autoComplete="name" />
                 </FieldBox>
-                <FieldBox id="email" label="Email" error={errors.email}>
+                <FieldBox id="email" label="Email" error={errors["email"]}>
                   <Input
                     id="email"
                     type="email"
@@ -122,7 +148,7 @@ function ContactPage() {
                 </FieldBox>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <FieldBox id="company" label="Company (optional)" error={errors.company}>
+                <FieldBox id="company" label="Company (optional)" error={errors["company"]}>
                   <Input
                     id="company"
                     value={form.company}
@@ -130,7 +156,7 @@ function ContactPage() {
                     autoComplete="organization"
                   />
                 </FieldBox>
-                <FieldBox id="topic" label="Topic" error={errors.topic}>
+                <FieldBox id="topic" label="Topic" error={errors["topic"]}>
                   <select
                     id="topic"
                     value={form.topic}
@@ -145,7 +171,7 @@ function ContactPage() {
                   </select>
                 </FieldBox>
               </div>
-              <FieldBox id="message" label="Message" error={errors.message}>
+              <FieldBox id="message" label="Message" error={errors["message"]}>
                 <Textarea id="message" rows={6} value={form.message} onChange={set("message")} />
               </FieldBox>
               <input

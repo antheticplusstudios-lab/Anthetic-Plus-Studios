@@ -40,7 +40,7 @@ export async function probeAutomation(runtime: RuntimeAdmin, id: string, appOrig
     p_automation_id: id,
   });
   const runtimeState = String(
-    (runtimeResult.data as Record<string, unknown> | null)?.state ?? "missing",
+    (runtimeResult.data as Record<string, unknown> | null)?.["state"] ?? "missing",
   );
   const since24 = new Date(Date.now() - 86_400_000).toISOString();
 

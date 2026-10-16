@@ -31,17 +31,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Python backend
-__pycache__/
-*.py[cod]
-.venv/
-
-# Backend/local secrets
+# Environment secrets
 .env
 .env.*
 !.env.example
-.vercel
-.env*
 
-# Local archives
-*.zip
+# Vercel generated output
+.vercel/

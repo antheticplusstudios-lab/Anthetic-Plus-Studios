@@ -1,4 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, type ReactNode } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useQueries } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Globe2, ArrowRight } from "lucide-react";
@@ -13,6 +16,8 @@ export const Route = createFileRoute("/_authenticated/admin/assistants/")({
 });
 
 function AssistantsOverview() {
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
   const get = useServerFn(adminGetSiteConfig);
   const results = useQueries({
     queries: SITE_IDS.map((id) => ({
@@ -25,10 +30,46 @@ function AssistantsOverview() {
       title="AI Assistants"
       subtitle="One website AI agent per site — chat and voice are the same agent. Admin AI and the four automations are managed separately."
     >
+      <div className="flex flex-wrap items-center gap-3 border-b border-border pb-5">
+        <Input
+          className="max-w-sm"
+          aria-label="Search assistants"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name or website…"
+        />
+        <select
+          aria-label="Assistant status filter"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="rounded-md border border-border bg-card px-3 py-2 text-sm"
+        >
+          <option value="all">All statuses</option>
+          <option value="enabled">Enabled draft</option>
+          <option value="disabled">Disabled draft</option>
+        </select>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setSearch("");
+            setStatus("all");
+          }}
+        >
+          Reset
+        </Button>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         {SITE_IDS.map((id, i) => {
-          const q = results[i]!;
+          const q = results[i];
+          if (!q) return null;
           const c = q.data?.config;
+          if (
+            !`${SITES[id].name} ${c?.displayName ?? ""} ${(c?.extraDomains ?? []).join(" ")}`
+              .toLowerCase()
+              .includes(search.toLowerCase()) ||
+            (c && status !== "all" && c.enabled !== (status === "enabled"))
+          )
+            return null;
           const stale =
             c?.sources.filter(
               (s) =>
@@ -59,9 +100,27 @@ function AssistantsOverview() {
               {q.isLoading ? (
                 <Loading />
               ) : q.isError || !c ? (
-                <p className="text-sm text-destructive">Couldn't load this site's settings.</p>
+                <div>
+                  <p role="alert" className="text-sm text-destructive">
+                    Couldn't load this site's settings.
+                  </p>
+                  <Button
+                    className="mt-3"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void q.refetch()}
+                  >
+                    Retry
+                  </Button>
+                </div>
               ) : (
                 <div className="space-y-4">
+                  <p className="text-xs text-muted-foreground">
+                    Publishing state: {q.data?.agentState ?? "Unknown"} · Updated{" "}
+                    {q.data?.status.updatedAt
+                      ? new Date(q.data.status.updatedAt).toLocaleDateString()
+                      : "Not saved"}
+                  </p>
                   <div className="flex flex-wrap gap-2 text-xs">
                     <Pill tone={q.data?.status.missing.length ? "warn" : "ok"}>
                       {!q.data?.status.saved
@@ -71,7 +130,7 @@ function AssistantsOverview() {
                           : "Ready"}
                     </Pill>
                     <Pill tone={c.enabled ? "ok" : "off"}>
-                      {c.enabled ? "Enabled" : "Disabled"}
+                      {c.enabled ? "Draft enabled" : "Draft disabled"}
                     </Pill>
                     <Pill tone={c.voiceEnabled ? "ok" : "off"}>
                       Voice {c.voiceEnabled ? "on" : "off"}
@@ -114,13 +173,13 @@ export function Pill({
   children,
 }: {
   tone: "ok" | "off" | "bad" | "warn" | "info";
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const cls = {
-    ok: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+    ok: "bg-success/10 text-success",
     off: "bg-muted text-muted-foreground",
     bad: "bg-destructive/15 text-destructive",
-    warn: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+    warn: "bg-secondary text-foreground",
     info: "bg-primary/10 text-primary",
   }[tone];
   return <span className={`rounded-full px-2.5 py-1 font-medium ${cls}`}>{children}</span>;

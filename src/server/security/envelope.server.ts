@@ -1,7 +1,7 @@
 import { createDecipheriv, createCipheriv, randomBytes } from "node:crypto";
 
 function masterKey(): Buffer {
-  const raw = process.env.ANTHETICPLUS_DB3_MASTER_KEY;
+  const raw = process.env["ANTHETICPLUS_DB3_MASTER_KEY"];
   if (!raw) throw new Error("Missing ANTHETICPLUS_DB3_MASTER_KEY");
   const key = Buffer.from(raw, "base64");
   if (key.length !== 32)
@@ -30,5 +30,5 @@ export function decryptSecret(payload: string): string {
 
 export function assertServerOnlySecret(secret: string) {
   if (secret.length < 8) throw new Error("Secret is too short");
-  if (/^sk_live_|^sk-[A-Za-z]/.test(secret) && process.env.NODE_ENV === "production") return;
+  if (/^sk_live_|^sk-[A-Za-z]/.test(secret) && process.env["NODE_ENV"] === "production") return;
 }

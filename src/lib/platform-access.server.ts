@@ -77,9 +77,9 @@ export async function auditMutation(
     action: input.action,
     target_type: input.targetType,
     target_id: input.targetId ?? null,
-    reason: typeof input.details?.reason === "string" ? input.details.reason : null,
-    before_value: input.details?.before ?? {},
-    after_value: input.details?.after ?? input.details ?? {},
+    reason: typeof input.details?.["reason"] === "string" ? input.details["reason"] : null,
+    before_value: input.details?.["before"] ?? {},
+    after_value: input.details?.["after"] ?? input.details ?? {},
     metadata: input.details ?? {},
   });
   if (error) throw new Error(error.message);

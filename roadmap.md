@@ -1,14 +1,41 @@
-# Roadmap
-- [x] Admin menu in 7 sections; CRM Round-Robin separate from AI key rotation
-- [x] Contact page: validated form, server send, spam guard, honest "not connected" state
-- [x] NY Partners visible on AI Assistant page + manageable domain (verify on live data)
-- [x] Website Agent: draft/publish, test console (draft vs live), version history + rollback, knowledge approval gate, verified domains for partner sites, key enforcement tests
-- [x] Homepage: block field blends into page, scroll-driven 3D section motion, progress bar
-- [ ] Live admin click-through of publishing page (needs signed-in admin session)
-- [~] AI Receptionist: 10 service areas + tools in catalog (done); dashboard service view + order/payment handoff flow (next)
-- [ ] Other 3 automations upgrades
-- [x] Website installation keys: create/rotate/revoke, scopes, one-time secret, connection test, widget + headless instructions (verified on live main DB)
-- [x] Client tool request builder (AI proposal from safe catalog, saved for approval)
-- [x] Capability requests: admin approve/reject with reason, re-validation, integration-gated activation, test, revoke, rollback, history; receptionist execution honours active tools; tests
-- [ ] Merge Groq pool page into AI Infrastructure
-- [ ] Tool proposals use own provider keys (Groq pool) — done; Website Agent AI must also use own keys only
+# Anthetic Plus Studios upgrade
+- [x] Import the supplied existing application without replacing deployment configuration or production data.
+- [x] Audit authorization, real data sources, partner website ingestion, widget, and installation.
+- [x] Fix partner website URL behavior and add regression coverage.
+- [ ] Upgrade shared admin navigation, overview, management, and controls.
+- [x] Upgrade actual floating widget and shared installation preview.
+- [ ] Validate available automated tests, lint, runtime, accessibility, and mobile layout.
+- [ ] Document exact changes and external deployment/credential blockers.
+## Oct 14 request
+- [x] Hero Block Drift: full opacity, original colours (near/edge = page foreground, far = background).
+- [ ] Partner website URL flow: persist assistant config + scan status per team (needs DB write path confirmation).
+- [ ] AI Receptionist: 10 services (call handling, scheduling, bookings, sales qualification, follow-up, support, CRM capture, payments, outbound reminders, recommendations) as toggleable, zero-setup modules.
+- [ ] Per-automation provider key pools (separate round robin per automation, instant failover without losing conversation).
+- [ ] Automations admin: one clear management page per each of the 4 automations.
+- [ ] Auto-training pipelines: website crawl → assistant knowledge (own + partner sites); client data → per-automation context, AI fallback.
+- [ ] Contact page + form via Resend (key added later) to the existing site inbox.
+- [ ] User management: view, ban, mute, automations, domains, connected platforms; origin-domain badges on users and automations.
+- [ ] Clearer admin and client dashboard UX.
+## Oct 14 progress
+- [x] Project imported; 4 external databases kept.
+- [x] Per-automation key rotation engine with instant failover that keeps the conversation (src/lib/key-pool.ts) + tests.
+- [x] 4-automation catalog with the 10 AI Receptionist services, Inworld limits of 10 for the receptionist and 5 for the website assistant + tests.
+- [x] Safe Markdown email renderer (images and links) + tests.
+- [x] Migration SQL for key pools, service toggles, origin domains, ban/mute, contact inbox, campaigns, training jobs.
+- [x] Automations management pages (services + keys done; integrations, test, activity next).
+- [ ] Swap ElevenLabs for Inworld voice using the key pool.
+- [x] Twilio option on the order form, plus a support request to turn it on later.
+- [ ] Contact inbox in admin, platform-split Resend keys, admin bulk email sender.
+- [ ] Users page (ban, mute, domains, badges) and simpler dashboards.
+- [ ] Auto-training workers for both sites and each client's automations.
+- [x] 4 database keys saved and connections verified.
+- [ ] Run the 3 new 2026-10-14 setup files in DB1, DB2, DB3 SQL editors (blocked on user).
+- Blocked on user: Resend keys + inbox, Inworld keys, Twilio connection.
+- [x] Admin "Automation API keys" page (/admin/integration-keys): per-automation pools for Inworld (10 receptionist / 5 website assistant), Twilio, Resend, AI keys — add encrypted, toggle, test, delete; shows a connect-databases panel until DB2 keys exist.
+- [x] DB2 type rows added for automation_key_pools and automation_service_toggles; DB1 contact_messages/email_campaigns; DB3 training_jobs; new columns typed.
+## Oct 15 request
+- [ ] Contact page works (nav no longer opens Gmail)
+- [x] Auto-training jobs with status + Train now in admin (/admin/training)
+- [x] Integrations / Test / Activity / Training tabs per automation
+- [ ] Inworld replaces ElevenLabs in receptionist voice
+- [ ] Admin + website polish

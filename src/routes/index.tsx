@@ -145,7 +145,11 @@ function Index() {
         {/* Hero */}
         <section className="relative isolate overflow-hidden px-4 pb-20 pt-32 sm:px-6 sm:pb-28 sm:pt-40">
           <BlockDrift />
-          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_70%_-10%,rgba(255,255,255,0.10),transparent_45%)]" />
+          <div
+            className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/75 via-black/55 to-background/90"
+            aria-hidden="true"
+          />
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_70%_-10%,rgba(96,120,255,0.12),transparent_45%)]" />
           <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[1.05fr_.95fr]">
             <HeroDepth>
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
@@ -165,7 +169,7 @@ function Index() {
                 delay={0.22}
                 stagger={0.022}
               />
-              <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
+              <p className="mt-6 max-w-xl text-lg leading-8 text-white/85 drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)]">
                 We install AI systems that actually operate parts of your business — answering calls
                 and DMs, qualifying leads and supporting customers — on your domain, monitored, and
                 handing off to your team when a person is needed.
@@ -428,7 +432,7 @@ function Index() {
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <MovingGradientButton to="/auth">Get started</MovingGradientButton>
                 <Button size="lg" variant="outline" asChild>
-                  <a href="mailto:antheticplusstudios@gmail.com">Talk to the team</a>
+                  <Link to="/contact">Talk to the team</Link>
                 </Button>
               </div>
             </div>

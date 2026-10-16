@@ -77,7 +77,7 @@ export const Route = createFileRoute("/api/public/automations/webhook")({
         try {
           const gate = await runtimeBlockReason(automationId);
           const kindValue = String(
-            gate.automation?.automation_type ?? gate.automation?.product_type ?? "",
+            gate.automation?.["automation_type"] ?? gate.automation?.["product_type"] ?? "",
           );
           if (!gate.automation || !isAutomationKind(kindValue)) {
             await mark("ignored", { error: "unknown or out-of-scope automation" });
@@ -85,7 +85,7 @@ export const Route = createFileRoute("/api/public/automations/webhook")({
           }
           const exec = await enqueueExecution({
             automationId,
-            clientId: String(gate.automation.client_id),
+            clientId: String(gate.automation["client_id"]),
             kind: kindValue,
             idempotencyKey: `${provider}:${eventId}`,
             input: payload,

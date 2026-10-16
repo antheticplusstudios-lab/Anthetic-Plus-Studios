@@ -47,8 +47,8 @@ export const createServiceBooking = createServerFn({ method: "POST" })
       throw new Error("Enable the receptionist before creating bookings.");
 
     const config = (automation.config ?? {}) as Record<string, unknown>;
-    const settings = (config.settings ?? {}) as Record<string, unknown>;
-    const services = String(settings.services ?? "")
+    const settings = (config["settings"] ?? {}) as Record<string, unknown>;
+    const services = String(settings["services"] ?? "")
       .split(/\r?\n/)
       .map((s) => s.replace(/^[\s\-*•\d.)]+/, "").trim())
       .filter(Boolean);
@@ -85,7 +85,7 @@ export const createServiceBooking = createServerFn({ method: "POST" })
       timeMin: start.toISOString(),
       timeMax: end.toISOString(),
     });
-    const calendars = (availability.calendars ?? {}) as Record<string, unknown>;
+    const calendars = (availability["calendars"] ?? {}) as Record<string, unknown>;
     const busy = Object.values(calendars).flatMap((calendar) => {
       const rows = (calendar as { busy?: unknown[] } | null)?.busy;
       return Array.isArray(rows) ? rows : [];

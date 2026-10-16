@@ -98,9 +98,10 @@ export async function transcribeVoiceAudioData(
 
   const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
 
-  const text = typeof payload.text === "string" ? payload.text.trim() : "";
+  const text = typeof payload["text"] === "string" ? payload["text"].trim() : "";
 
-  const language = typeof payload.language === "string" ? payload.language.toLowerCase() : null;
+  const language =
+    typeof payload["language"] === "string" ? payload["language"].toLowerCase() : null;
 
   try {
     await db3Admin.from("llm_requests").insert({

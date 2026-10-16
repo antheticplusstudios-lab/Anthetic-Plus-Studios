@@ -123,6 +123,29 @@ export type DB1Database = ServerDatabaseBase<
       category: string | null;
       registered_origin_domain: string | null;
       profile_completed: boolean;
+      banned_at: string | null;
+      muted_until: string | null;
+    }>;
+    contact_messages: ServerTable<{
+      id: string;
+      platform: string;
+      name: string;
+      email: string;
+      company: string | null;
+      topic: string;
+      message: string;
+      delivered: boolean;
+      created_at: string;
+    }>;
+    email_campaigns: ServerTable<{
+      id: string;
+      platform: string;
+      subject: string;
+      body_markdown: string;
+      recipients: number;
+      sent: number;
+      created_by: string | null;
+      created_at: string;
     }>;
     staff_invites: ServerTable<{
       id: string;
@@ -169,6 +192,24 @@ export type DB1Database = ServerDatabaseBase<
 
 export type DB2Database = ServerDatabaseBase<
   {
+    automation_key_pools: ServerTable<{
+      id: string;
+      scope: string;
+      provider: string;
+      label: string;
+      key_ciphertext: string;
+      enabled: boolean;
+      cooldown_until: string;
+      uses: number;
+      failures: number;
+      created_at: string;
+    }>;
+    automation_service_toggles: ServerTable<{
+      automation_id: string;
+      service_id: string;
+      enabled: boolean;
+      updated_at: string;
+    }>;
     automation_credential_rotations: ServerTable<{
       id: string;
       automation_id: string;
@@ -292,6 +333,9 @@ export type DB2Database = ServerDatabaseBase<
       widget_config: Json;
       script_token_hash: string | null;
       script_token_last4: string | null;
+      ordered_on_domain: string | null;
+      running_on_domain: string | null;
+      wants_phone: boolean;
     }>;
     integration_connections: ServerTable<{
       id: string;
@@ -504,6 +548,18 @@ export type DB2Database = ServerDatabaseBase<
 >;
 
 export type DB3Database = ServerDatabaseBase<{
+  training_jobs: ServerTable<{
+    id: string;
+    target: string;
+    source_url: string | null;
+    status: string;
+    pages: number;
+    chunks: number;
+    error: string | null;
+    started_at: string | null;
+    finished_at: string | null;
+    created_at: string;
+  }>;
   ai_configs: ServerTable<{
     automation_id: string;
     client_id: string;
