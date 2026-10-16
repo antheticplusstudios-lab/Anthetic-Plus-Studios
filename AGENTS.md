@@ -1,0 +1,1 @@
+- Per-automation provider keys live only in DB2 automation_key_pools; rotation logic is the pure module src/lib/key-pool.ts (why: instant failover without losing conversations, testable without network).
