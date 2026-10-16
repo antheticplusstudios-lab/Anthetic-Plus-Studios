@@ -195,12 +195,12 @@ export async function runProvisioningPipeline(
       ? (order.metadata as Record<string, unknown>)
       : {};
   const pricing =
-    metadata.pricing_snapshot &&
-    typeof metadata.pricing_snapshot === "object" &&
-    !Array.isArray(metadata.pricing_snapshot)
-      ? (metadata.pricing_snapshot as Record<string, unknown>)
+    metadata["pricing_snapshot"] &&
+    typeof metadata["pricing_snapshot"] === "object" &&
+    !Array.isArray(metadata["pricing_snapshot"])
+      ? (metadata["pricing_snapshot"] as Record<string, unknown>)
       : {};
-  const planCode = String(pricing.plan ?? "monthly");
+  const planCode = String(pricing["plan"] ?? "monthly");
   const company = orderDetails.company_name || orderDetails.full_name || "AntheticPlus Automation";
   const targetDomain = orderDetails.target_domain_url;
 
@@ -232,7 +232,7 @@ export async function runProvisioningPipeline(
         enabled: false,
         environment: "production",
         metadata: { order_id: order.id },
-        config: { settings: (metadata.configuration ?? {}) as Record<string, string> },
+        config: { settings: (metadata["configuration"] ?? {}) as Record<string, string> },
         client_name: company,
         automation_name: company,
         product_name: String(order.product_name ?? productType),
@@ -256,9 +256,9 @@ export async function runProvisioningPipeline(
   }
 
   const recurringAmount = Number(
-    pricing.recurring_amount ?? pricing.base ?? order.total_amount ?? 0,
+    pricing["recurring_amount"] ?? pricing["base"] ?? order.total_amount ?? 0,
   );
-  const setupFee = Number(pricing.setup_fee ?? order.total_amount ?? 0);
+  const setupFee = Number(pricing["setup_fee"] ?? order.total_amount ?? 0);
   const subscription = await ensureSubscription(
     clientId,
     String(inst.id),

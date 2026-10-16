@@ -42,15 +42,15 @@ export async function loadAssistantSettings(): Promise<AssistantSettings> {
   if (error) throw new Error(`settings: ${error.message}`);
   const v = rec(data?.value);
   return {
-    enabled: v.enabled !== false,
-    voiceEnabled: v.voiceEnabled !== false,
-    accountContextEnabled: v.accountContextEnabled !== false,
-    emailActionsEnabled: v.emailActionsEnabled !== false,
-    welcomeMessage: String(v.welcomeMessage ?? DEFAULT_WELCOME).slice(0, 600) || DEFAULT_WELCOME,
-    persona: String(v.systemPrompt ?? "").slice(0, 8000),
-    publicContext: String(v.publicContext ?? DEFAULT_PUBLIC_CONTEXT).slice(0, 24000),
-    announcement: String(v.announcement ?? "").slice(0, 4000),
-    temperature: num(v.temperature, 0.05, 1, 0.2),
-    maxTokens: Math.round(num(v.maxTokens, 300, 2400, 1200)),
+    enabled: v["enabled"] !== false,
+    voiceEnabled: v["voiceEnabled"] !== false,
+    accountContextEnabled: v["accountContextEnabled"] !== false,
+    emailActionsEnabled: v["emailActionsEnabled"] !== false,
+    welcomeMessage: String(v["welcomeMessage"] ?? DEFAULT_WELCOME).slice(0, 600) || DEFAULT_WELCOME,
+    persona: String(v["systemPrompt"] ?? "").slice(0, 8000),
+    publicContext: String(v["publicContext"] ?? DEFAULT_PUBLIC_CONTEXT).slice(0, 24000),
+    announcement: String(v["announcement"] ?? "").slice(0, 4000),
+    temperature: num(v["temperature"], 0.05, 1, 0.2),
+    maxTokens: Math.round(num(v["maxTokens"], 300, 2400, 1200)),
   };
 }

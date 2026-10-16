@@ -69,7 +69,7 @@ export function hostOf(raw: string) {
 }
 
 function configuredWidgetHosts() {
-  return (process.env.ALLOWED_WIDGET_HOSTS ?? "")
+  return (process.env["ALLOWED_WIDGET_HOSTS"] ?? "")
     .replace(/\n/g, ",")
     .split(",")
     .map(hostOf)
@@ -88,7 +88,7 @@ export function originAllowed(inst: Installation, origin: string | null, appHost
   if (!h) return false;
   const app = hostOf(appHost);
   const isDevelopmentHost =
-    process.env.NODE_ENV !== "production" && (app === "localhost" || app === "127.0.0.1");
+    process.env["NODE_ENV"] !== "production" && (app === "localhost" || app === "127.0.0.1");
   if (isDevelopmentHost && h === app) return true;
 
   const installationHosts = [inst.domain_url, ...(inst.allowed_domains ?? [])]
@@ -108,18 +108,20 @@ export async function resolveInstallation(
   if (error || !data?.length) return null;
   const row = data[0] as Record<string, unknown>;
   return {
-    id: String(row.automation_id),
-    client_id: String(row.client_id),
-    automation_type: String(row.automation_type ?? ""),
-    name: String(row.name ?? ""),
-    domain_url: String(row.domain_url ?? ""),
-    allowed_domains: Array.isArray(row.allowed_domains) ? row.allowed_domains.map(String) : [],
-    run_state: String(row.run_state ?? ""),
-    is_active: Boolean(row.is_active),
-    requires_reinstallation: Boolean(row.requires_reinstallation),
-    expires_at: row.expires_at ? String(row.expires_at) : null,
-    widget_config: (row.widget_config ?? {}) as Record<string, unknown>,
-    subscription_status: String(row.subscription_status ?? "expired"),
+    id: String(row["automation_id"]),
+    client_id: String(row["client_id"]),
+    automation_type: String(row["automation_type"] ?? ""),
+    name: String(row["name"] ?? ""),
+    domain_url: String(row["domain_url"] ?? ""),
+    allowed_domains: Array.isArray(row["allowed_domains"])
+      ? row["allowed_domains"].map(String)
+      : [],
+    run_state: String(row["run_state"] ?? ""),
+    is_active: Boolean(row["is_active"]),
+    requires_reinstallation: Boolean(row["requires_reinstallation"]),
+    expires_at: row["expires_at"] ? String(row["expires_at"]) : null,
+    widget_config: (row["widget_config"] ?? {}) as Record<string, unknown>,
+    subscription_status: String(row["subscription_status"] ?? "expired"),
     token,
   };
 }
@@ -225,7 +227,7 @@ export async function runtimeState(runtime: RuntimeAdmin, id: string): Promise<s
     p_automation_id: id,
   });
   if (error || !data) return "missing";
-  const state = String((data as Record<string, unknown>).state ?? "missing");
+  const state = String((data as Record<string, unknown>)["state"] ?? "missing");
   if (state !== "active") return state;
   const { data: automation } = await runtime.db2
     .from("client_automations")

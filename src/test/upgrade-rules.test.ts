@@ -145,3 +145,15 @@ describe("config fingerprint", () => {
     expect(cfg.kbPrompt({ answer_style: "step-by-step" }, "")).toContain("step-by-step");
   });
 });
+
+import { describe as d2, it as i2, expect as e2 } from "vitest";
+import { automationBySlug as bySlug, resolveServiceSwitches } from "@/lib/automation-suite";
+d2("service switches", () => {
+  i2("services default on, saved off stays off", () => {
+    const def = bySlug("ai-receptionist")!;
+    const s = resolveServiceSwitches(def, [{ service_id: "payments", enabled: false }]);
+    e2(s["payments"]).toBe(false);
+    e2(s["call_handling"]).toBe(true);
+    e2(Object.keys(s)).toHaveLength(10);
+  });
+});

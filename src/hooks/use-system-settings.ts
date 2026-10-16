@@ -16,14 +16,14 @@ export function useSystemSettings() {
 }
 export function useBanner(): BannerSetting {
   const { data } = useSystemSettings();
-  return (data?.banner ?? {}) as BannerSetting;
+  return (data?.["banner"] ?? {}) as BannerSetting;
 }
 export function useMaintenance(): MaintenanceSetting {
   const { data } = useSystemSettings();
-  return (data?.maintenance ?? {}) as MaintenanceSetting;
+  return (data?.["maintenance"] ?? {}) as MaintenanceSetting;
 }
 export function useFeatureFlag(key: string): boolean {
   const { data } = useSystemSettings();
-  const flags = (data?.feature_flags ?? {}) as Record<string, unknown>;
+  const flags = (data?.["feature_flags"] ?? {}) as Record<string, unknown>;
   return flags[key] !== false;
 }

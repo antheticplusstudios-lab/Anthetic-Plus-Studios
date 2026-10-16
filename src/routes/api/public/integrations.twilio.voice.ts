@@ -43,10 +43,10 @@ async function twilioToken(automationId: string) {
   if (!data || data.status !== "connected") throw new Error("Twilio integration is not connected.");
   const c = JSON.parse(decryptSecret(String(data.credential_ciphertext))) as R;
   return {
-    accountSid: str(c.accountSid),
-    authToken: str(c.authToken),
-    apiKeySecret: str(c.apiKeySecret),
-    fromNumber: str(c.fromNumber),
+    accountSid: str(c["accountSid"]),
+    authToken: str(c["authToken"]),
+    apiKeySecret: str(c["apiKeySecret"]),
+    fromNumber: str(c["fromNumber"]),
   };
 }
 
@@ -83,25 +83,25 @@ export const Route = createFileRoute("/api/public/integrations/twilio/voice")({
       POST: async ({ request }) => {
         try {
           const p = await form(request);
-          const to = str(p.To);
+          const to = str(p["To"]);
           const automation = await findAutomation(to);
           if (!automation) return new Response("Not found", { status: 404 });
-          const creds = await twilioToken(String(automation.id));
+          const creds = await twilioToken(String(automation["id"]));
           const signature = request.headers.get("x-twilio-signature") || "";
-          const url = `${process.env.VITE_APP_URL || new URL(request.url).origin}/api/public/integrations/twilio/voice`;
+          const url = `${process.env["VITE_APP_URL"] || new URL(request.url).origin}/api/public/integrations/twilio/voice`;
           if (!signature || !validSignature(url, p, signature, creds.authToken))
             return new Response("Forbidden", { status: 403 });
-          const speech = str(p.SpeechResult);
-          const from = str(p.From);
+          const speech = str(p["SpeechResult"]);
+          const from = str(p["From"]);
           if (!speech)
             return xml(
               `<?xml version="1.0" encoding="UTF-8"?><Response><Gather input="speech" method="POST" speechTimeout="auto" language="en-US"><Say>Hi, thanks for calling. How can I help you today?</Say></Gather><Say>I didn't hear anything. Goodbye.</Say><Hangup/></Response>`,
             );
           const ctx = {
             exec: {
-              id: `voice-${p.CallSid || crypto.randomUUID()}`,
-              automation_id: String(automation.id),
-              client_id: String(automation.client_id),
+              id: `voice-${p["CallSid"] || crypto.randomUUID()}`,
+              automation_id: String(automation["id"]),
+              client_id: String(automation["client_id"]),
               automation_kind: "ai_receptionist" as const,
               input: {},
               timeout_seconds: 30,
@@ -114,12 +114,12 @@ export const Route = createFileRoute("/api/public/integrations/twilio/voice")({
             channel: "voice",
             from,
             body: speech,
-            message_id: `${p.CallSid || "call"}:${Date.now()}`,
+            message_id: `${p["CallSid"] || "call"}:${Date.now()}`,
           });
           if (result.escalated) {
             const handoff = phoneFromHandoff(
-              (automation.config as R)?.settings &&
-                ((automation.config as R).settings as R).handoff_contact,
+              (automation["config"] as R)?.["settings"] &&
+                ((automation["config"] as R)["settings"] as R)["handoff_contact"],
             );
             if (handoff)
               return xml(

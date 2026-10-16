@@ -14,6 +14,7 @@ import {
   timeAgo,
 } from "@/components/admin-ui";
 import { Button } from "@/components/ui/button";
+import { WidgetInstallationWorkspace } from "@/components/widget-installation-workspace";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
@@ -64,7 +65,10 @@ export const Route = createFileRoute("/_authenticated/admin/site-keys")({
 });
 
 function copy(text: string) {
-  void navigator.clipboard.writeText(text).then(() => toast.success("Copied"));
+  void navigator.clipboard
+    .writeText(text)
+    .then(() => toast.success("Copied"))
+    .catch(() => toast.error("Copy failed. Select the text and copy it manually."));
 }
 
 function SiteKeysPage() {
@@ -130,7 +134,10 @@ function SiteKeys({ siteId }: { siteId: SiteId }) {
     onError: onErr,
   });
   const revokeM = useMutation({
-    mutationFn: () => revoke({ data: { siteId, keyId: revoking!.id, reason } }),
+    mutationFn: () => {
+      if (!revoking) throw new Error("Select a key to revoke.");
+      return revoke({ data: { siteId, keyId: revoking.id, reason } });
+    },
     onSuccess: () => {
       toast.success("Key revoked");
       setRevoking(null);
@@ -148,7 +155,8 @@ function SiteKeys({ siteId }: { siteId: SiteId }) {
   if (q.isLoading) return <Loading label="Loading keys" />;
   if (q.error)
     return <EmptyState title="Couldn't load keys" description={(q.error as Error).message} />;
-  const d = q.data!;
+  const d = q.data;
+  if (!d) return <EmptyState title="No key response received" />;
   const active = d.keys.filter((k) => !k.revokedAt);
 
   return (
@@ -271,7 +279,7 @@ function SiteKeys({ siteId }: { siteId: SiteId }) {
       </Panel>
 
       <ConnectionTest siteId={siteId} />
-      <InstallGuide siteId={siteId} requireKey={d.requireEmbedKey} />
+      <WidgetInstallationWorkspace siteId={siteId} requireKey={d.requireEmbedKey} />
 
       <Dialog open={!!revealed} onOpenChange={(o) => !o && setRevealed(null)}>
         <DialogContent>

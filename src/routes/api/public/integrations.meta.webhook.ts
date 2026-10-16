@@ -31,7 +31,12 @@ async function findAutomation(platform: string, recipient: string) {
   for (const row of data ?? []) {
     try {
       const c = rec(JSON.parse(decryptSecret(String(row.credential_ciphertext))));
-      const ids = [c.phoneNumberId, c.pageId, c.instagramBusinessAccountId, c.igUserId].map(str);
+      const ids = [
+        c["phoneNumberId"],
+        c["pageId"],
+        c["instagramBusinessAccountId"],
+        c["igUserId"],
+      ].map(str);
       if (ids.includes(recipient)) return String(row.automation_id);
     } catch {
       // Ignore an unrelated malformed integration and continue looking for the matching asset.
@@ -66,7 +71,7 @@ export const Route = createFileRoute("/api/public/integrations/meta/webhook")({
         const url = new URL(request.url);
         if (
           url.searchParams.get("hub.mode") === "subscribe" &&
-          url.searchParams.get("hub.verify_token") === process.env.META_WEBHOOK_VERIFY_TOKEN &&
+          url.searchParams.get("hub.verify_token") === process.env["META_WEBHOOK_VERIFY_TOKEN"] &&
           url.searchParams.get("hub.challenge")
         ) {
           return new Response(url.searchParams.get("hub.challenge"));
@@ -79,50 +84,50 @@ export const Route = createFileRoute("/api/public/integrations/meta/webhook")({
           !verifySignature(
             raw,
             request.headers.get("x-hub-signature-256") || "",
-            process.env.META_APP_SECRET || "",
+            process.env["META_APP_SECRET"] || "",
           )
         )
           return new Response("Forbidden", { status: 403 });
         const body = rec(JSON.parse(raw));
-        const object = String(body.object || "");
+        const object = String(body["object"] || "");
         let queued = 0;
-        for (const entry of Array.isArray(body.entry) ? body.entry : []) {
+        for (const entry of Array.isArray(body["entry"]) ? body["entry"] : []) {
           const e = rec(entry);
           if (object === "whatsapp_business_account") {
             const value = rec(
-              e.changes && Array.isArray(e.changes) ? rec(e.changes[0]).value : null,
+              e["changes"] && Array.isArray(e["changes"]) ? rec(e["changes"][0])["value"] : null,
             );
-            const metadata = rec(value.metadata);
-            const automationId = await findAutomation("whatsapp", str(metadata.phone_number_id));
+            const metadata = rec(value["metadata"]);
+            const automationId = await findAutomation("whatsapp", str(metadata["phone_number_id"]));
             if (!automationId) continue;
-            for (const rawMessage of Array.isArray(value.messages) ? value.messages : []) {
+            for (const rawMessage of Array.isArray(value["messages"]) ? value["messages"] : []) {
               const message = rec(rawMessage);
-              const text = rec(message.text);
-              if (!str(text.body)) continue;
+              const text = rec(message["text"]);
+              if (!str(text["body"])) continue;
               if (
                 await enqueue(
                   "whatsapp",
                   automationId,
                   {
                     platform: "whatsapp",
-                    sender_id: str(message.from),
-                    text: str(text.body),
-                    message_id: str(message.id),
+                    sender_id: str(message["from"]),
+                    text: str(text["body"]),
+                    message_id: str(message["id"]),
                   },
-                  str(message.id),
+                  str(message["id"]),
                 )
               )
                 queued++;
             }
           } else {
             const platform = object.includes("instagram") ? "instagram" : "messenger";
-            for (const rawMessage of Array.isArray(e.messaging) ? e.messaging : []) {
+            for (const rawMessage of Array.isArray(e["messaging"]) ? e["messaging"] : []) {
               const message = rec(rawMessage);
-              const recipient = rec(message.recipient);
-              const sender = rec(message.sender);
-              const text = rec(message.message);
-              if (!str(text.text)) continue;
-              const automationId = await findAutomation(platform, str(recipient.id));
+              const recipient = rec(message["recipient"]);
+              const sender = rec(message["sender"]);
+              const text = rec(message["message"]);
+              if (!str(text["text"])) continue;
+              const automationId = await findAutomation(platform, str(recipient["id"]));
               if (!automationId) continue;
               if (
                 await enqueue(
@@ -130,11 +135,11 @@ export const Route = createFileRoute("/api/public/integrations/meta/webhook")({
                   automationId,
                   {
                     platform,
-                    sender_id: str(sender.id),
-                    text: str(text.text),
-                    message_id: str(message.message_id || message.id),
+                    sender_id: str(sender["id"]),
+                    text: str(text["text"]),
+                    message_id: str(message["message_id"] || message["id"]),
                   },
-                  str(message.message_id || message.id),
+                  str(message["message_id"] || message["id"]),
                 )
               )
                 queued++;

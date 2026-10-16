@@ -33,8 +33,8 @@ export const matchServiceRequest = createServerFn({ method: "POST" })
 
     const { parseServices, normalizeDraft } = await import("@/lib/service-match");
     const cfg = (row.config ?? {}) as Record<string, unknown>;
-    const settings = (cfg.settings ?? {}) as Record<string, unknown>;
-    const services = parseServices(settings.services);
+    const settings = (cfg["settings"] ?? {}) as Record<string, unknown>;
+    const services = parseServices(settings["services"]);
     if (services.length === 0)
       return { status: "not_configured" as const, services: [], draft: null };
 

@@ -20,7 +20,7 @@ export type TenantContext = {
 type Claims = Record<string, unknown>;
 
 export async function resolveTenantContext(token: string, claims: Claims): Promise<TenantContext> {
-  const userId = String(claims.sub ?? "");
+  const userId = String(claims["sub"] ?? "");
   if (!userId) throw new Error("Unauthorized: no user id");
 
   const db1 = getDb("db1");
@@ -81,7 +81,7 @@ export async function resolveTenantContext(token: string, claims: Claims): Promi
     clientId: organizationId,
     role: primaryRole,
     orgRole,
-    email: String(profile?.email ?? claims.email ?? ""),
+    email: String(profile?.email ?? claims["email"] ?? ""),
     isStaff,
     isPlatformAdmin,
     isSuperAdmin,

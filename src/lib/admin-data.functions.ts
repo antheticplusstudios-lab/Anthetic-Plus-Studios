@@ -70,34 +70,34 @@ export const adminListOrders = createServerFn({ method: "GET" })
           ? (payment.metadata as Record<string, unknown>)
           : {};
       const pricing =
-        metadata.pricing_snapshot &&
-        typeof metadata.pricing_snapshot === "object" &&
-        !Array.isArray(metadata.pricing_snapshot)
-          ? (metadata.pricing_snapshot as Record<string, unknown>)
+        metadata["pricing_snapshot"] &&
+        typeof metadata["pricing_snapshot"] === "object" &&
+        !Array.isArray(metadata["pricing_snapshot"])
+          ? (metadata["pricing_snapshot"] as Record<string, unknown>)
           : {};
       return {
         ...order,
         status: normalizeOrder(order).status,
         order_id: order.order_number,
         automation_type: order.product_type,
-        full_name: String(metadata.full_name ?? ""),
-        company_name: String(metadata.company_name ?? ""),
-        contact_email: String(metadata.contact_email ?? ""),
-        delivery_channel: String(metadata.delivery_channel ?? "web"),
-        target_domain_url: String(metadata.target_domain_url ?? ""),
-        origin_domain: String(metadata.origin_domain ?? ""),
-        billing_plan: String(pricing.plan ?? "monthly"),
+        full_name: String(metadata["full_name"] ?? ""),
+        company_name: String(metadata["company_name"] ?? ""),
+        contact_email: String(metadata["contact_email"] ?? ""),
+        delivery_channel: String(metadata["delivery_channel"] ?? "web"),
+        target_domain_url: String(metadata["target_domain_url"] ?? ""),
+        origin_domain: String(metadata["origin_domain"] ?? ""),
+        billing_plan: String(pricing["plan"] ?? "monthly"),
         automation_slug: String(order.product_type ?? ""),
         amount: payment?.amount ?? order.total_amount,
         payment_method: method?.account_name ?? method?.provider_name ?? method?.method_type ?? "",
-        origin: String(metadata.origin_domain ?? ""),
+        origin: String(metadata["origin_domain"] ?? ""),
         submitted_at: order.created_at,
         payment_methods: method
           ? { method_name: method.account_name ?? method.provider_name ?? method.method_type }
           : null,
-        payment_proof_data: paymentMetadata.proof ?? {},
+        payment_proof_data: paymentMetadata["proof"] ?? {},
         transaction_id: payment?.trx_id ?? "",
-        sender_name: String(paymentMetadata.sender_name ?? ""),
+        sender_name: String(paymentMetadata["sender_name"] ?? ""),
         payment_status: payment?.status ?? null,
         payment_id: payment?.id ?? null,
         payment_notes: payment?.notes ?? null,
@@ -360,8 +360,8 @@ export const adminListAutomations = createServerFn({ method: "GET" })
         company: profile?.company_name ?? automation.company_name ?? automation.name,
         type: automation.automation_type ?? automation.product_type,
         automation_type: automation.automation_type ?? automation.product_type,
-        orderId: typeof metadata.order_id === "string" ? metadata.order_id : null,
-        order_id: typeof metadata.order_id === "string" ? metadata.order_id : null,
+        orderId: typeof metadata["order_id"] === "string" ? metadata["order_id"] : null,
+        order_id: typeof metadata["order_id"] === "string" ? metadata["order_id"] : null,
         domain: automation.domain_url ?? automation.domain ?? "",
         domain_url: automation.domain_url ?? automation.domain ?? "",
         runState,
@@ -377,8 +377,8 @@ export const adminListAutomations = createServerFn({ method: "GET" })
         tokens: Number(usageRow?.tokens_used ?? 0),
         channels: [...(channels.get(automation.id) ?? new Set<string>())],
         phone:
-          typeof metadata.assigned_phone_number === "string"
-            ? metadata.assigned_phone_number
+          typeof metadata["assigned_phone_number"] === "string"
+            ? metadata["assigned_phone_number"]
             : null,
         lastActivity: lastActivity.get(automation.id) ?? automation.last_heartbeat_at ?? null,
         installed:
@@ -420,7 +420,7 @@ export const adminListAutomations = createServerFn({ method: "GET" })
         warning_sent: false,
         conversations_count: conversationCounts.get(automation.id) ?? 0,
         leads_count: leadCounts.get(automation.id) ?? 0,
-        business_context: String(behavior.business_context ?? ""),
+        business_context: String(behavior["business_context"] ?? ""),
         system_prompt: String(ai?.system_prompt ?? ""),
         prompt_override: String(ai?.system_prompt ?? ""),
         subscription_status: subscription?.status ?? null,
@@ -430,10 +430,10 @@ export const adminListAutomations = createServerFn({ method: "GET" })
         installation_last_seen_at: installation?.last_seen_at ?? null,
         token_hint: automation.script_token_last4 ?? script?.token_hint ?? "",
         assigned_phone_number:
-          typeof metadata.assigned_phone_number === "string"
-            ? metadata.assigned_phone_number
+          typeof metadata["assigned_phone_number"] === "string"
+            ? metadata["assigned_phone_number"]
             : null,
-        webhook_url: typeof metadata.webhook_url === "string" ? metadata.webhook_url : null,
+        webhook_url: typeof metadata["webhook_url"] === "string" ? metadata["webhook_url"] : null,
       };
     });
   });
@@ -838,10 +838,12 @@ export const adminListPaymentMethods = createServerFn({ method: "GET" })
           ? row.metadata
           : {};
       const instructions =
-        "instructions" in meta && typeof meta.instructions === "string" ? meta.instructions : "";
+        "instructions" in meta && typeof meta["instructions"] === "string"
+          ? meta["instructions"]
+          : "";
       const fields =
-        "required_fields" in meta && Array.isArray(meta.required_fields)
-          ? meta.required_fields.filter((field): field is string => typeof field === "string")
+        "required_fields" in meta && Array.isArray(meta["required_fields"])
+          ? meta["required_fields"].filter((field): field is string => typeof field === "string")
           : [];
       return {
         ...row,
@@ -1056,7 +1058,7 @@ export const getSystemSettings = createServerFn({ method: "GET" })
       const value = r.value;
       out[r.key] = value && typeof value === "object" && !Array.isArray(value) ? value : {};
     }
-    out.feature_flags = Object.fromEntries(
+    out["feature_flags"] = Object.fromEntries(
       (flags ?? []).map((f) => [f.key, f.is_enabled] as const),
     );
     return out;

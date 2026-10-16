@@ -398,7 +398,7 @@ export async function confirmAction(args: {
         result.data && typeof result.data === "object"
           ? (result.data as Record<string, unknown>)
           : {};
-      await audit("success", { to: safe.to, providerMessageId: safe.providerMessageId });
+      await audit("success", { to: safe["to"], providerMessageId: safe["providerMessageId"] });
       return {
         ok: true,
         reply: result.summary,

@@ -13,17 +13,17 @@ export function parseProposal(text: string): RawProposal {
   } catch {
     throw new Error("The AI returned an unreadable proposal. Please try rephrasing.");
   }
-  const tools = Array.isArray(j.tools) ? j.tools : [];
+  const tools = Array.isArray(j["tools"]) ? j["tools"] : [];
   return {
-    summary: String(j.summary ?? ""),
+    summary: String(j["summary"] ?? ""),
     tools: tools
       .filter((t): t is Record<string, unknown> => !!t && typeof t === "object")
       .map((t) => ({
-        id: String(t.id ?? ""),
-        reason: String(t.reason ?? ""),
-        inputs: Array.isArray(t.inputs) ? t.inputs.map(String) : [],
+        id: String(t["id"] ?? ""),
+        reason: String(t["reason"] ?? ""),
+        inputs: Array.isArray(t["inputs"]) ? t["inputs"].map(String) : [],
       })),
-    unsupported: Array.isArray(j.unsupported) ? j.unsupported.map(String) : [],
+    unsupported: Array.isArray(j["unsupported"]) ? j["unsupported"].map(String) : [],
   };
 }
 

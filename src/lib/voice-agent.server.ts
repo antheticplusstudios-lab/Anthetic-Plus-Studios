@@ -44,7 +44,7 @@ export type VoiceAgentSettings = {
   emailProvider: "resend" | "none";
   emailEnabled: boolean;
   emailTemplates: Record<VoiceEmailType, { subject: string; body: string }>;
-  ttsProvider: "elevenlabs";
+  ttsProvider: "inworld";
   ttsModel: string;
   ttsVoiceId: string;
 };
@@ -153,8 +153,8 @@ const defaultSettings: VoiceAgentSettings = {
   emailProvider: "none",
   emailEnabled: false,
   emailTemplates: defaultTemplates,
-  ttsProvider: "elevenlabs",
-  ttsModel: "eleven_v4",
+  ttsProvider: "inworld",
+  ttsModel: "inworld-tts-1",
   ttsVoiceId: "",
 };
 
@@ -169,7 +169,7 @@ function clampNumber(value: unknown, min: number, max: number, fallback: number)
 
 function asSettings(value: unknown): VoiceAgentSettings {
   if (!isRecord(value)) return structuredClone(defaultSettings);
-  const rawTemplates = isRecord(value.emailTemplates) ? value.emailTemplates : {};
+  const rawTemplates = isRecord(value["emailTemplates"]) ? value["emailTemplates"] : {};
   const templates = Object.fromEntries(
     emailTypes.map((type) => {
       const raw = isRecord(rawTemplates[type]) ? rawTemplates[type] : {};
@@ -177,48 +177,48 @@ function asSettings(value: unknown): VoiceAgentSettings {
       return [
         type,
         {
-          subject: String(raw.subject ?? defaults.subject).slice(0, 180),
-          body: String(raw.body ?? defaults.body).slice(0, 6000),
+          subject: String(raw["subject"] ?? defaults.subject).slice(0, 180),
+          body: String(raw["body"] ?? defaults.body).slice(0, 6000),
         },
       ];
     }),
   ) as VoiceAgentSettings["emailTemplates"];
 
   return {
-    enabled: value.enabled !== false,
-    voiceEnabled: value.voiceEnabled !== false,
-    accountContextEnabled: value.accountContextEnabled !== false,
-    emailActionsEnabled: value.emailActionsEnabled !== false,
-    requireEmailConfirmation: value.requireEmailConfirmation !== false,
+    enabled: value["enabled"] !== false,
+    voiceEnabled: value["voiceEnabled"] !== false,
+    accountContextEnabled: value["accountContextEnabled"] !== false,
+    emailActionsEnabled: value["emailActionsEnabled"] !== false,
+    requireEmailConfirmation: value["requireEmailConfirmation"] !== false,
     inactivitySeconds: Math.round(
-      clampNumber(value.inactivitySeconds, 30, 180, DEFAULT_INACTIVITY_SECONDS),
+      clampNumber(value["inactivitySeconds"], 30, 180, DEFAULT_INACTIVITY_SECONDS),
     ),
     model:
-      String(value.model ?? DEFAULT_MODEL)
+      String(value["model"] ?? DEFAULT_MODEL)
         .trim()
         .slice(0, 160) || DEFAULT_MODEL,
-    temperature: clampNumber(value.temperature, 0.05, 1, 0.2),
-    maxTokens: Math.round(clampNumber(value.maxTokens, 300, 2400, 1200)),
-    welcomeMessage: String(value.welcomeMessage ?? defaultSettings.welcomeMessage).slice(0, 600),
-    systemPrompt: String(value.systemPrompt ?? defaultSettings.systemPrompt).slice(0, 12000),
-    publicContext: String(value.publicContext ?? DEFAULT_PUBLIC_CONTEXT).slice(0, MAX_CONTEXT),
-    announcement: String(value.announcement ?? "").slice(0, 12000),
-    emailFromName: String(value.emailFromName ?? defaultSettings.emailFromName).slice(0, 120),
-    emailFromAddress: String(value.emailFromAddress ?? "")
+    temperature: clampNumber(value["temperature"], 0.05, 1, 0.2),
+    maxTokens: Math.round(clampNumber(value["maxTokens"], 300, 2400, 1200)),
+    welcomeMessage: String(value["welcomeMessage"] ?? defaultSettings.welcomeMessage).slice(0, 600),
+    systemPrompt: String(value["systemPrompt"] ?? defaultSettings.systemPrompt).slice(0, 12000),
+    publicContext: String(value["publicContext"] ?? DEFAULT_PUBLIC_CONTEXT).slice(0, MAX_CONTEXT),
+    announcement: String(value["announcement"] ?? "").slice(0, 12000),
+    emailFromName: String(value["emailFromName"] ?? defaultSettings.emailFromName).slice(0, 120),
+    emailFromAddress: String(value["emailFromAddress"] ?? "")
       .trim()
       .slice(0, 254),
-    emailReplyTo: String(value.emailReplyTo ?? "")
+    emailReplyTo: String(value["emailReplyTo"] ?? "")
       .trim()
       .slice(0, 254),
-    emailProvider: value.emailProvider === "resend" ? "resend" : "none",
-    emailEnabled: value.emailEnabled === true,
+    emailProvider: value["emailProvider"] === "resend" ? "resend" : "none",
+    emailEnabled: value["emailEnabled"] === true,
     emailTemplates: templates,
-    ttsProvider: "elevenlabs",
+    ttsProvider: "inworld",
     ttsModel:
-      String(value.ttsModel ?? "eleven_v4")
+      String(value["ttsModel"] ?? "inworld-tts-1")
         .trim()
-        .slice(0, 80) || "eleven_v4",
-    ttsVoiceId: String(value.ttsVoiceId ?? process.env.ELEVENLABS_VOICE_ID ?? "")
+        .slice(0, 80) || "inworld-tts-1",
+    ttsVoiceId: String(value["ttsVoiceId"] ?? "Ashley")
       .trim()
       .slice(0, 120),
   };
@@ -590,8 +590,9 @@ async function readEmailConfig() {
     .eq("key", "voice_agent_email")
     .maybeSingle();
   const stored = isRecord(data?.value) ? data.value : {};
-  const envKey = process.env.RESEND_API_KEY?.trim();
-  const ciphertext = typeof stored.apiKeyCiphertext === "string" ? stored.apiKeyCiphertext : "";
+  const envKey = process.env["RESEND_API_KEY"]?.trim();
+  const ciphertext =
+    typeof stored["apiKeyCiphertext"] === "string" ? stored["apiKeyCiphertext"] : "";
   let key = envKey || "";
   if (!key && ciphertext) {
     try {
@@ -603,12 +604,12 @@ async function readEmailConfig() {
   return {
     settings,
     key,
-    provider: String(stored.provider ?? settings.emailProvider) === "resend" ? "resend" : "none",
-    fromName: String(stored.fromName ?? settings.emailFromName),
-    fromEmail: String(stored.fromEmail ?? settings.emailFromAddress),
-    replyTo: String(stored.replyTo ?? settings.emailReplyTo),
-    enabled: Boolean(stored.enabled ?? settings.emailEnabled),
-    keyHint: String(stored.keyHint ?? ""),
+    provider: String(stored["provider"] ?? settings.emailProvider) === "resend" ? "resend" : "none",
+    fromName: String(stored["fromName"] ?? settings.emailFromName),
+    fromEmail: String(stored["fromEmail"] ?? settings.emailFromAddress),
+    replyTo: String(stored["replyTo"] ?? settings.emailReplyTo),
+    enabled: Boolean(stored["enabled"] ?? settings.emailEnabled),
+    keyHint: String(stored["keyHint"] ?? ""),
   };
 }
 
@@ -634,7 +635,7 @@ async function sendResendEmail(args: { to: string; subject: string; body: string
     subject: args.subject,
     html: `<div style="font-family:Arial,sans-serif;line-height:1.6">${html}</div>`,
   };
-  if (safeEmail(cfg.replyTo)) payload.reply_to = cfg.replyTo;
+  if (safeEmail(cfg.replyTo)) payload["reply_to"] = cfg.replyTo;
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -657,10 +658,10 @@ function parseAssistantJson(raw: string): { answer: string; emailType: VoiceEmai
   try {
     const value = JSON.parse(trimmed) as unknown;
     if (!isRecord(value)) throw new Error("invalid");
-    const emailType = emailTypes.includes(value.emailType as VoiceEmailType)
-      ? (value.emailType as VoiceEmailType)
+    const emailType = emailTypes.includes(value["emailType"] as VoiceEmailType)
+      ? (value["emailType"] as VoiceEmailType)
       : null;
-    return { answer: String(value.answer ?? trimmed).trim(), emailType };
+    return { answer: String(value["answer"] ?? trimmed).trim(), emailType };
   } catch {
     return { answer: trimmed, emailType: null };
   }
@@ -759,19 +760,18 @@ export async function getPublicVoiceAgentConfigImpl() {
 async function voiceAgentSettingsView() {
   const settings = await loadStoredSettings();
   const groq = await getGroqSecret();
-  const ttsKey = await getTtsKeyRow();
+  const ttsKey = await getTtsKeyRow().catch(() => null);
+  const inworldKeys = await import("./inworld-tts.server")
+    .then((m) => m.inworldKeyCount("website_assistant"))
+    .catch(() => 0);
   const email = await readEmailConfig();
   return {
     settings,
     groqConfigured: Boolean(groq),
     groqHint: groq?.hint ?? "",
     groqModel: groq?.model ?? settings.model,
-    ttsConfigured: Boolean(
-      ttsKey ||
-      (process.env.ELEVENLABS_API_KEY?.trim() &&
-        (settings.ttsVoiceId || process.env.ELEVENLABS_VOICE_ID?.trim())),
-    ),
-    ttsKeyHint: ttsKey?.key_hint ?? (process.env.ELEVENLABS_API_KEY?.trim() ? "environment" : ""),
+    ttsConfigured: inworldKeys > 0,
+    ttsKeyHint: inworldKeys > 0 ? `${inworldKeys} Inworld key(s) in rotation` : ttsKey ? "" : "",
     emailConfigured: Boolean(email.key && safeEmail(email.fromEmail)),
     emailKeyHint: email.keyHint,
     emailProvider: email.provider,
@@ -797,7 +797,7 @@ export async function saveVoiceAgentSettingsImpl(data: VoiceAgentSettings, conte
     next.emailEnabled &&
     next.emailProvider === "resend" &&
     !safeEmail(next.emailFromAddress) &&
-    !process.env.RESEND_FROM_EMAIL
+    !process.env["RESEND_FROM_EMAIL"]
   ) {
     throw new Error("Add a valid Resend sender address before enabling email sending.");
   }
@@ -856,7 +856,7 @@ async function getTtsKeyRow() {
     .from("llm_api_keys")
     .select("id,key_ciphertext,key_hint,is_active")
     .eq("label", TTS_KEY_LABEL)
-    .eq("provider_key", "elevenlabs")
+    .eq("provider_key", "inworld")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -875,11 +875,11 @@ export async function saveVoiceAgentTtsKeyImpl(data: { keyValue: string }, conte
   const key = data.keyValue.trim();
   const current = await getTtsKeyRow();
   const payload = {
-    provider_key: "elevenlabs",
+    provider_key: "inworld",
     label: TTS_KEY_LABEL,
     key_hint: key.length > 8 ? `${key.slice(0, 6)}…${key.slice(-4)}` : "••••",
     key_ciphertext: encryptSecret(key),
-    model: "eleven_v4",
+    model: "inworld-tts-1",
     priority: 0,
     is_active: true,
     error_count: 0,
@@ -892,7 +892,7 @@ export async function saveVoiceAgentTtsKeyImpl(data: { keyValue: string }, conte
   await auditMutation(context, {
     action: "voice_agent.tts_key.updated",
     targetType: "voice_agent_tts_key",
-    after: { configured: true, provider: "elevenlabs" },
+    after: { configured: true, provider: "inworld" },
   });
   return { ok: true, hint: payload.key_hint };
 }
@@ -903,7 +903,7 @@ export async function clearVoiceAgentTtsKeyImpl(context: AuthContext) {
     .from("llm_api_keys")
     .delete()
     .eq("label", TTS_KEY_LABEL)
-    .eq("provider_key", "elevenlabs");
+    .eq("provider_key", "inworld");
   if (error) throw new Error(error.message);
   await auditMutation(context, {
     action: "voice_agent.tts_key.cleared",
@@ -957,7 +957,7 @@ export async function saveVoiceAgentEmailImpl(
     data.provider === "resend" &&
     data.enabled &&
     !safeEmail(data.fromEmail) &&
-    !process.env.RESEND_FROM_EMAIL
+    !process.env["RESEND_FROM_EMAIL"]
   )
     throw new Error("Provide a valid sender address.");
   let keyHint = "";
@@ -975,14 +975,14 @@ export async function saveVoiceAgentEmailImpl(
       .maybeSingle();
     const value = isRecord(current.data?.value) ? current.data.value : {};
     apiKeyCiphertext =
-      typeof value.apiKeyCiphertext === "string" ? value.apiKeyCiphertext : undefined;
-    keyHint = String(value.keyHint ?? "");
+      typeof value["apiKeyCiphertext"] === "string" ? value["apiKeyCiphertext"] : undefined;
+    keyHint = String(value["keyHint"] ?? "");
   }
   const value = {
     provider: data.provider,
     enabled: data.enabled,
     fromName: data.fromName,
-    fromEmail: data.fromEmail || process.env.RESEND_FROM_EMAIL || "",
+    fromEmail: data.fromEmail || process.env["RESEND_FROM_EMAIL"] || "",
     replyTo: data.replyTo,
     apiKeyCiphertext: apiKeyCiphertext ?? "",
     keyHint,

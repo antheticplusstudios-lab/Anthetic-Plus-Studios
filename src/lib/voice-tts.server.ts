@@ -1,12 +1,10 @@
 /** Server-only multilingual TTS router. Secrets never reach the browser. */
 import { createHash } from "node:crypto";
 import { db1Admin, db3Admin } from "@/server/db/clients.server";
-import { decryptSecret } from "@/server/security/envelope.server";
+import { INWORLD_DEFAULT_MODEL, INWORLD_DEFAULT_VOICE } from "./inworld-pool";
 import { languageMetadataFrom, type SupportedVoiceLanguage } from "@/voice/language";
 
 export const VOICE_TTS_LABEL = "Homepage Voice Agent TTS";
-const ELEVEN_URL = "https://api.elevenlabs.io/v1/text-to-speech";
-const DEFAULT_MODEL = "eleven_v4";
 const MAX_TEXT = 6000;
 const CLIENT_WINDOW_MS = 60_000;
 const CLIENT_MAX_REQUESTS = 12;
@@ -37,22 +35,20 @@ type TtsConfig = {
   keyId: string | null;
 };
 
-const elevenLabsProvider: TTSProvider = {
-  key: "elevenlabs",
-  stream: (input) =>
-    fetch(`${ELEVEN_URL}/${encodeURIComponent(input.voiceId)}/stream?output_format=mp3_44100_128`, {
-      method: "POST",
-      headers: {
-        "xi-api-key": input.apiKey,
-        "Content-Type": "application/json",
-        Accept: "audio/mpeg",
-      },
-      body: elevenBody(input.text, input.voiceId, input.model),
-      ...(input.signal ? { signal: input.signal } : {}),
-    }),
+/** Inworld voice via the website assistant key pool (keys rotate automatically). */
+const inworldProvider: TTSProvider = {
+  key: "inworld",
+  stream: async (input) => {
+    const { inworldSpeak } = await import("./inworld-tts.server");
+    const audio = await inworldSpeak({
+      scope: "website_assistant",
+      text: input.text,
+      voiceId: input.voiceId,
+      model: input.model,
+    });
+    return new Response(audio, { headers: { "content-type": "audio/mpeg" } });
+  },
 };
-
-const TTS_PROVIDERS: Record<string, TTSProvider> = { elevenlabs: elevenLabsProvider };
 
 function rec(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -70,43 +66,17 @@ async function storedVoiceAgentSettings() {
   return rec(row.data?.value);
 }
 
-async function getElevenKey(): Promise<{ id: string; key: string } | null> {
-  const { data, error } = await db3Admin
-    .from("llm_api_keys")
-    .select("id,key_ciphertext,key_hint,is_active")
-    .eq("label", VOICE_TTS_LABEL)
-    .eq("provider_key", "elevenlabs")
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw new Error(`voice tts key: ${error.message}`);
-  if (data?.key_ciphertext) {
-    try {
-      return { id: String(data.id), key: decryptSecret(String(data.key_ciphertext)) };
-    } catch {
-      return null;
-    }
-  }
-  const env = process.env.ELEVENLABS_API_KEY?.trim();
-  return env ? { id: "env", key: env } : null;
-}
-
 export async function getVoiceTtsConfig(): Promise<TtsConfig | null> {
   const settings = await storedVoiceAgentSettings();
-  const key = await getElevenKey();
-  const voiceId = String(settings.ttsVoiceId ?? process.env.ELEVENLABS_VOICE_ID ?? "").trim();
-  if (!key || !voiceId) return null;
-  const provider =
-    TTS_PROVIDERS[String(settings.ttsProvider ?? "elevenlabs").trim()] ?? elevenLabsProvider;
+  const { inworldKeyCount } = await import("./inworld-tts.server");
+  if ((await inworldKeyCount("website_assistant")) === 0) return null;
   return {
-    provider,
-    model:
-      String(settings.ttsModel ?? process.env.ELEVENLABS_TTS_MODEL ?? DEFAULT_MODEL).trim() ||
-      DEFAULT_MODEL,
-    voiceId,
-    key: key.key,
-    keyId: key.id === "env" ? null : key.id,
+    provider: inworldProvider,
+    model: String(settings["ttsModel"] ?? INWORLD_DEFAULT_MODEL).trim() || INWORLD_DEFAULT_MODEL,
+    voiceId:
+      String(settings["ttsVoiceId"] ?? INWORLD_DEFAULT_VOICE).trim() || INWORLD_DEFAULT_VOICE,
+    key: "pool",
+    keyId: null,
   };
 }
 
@@ -144,7 +114,7 @@ export async function enforceWebsiteTtsRateLimit(args: {
   const base = db3Admin
     .from("llm_requests")
     .select("id,request_metadata", { count: "exact", head: false })
-    .eq("provider_key", "elevenlabs")
+    .eq("provider_key", "inworld")
     .eq("request_metadata->>surface", "website_tts");
 
   const [clientMinute, siteMinute, clientDay, siteDay, clientDayCount, siteDayCount] =
@@ -156,7 +126,7 @@ export async function enforceWebsiteTtsRateLimit(args: {
       db3Admin
         .from("llm_requests")
         .select("id", { count: "exact", head: true })
-        .eq("provider_key", "elevenlabs")
+        .eq("provider_key", "inworld")
         .eq("request_metadata->>surface", "website_tts")
         .eq("request_metadata->>site_id", args.siteId)
         .gte("created_at", minuteAgo),
@@ -164,7 +134,7 @@ export async function enforceWebsiteTtsRateLimit(args: {
       db3Admin
         .from("llm_requests")
         .select("id,request_metadata", { count: "exact", head: false })
-        .eq("provider_key", "elevenlabs")
+        .eq("provider_key", "inworld")
         .eq("request_metadata->>surface", "website_tts")
         .eq("request_metadata->>site_id", args.siteId)
         .gte("created_at", dayAgo)
@@ -172,14 +142,14 @@ export async function enforceWebsiteTtsRateLimit(args: {
       db3Admin
         .from("llm_requests")
         .select("id", { count: "exact", head: true })
-        .eq("provider_key", "elevenlabs")
+        .eq("provider_key", "inworld")
         .eq("request_metadata->>surface", "website_tts")
         .eq("request_metadata->>client_hash", fingerprint)
         .gte("created_at", dayAgo),
       db3Admin
         .from("llm_requests")
         .select("id", { count: "exact", head: true })
-        .eq("provider_key", "elevenlabs")
+        .eq("provider_key", "inworld")
         .eq("request_metadata->>surface", "website_tts")
         .eq("request_metadata->>site_id", args.siteId)
         .gte("created_at", dayAgo),
@@ -202,11 +172,11 @@ export async function enforceWebsiteTtsRateLimit(args: {
     request_metadata?: Record<string, unknown> | null;
   }>;
   const clientChars = clientDayRows.reduce(
-    (sum, row) => sum + Number(row.request_metadata?.char_count ?? 0),
+    (sum, row) => sum + Number(row.request_metadata?.["char_count"] ?? 0),
     0,
   );
   const siteChars = siteDayRows.reduce(
-    (sum, row) => sum + Number(row.request_metadata?.char_count ?? 0),
+    (sum, row) => sum + Number(row.request_metadata?.["char_count"] ?? 0),
     0,
   );
   if ((clientMinute.data?.length ?? 0) >= CLIENT_MAX_REQUESTS)
@@ -239,7 +209,7 @@ export async function logWebsiteTtsRequest(args: {
   try {
     await db3Admin.from("llm_requests").insert({
       key_id: args.keyId,
-      provider_key: "elevenlabs",
+      provider_key: "inworld",
       model: args.model,
       status: args.status,
       http_status: args.httpStatus ?? 200,
@@ -260,14 +230,6 @@ export async function logWebsiteTtsRequest(args: {
   }
 }
 
-function elevenBody(text: string, voiceId: string, model: string) {
-  return JSON.stringify({
-    model_id: model,
-    text,
-    voice_settings: { stability: 0.48, similarity_boost: 0.82 },
-  });
-}
-
 export type TtsStream = {
   stream: ReadableStream<Uint8Array>;
   contentType: string;
@@ -286,7 +248,7 @@ export async function streamWebsiteSpeech(args: {
   const config = await getVoiceTtsConfig();
   if (!config)
     throw new Error(
-      "Multilingual TTS is not configured. Add an ElevenLabs key and voice in the Voice Agent settings.",
+      "Multilingual TTS is not configured. Add Inworld keys for the website assistant in Automation API keys.",
     );
   const language = languageMetadataFrom(clean, args.language, args.language ? 0.9 : 0.7);
   const response = await config.provider.stream({
@@ -298,7 +260,7 @@ export async function streamWebsiteSpeech(args: {
   });
   if (!response.ok || !response.body) {
     const body = await response.text().catch(() => "");
-    throw new Error(`ElevenLabs TTS failed (${response.status}): ${body.slice(0, 240)}`);
+    throw new Error(`Inworld voice failed (${response.status}): ${body.slice(0, 240)}`);
   }
   return {
     stream: response.body,

@@ -100,10 +100,10 @@ describe("capability request lifecycle", () => {
     const r = await clientSubmit(d, clientA, "r1", "book", raw);
     const res = await adminDecide(d, admin, "r1", r.id, "approved", "Looks good");
     const tools = Object.fromEntries(res.activation!.tools.map((t) => [t.toolId, t]));
-    expect(tools.list_services!.status).toBe("active");
-    expect(tools.create_booking!.status).toBe("blocked");
-    expect(tools.create_booking!.needs).toBe("calendar");
-    expect(activeToolIds(act.r1!)).toEqual(new Set(["list_services"]));
+    expect(tools["list_services"]!.status).toBe("active");
+    expect(tools["create_booking"]!.status).toBe("blocked");
+    expect(tools["create_booking"]!.needs).toBe("calendar");
+    expect(activeToolIds(act["r1"]!)).toEqual(new Set(["list_services"]));
   });
 
   it("requires a reason and refuses double decisions", async () => {
@@ -121,7 +121,7 @@ describe("capability request lifecycle", () => {
     const v = await clientView(d, clientA, "r1");
     expect(v.requests[0]!.status).toBe("rejected");
     expect(v.requests[0]!.decisionNote).toBe("We don't support that yet");
-    expect(act.r1).toBeUndefined();
+    expect(act["r1"]).toBeUndefined();
   });
 
   it("recheck activates a blocked tool once its integration connects; test reports readiness", async () => {

@@ -14,6 +14,7 @@ import {
   timeAgo,
 } from "@/components/admin-ui";
 import { Button } from "@/components/ui/button";
+import { normalizeWebsiteUrl } from "@/lib/website-url";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -581,6 +582,7 @@ function SourcesTab({ id, c, onSaved }: TabProps) {
   const upd = useServerFn(adminUpdateSource);
   const scan = useServerFn(adminScanSource);
   const [url, setUrl] = useState("");
+  const [sourceError, setSourceError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const run = async (
     k: string,
@@ -598,8 +600,11 @@ function SourcesTab({ id, c, onSaved }: TabProps) {
       onSaved(r.config);
       if (!r.ok) throw new Error(r.error ?? "The operation failed.");
       toast.success(r.changed === false ? "Scanned — no changes found" : msg);
+      return true;
     } catch (e) {
       toast.error(errMsg(e));
+      setSourceError(errMsg(e));
+      return false;
     } finally {
       setBusy(null);
     }
@@ -608,25 +613,50 @@ function SourcesTab({ id, c, onSaved }: TabProps) {
   return (
     <Panel
       title="Knowledge Sources"
-      description={`Only URLs on ${domains.join(", ") || "this app's domain"} are accepted.`}
+      description={
+        domains.length
+          ? `Approved domains: ${domains.join(", ")}`
+          : "Approve a website domain in Discovery settings and save it before adding a source."
+      }
     >
       <div className="mb-4 flex flex-col gap-2 sm:flex-row">
         <TextField
+          aria-label="Website source URL"
+          aria-invalid={!!sourceError}
+          aria-describedby={sourceError ? "source-error" : undefined}
           placeholder={`https://${domains[0] ?? "example.com"}/about`}
           value={url}
-          onChange={(e) => setUrl(e.target.value)}
+          onChange={(e) => {
+            setUrl(e.target.value);
+            setSourceError(null);
+          }}
         />
         <Button
-          disabled={!url || busy === "add"}
-          onClick={() =>
-            void run("add", () => add({ data: { siteId: id, url } }), "Source added").then(() =>
-              setUrl(""),
-            )
-          }
+          disabled={!url.trim() || !!busy}
+          onClick={async () => {
+            try {
+              const normalized = normalizeWebsiteUrl(url);
+              if (
+                await run(
+                  "add",
+                  () => add({ data: { siteId: id, url: normalized } }),
+                  "Source saved — ready to scan",
+                )
+              )
+                setUrl("");
+            } catch (e) {
+              setSourceError(errMsg(e));
+            }
+          }}
         >
-          Add source
+          {busy === "add" ? "Saving…" : "Add source"}
         </Button>
       </div>
+      {sourceError && (
+        <p id="source-error" role="alert" className="mb-4 text-sm text-destructive">
+          {sourceError}
+        </p>
+      )}
       {c.sources.length === 0 ? (
         <p className="text-sm text-muted-foreground">No sources yet.</p>
       ) : (

@@ -1,3 +1,4 @@
+import { useRole } from "@/hooks/use-portal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -70,8 +71,14 @@ export const useRoles = () =>
   useQuery({ queryKey: ["admin", "roles"], queryFn: () => adminListRoles() });
 export const useInvites = () =>
   useQuery({ queryKey: ["admin", "invites"], queryFn: () => adminListStaffInvites() });
-export const useGroqKeys = () =>
-  useQuery({ queryKey: ["admin", "groq-keys"], queryFn: () => listGroqKeys() });
+export const useGroqKeys = () => {
+  const { data: role } = useRole();
+  return useQuery({
+    queryKey: ["admin", "groq-keys"],
+    queryFn: () => listGroqKeys(),
+    enabled: role === "owner",
+  });
+};
 
 function useAction<TArgs, TResult = unknown>(
   fn: (args: { data: TArgs }) => Promise<TResult>,

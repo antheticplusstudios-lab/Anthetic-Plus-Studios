@@ -39,8 +39,9 @@ async function readEmailConfig() {
   ]);
   const stored = rec(emailRow.data?.value);
   const agent = rec(agentRow.data?.value);
-  let key = process.env.RESEND_API_KEY?.trim() || "";
-  const ciphertext = typeof stored.apiKeyCiphertext === "string" ? stored.apiKeyCiphertext : "";
+  let key = process.env["RESEND_API_KEY"]?.trim() || "";
+  const ciphertext =
+    typeof stored["apiKeyCiphertext"] === "string" ? stored["apiKeyCiphertext"] : "";
   if (!key && ciphertext) {
     try {
       key = decryptSecret(ciphertext);
@@ -50,11 +51,11 @@ async function readEmailConfig() {
   }
   return {
     key,
-    provider: String(stored.provider ?? agent.emailProvider ?? "none"),
-    enabled: Boolean(stored.enabled ?? agent.emailEnabled ?? false),
-    fromName: String(stored.fromName ?? agent.emailFromName ?? "AntheticPlus Studios"),
-    fromEmail: String(stored.fromEmail ?? agent.emailFromAddress ?? "").trim(),
-    replyTo: String(stored.replyTo ?? agent.emailReplyTo ?? "").trim(),
+    provider: String(stored["provider"] ?? agent["emailProvider"] ?? "none"),
+    enabled: Boolean(stored["enabled"] ?? agent["emailEnabled"] ?? false),
+    fromName: String(stored["fromName"] ?? agent["emailFromName"] ?? "AntheticPlus Studios"),
+    fromEmail: String(stored["fromEmail"] ?? agent["emailFromAddress"] ?? "").trim(),
+    replyTo: String(stored["replyTo"] ?? agent["emailReplyTo"] ?? "").trim(),
   };
 }
 
@@ -70,6 +71,7 @@ export async function sendEmail(args: {
   to: string;
   subject: string;
   text: string;
+  html?: string;
   replyTo?: string | null;
 }) {
   const cfg = await readEmailConfig();
@@ -81,7 +83,9 @@ export async function sendEmail(args: {
     to: [args.to],
     subject: args.subject,
     text: args.text,
-    html: `<div style="font-family:Arial,sans-serif;line-height:1.6">${escapeHtml(args.text).replace(/\n/g, "<br>")}</div>`,
+    html:
+      args.html ??
+      `<div style="font-family:Arial,sans-serif;line-height:1.6">${escapeHtml(args.text).replace(/\n/g, "<br>")}</div>`,
   };
   const replyTo =
     args.replyTo && isValidEmail(args.replyTo)
@@ -89,7 +93,7 @@ export async function sendEmail(args: {
       : isValidEmail(cfg.replyTo)
         ? cfg.replyTo
         : "";
-  if (replyTo) payload.reply_to = replyTo;
+  if (replyTo) payload["reply_to"] = replyTo;
 
   let response: Response;
   try {
@@ -103,11 +107,11 @@ export async function sendEmail(args: {
     throw new EmailDeliveryError("The email service didn't respond in time. Please try again.");
   }
   const json = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-  if (!response.ok || !json.id) {
+  if (!response.ok || !json["id"]) {
     console.error(
       "resend rejected email",
       response.status,
-      String(json.message ?? "").slice(0, 200),
+      String(json["message"] ?? "").slice(0, 200),
     );
     throw new EmailDeliveryError(
       response.status === 422 || response.status === 400
@@ -115,5 +119,5 @@ export async function sendEmail(args: {
         : "The email provider couldn't deliver that message.",
     );
   }
-  return { id: String(json.id), provider: "resend" as const };
+  return { id: String(json["id"]), provider: "resend" as const };
 }

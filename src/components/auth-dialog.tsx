@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 function getAuthRedirectUrl() {
   // Production uses the canonical Vercel origin. Local development falls back
   // to the current browser origin when VITE_APP_URL is not configured.
-  const configured = import.meta.env.VITE_APP_URL?.trim().replace(/\/$/, "");
+  const configured = import.meta.env["VITE_APP_URL"]?.trim().replace(/\/$/, "");
   const origin = configured || window.location.origin;
   return `${origin}/auth/callback`;
 }

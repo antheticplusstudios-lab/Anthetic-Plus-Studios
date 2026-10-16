@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, ArrowUpRight, CheckCircle2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useInstances } from "@/hooks/use-portal";
+import { useInstances, useProfile } from "@/hooks/use-portal";
+import { RequestPhoneLine } from "@/components/request-phone-line";
 import { automations, SLUG_BY_ENGINE_KIND } from "@/lib/automations";
 import { daysRemaining } from "@/lib/portal";
 import {
@@ -43,6 +44,7 @@ const TONE: Record<string, string> = {
 
 function Page() {
   const { data: instances = [], isLoading } = useInstances();
+  const { data: profile } = useProfile();
   return (
     <div className="page-enter">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -180,11 +182,21 @@ function Page() {
                     <CheckCircle2 className="h-4 w-4" /> Fully set up
                   </span>
                 )}
-                <Button variant="outline" asChild>
-                  <Link to="/dashboard/automations/$id" params={{ id: item.id }}>
-                    Open <ArrowUpRight />
-                  </Link>
-                </Button>
+                <div className="flex flex-wrap justify-end gap-2">
+                  {(row.config as Record<string, unknown> | null)?.["phone_line"] !== "twilio" && (
+                    <RequestPhoneLine
+                      automationName={meta?.name ?? "automation"}
+                      domain={item.website_domain}
+                      email={profile?.company_email}
+                      name={profile?.company_name}
+                    />
+                  )}
+                  <Button asChild>
+                    <Link to="/dashboard/automations/$id" params={{ id: item.id }}>
+                      Manage <ArrowUpRight />
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </article>
           );

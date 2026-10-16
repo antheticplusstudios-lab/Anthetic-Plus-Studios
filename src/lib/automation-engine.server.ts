@@ -6,7 +6,7 @@ import { evaluateRuntime } from "@/lib/runtime-gate";
 import { parsePool } from "@/lib/provider-pool";
 import * as cfg from "@/lib/automation-config";
 const settingsOf = (ctx: { automation: Record<string, unknown> }) =>
-  cfg.settingsFromConfig(ctx.automation.config);
+  cfg.settingsFromConfig(ctx.automation["config"]);
 import { db1Admin, db2Admin, db4Admin } from "@/server/db/clients.server";
 import type { Json } from "@/integrations/supabase/types";
 import { z } from "zod";
@@ -111,7 +111,7 @@ async function openConversation(
     if (existingError) throw new Error(`conversation lookup: ${existingError.message}`);
     if (existing) {
       const metadata = asRecord(existing.metadata);
-      metadata.last_execution_id = ctx.exec.id;
+      metadata["last_execution_id"] = ctx.exec.id;
       const { error: touchError } = await db4Admin
         .from("conversations")
         .update({
@@ -199,7 +199,7 @@ async function aiReply(
       automationId: ctx.exec.automation_id,
       clientId: ctx.exec.client_id,
       maxTokens: 400,
-      pool: parsePool(asRecord(ctx.automation.config).provider_pool),
+      pool: parsePool(asRecord(ctx.automation["config"])["provider_pool"]),
     },
   );
   return r?.reply ?? null; // null = no provider available; caller decides (never fake a reply)
@@ -229,7 +229,7 @@ async function handleReceptionistCalendar(
           `Choose availability when the user asks whether a specific time is free; choose book when they explicitly ask to book, schedule, reserve or confirm an appointment. ` +
           `Use none when no concrete appointment time can be inferred. Never invent a time. ` +
           `Default duration is 30 minutes unless the appointment rules clearly specify another duration. ` +
-          `Appointment rules: ${String(st.appointment_rules ?? "")}`,
+          `Appointment rules: ${String(st["appointment_rules"] ?? "")}`,
       },
       ...history,
       { role: "user", content: userText },
@@ -239,7 +239,7 @@ async function handleReceptionistCalendar(
       clientId: ctx.exec.client_id,
       maxTokens: 220,
       jsonMode: true,
-      pool: parsePool(asRecord(ctx.automation.config).provider_pool),
+      pool: parsePool(asRecord(ctx.automation["config"])["provider_pool"]),
     },
   );
   if (!result?.reply) return null;
@@ -249,10 +249,10 @@ async function handleReceptionistCalendar(
   } catch {
     return null;
   }
-  const action = String(intent.action ?? "none");
+  const action = String(intent["action"] ?? "none");
   if (!["availability", "book"].includes(action)) return null;
-  const start = String(intent.start ?? "");
-  const end = String(intent.end ?? "");
+  const start = String(intent["start"] ?? "");
+  const end = String(intent["end"] ?? "");
   if (!start || !end) return null;
   const startDate = new Date(start);
   const endDate = new Date(end);
@@ -265,12 +265,12 @@ async function handleReceptionistCalendar(
     timeMin: startDate.toISOString(),
     timeMax: endDate.toISOString(),
   });
-  const calendars = asRecord(availability.calendars);
-  const primary = asRecord(calendars.primary);
-  const busy = Array.isArray(primary.busy)
-    ? primary.busy
+  const calendars = asRecord(availability["calendars"]);
+  const primary = asRecord(calendars["primary"]);
+  const busy = Array.isArray(primary["busy"])
+    ? primary["busy"]
     : Object.values(calendars).flatMap((c) =>
-        Array.isArray(asRecord(c).busy) ? (asRecord(c).busy as unknown[]) : [],
+        Array.isArray(asRecord(c)["busy"]) ? (asRecord(c)["busy"] as unknown[]) : [],
       );
   if (busy.length) {
     const reply = `That time is already booked. Please give me another date or time and I’ll check it.`;
@@ -291,9 +291,9 @@ async function handleReceptionistCalendar(
       },
     };
   }
-  const email = String(intent.attendee_email ?? "").trim();
-  const name = String(intent.attendee_name ?? "").trim();
-  const summary = String(intent.summary ?? "Appointment").trim() || "Appointment";
+  const email = String(intent["attendee_email"] ?? "").trim();
+  const name = String(intent["attendee_name"] ?? "").trim();
+  const summary = String(intent["summary"] ?? "Appointment").trim() || "Appointment";
   const event = await createCalendarEvent({
     automationId: ctx.exec.automation_id,
     start: startDate.toISOString(),
@@ -313,7 +313,7 @@ async function handleReceptionistCalendar(
     visitor_name: name,
     visitor_email: email,
     visitor_phone: contact,
-    notes: String(st.appointment_rules ?? ""),
+    notes: String(st["appointment_rules"] ?? ""),
     external_ref: event.id || null,
   });
   if (error) throw new Error(`appointment record: ${error.message}`);
@@ -352,13 +352,13 @@ async function capabilityGate(automationId: string) {
 
 // ---- Voice & SMS Receptionist (ai_receptionist) ----
 export async function runReceptionistTurn(ctx: Ctx, input: JsonRecord) {
-  const channel = input.channel === "voice" ? "phone_call" : "sms";
-  if (!input.from || !input.body)
+  const channel = input["channel"] === "voice" ? "phone_call" : "sms";
+  if (!input["from"] || !input["body"])
     throw new NonRetryableError("receptionist input requires from and body");
-  const conv = await openConversation(ctx, channel, String(input.from), "Inbound " + channel);
-  await addMessage(conv, "user", String(input.body), optionalText(input.message_id));
+  const conv = await openConversation(ctx, channel, String(input["from"]), "Inbound " + channel);
+  await addMessage(conv, "user", String(input["body"]), optionalText(input["message_id"]));
   const st = settingsOf(ctx);
-  if (cfg.matchesEscalation(String(input.body), st.escalation_rules)) {
+  if (cfg.matchesEscalation(String(input["body"]), st["escalation_rules"])) {
     const assignment = await assignRoundRobin(ctx, "conversation", conv);
     return {
       conversation_id: conv,
@@ -376,8 +376,8 @@ export async function runReceptionistTurn(ctx: Ctx, input: JsonRecord) {
         ctx,
         conv,
         st,
-        String(input.body),
-        String(input.from),
+        String(input["body"]),
+        String(input["from"]),
         history,
         gate.allows("create_booking"),
       );
@@ -388,7 +388,7 @@ export async function runReceptionistTurn(ctx: Ctx, input: JsonRecord) {
   const reply = await aiReply(
     ctx,
     cfg.receptionistPrompt(st) + toolNote,
-    String(input.body),
+    String(input["body"]),
     history,
   );
   if (!reply) throw new Error("no AI provider available");
@@ -405,12 +405,12 @@ export async function runReceptionistTurn(ctx: Ctx, input: JsonRecord) {
 
 async function handleReceptionist(ctx: Ctx) {
   const result = await runReceptionistTurn(ctx, asRecord(ctx.exec.input));
-  if (result.reply && String(ctx.exec.input.channel ?? "sms") !== "voice") {
+  if (result.reply && String(ctx.exec.input["channel"] ?? "sms") !== "voice") {
     const { sendTwilioMessage, markMessageDelivered } =
       await import("@/lib/integration-delivery.server");
     const sent = await sendTwilioMessage({
       automationId: ctx.exec.automation_id,
-      to: String(ctx.exec.input.from),
+      to: String(ctx.exec.input["from"]),
       body: result.reply,
     });
     if (result.message_id) await markMessageDelivered(result.message_id, sent);
@@ -437,7 +437,7 @@ async function handleLeadCapture(ctx: Ctx) {
   if (missing.length)
     throw new NonRetryableError(`lead missing required fields: ${missing.join(", ")}`);
   const scored = cfg.scoreLead(i, st);
-  const escalate = cfg.matchesEscalation(String(i.message ?? ""), st.escalation_rules);
+  const escalate = cfg.matchesEscalation(String(i["message"] ?? ""), st["escalation_rules"]);
   const { score } = scored;
   const tier = escalate ? "hot" : scored.tier;
   const qualified = tier === "hot";
@@ -446,72 +446,72 @@ async function handleLeadCapture(ctx: Ctx) {
     .insert({
       client_id: ctx.exec.client_id,
       automation_id: ctx.exec.automation_id,
-      name: String(i.name ?? ""),
-      email: String(i.email ?? ""),
-      phone: String(i.phone ?? ""),
-      intent: String(i.intent ?? ""),
-      summary: String(i.message ?? ""),
-      source: String(i.source ?? "automation_engine"),
+      name: String(i["name"] ?? ""),
+      email: String(i["email"] ?? ""),
+      phone: String(i["phone"] ?? ""),
+      intent: String(i["intent"] ?? ""),
+      summary: String(i["message"] ?? ""),
+      source: String(i["source"] ?? "automation_engine"),
       lead_score: score,
       status: qualified ? "qualified" : "new",
       metadata: {
         execution_id: ctx.exec.id,
-        company: asJson(i.company ?? null),
+        company: asJson(i["company"] ?? null),
         tier,
-        routing: String(st.routing ?? ""),
-        notify_email: String(st.notify_email ?? ""),
+        routing: String(st["routing"] ?? ""),
+        notify_email: String(st["notify_email"] ?? ""),
       },
     })
     .select("id")
     .single();
   if (error) throw new Error(`lead insert: ${error.message}`);
   const assignment = qualified ? await assignRoundRobin(ctx, "lead", lead.id) : null;
-  const followUp = String(st.follow_up ?? "").trim();
-  const notifyEmail = String(st.notify_email ?? "").trim();
-  const webhookUrl = String(st.webhook_url ?? "").trim();
+  const followUp = String(st["follow_up"] ?? "").trim();
+  const notifyEmail = String(st["notify_email"] ?? "").trim();
+  const webhookUrl = String(st["webhook_url"] ?? "").trim();
   const delivery: Record<string, unknown> = {};
-  if (qualified && followUp && i.phone) {
+  if (qualified && followUp && i["phone"]) {
     try {
       const { sendTwilioMessage } = await import("@/lib/integration-delivery.server");
       const sent = await sendTwilioMessage({
         automationId: ctx.exec.automation_id,
-        to: String(i.phone),
+        to: String(i["phone"]),
         body: followUp,
       });
-      delivery.follow_up = sent;
+      delivery["follow_up"] = sent;
     } catch (e) {
-      delivery.follow_up_error = e instanceof Error ? e.message : String(e);
+      delivery["follow_up_error"] = e instanceof Error ? e.message : String(e);
     }
   }
   if (qualified && notifyEmail) {
     try {
       const { sendResendEmail } = await import("@/lib/integration-delivery.server");
-      delivery.notification = await sendResendEmail({
+      delivery["notification"] = await sendResendEmail({
         to: notifyEmail,
-        subject: `New ${tier} lead: ${String(i.name ?? i.email ?? "Lead")}`,
-        body: `A ${tier} lead was captured.\n\nName: ${String(i.name ?? "")}\nEmail: ${String(i.email ?? "")}\nPhone: ${String(i.phone ?? "")}\nScore: ${score}\nSource: ${String(i.source ?? "")}\nIntent: ${String(i.intent ?? "")}\nSummary: ${String(i.message ?? "")}`,
+        subject: `New ${tier} lead: ${String(i["name"] ?? i["email"] ?? "Lead")}`,
+        body: `A ${tier} lead was captured.\n\nName: ${String(i["name"] ?? "")}\nEmail: ${String(i["email"] ?? "")}\nPhone: ${String(i["phone"] ?? "")}\nScore: ${score}\nSource: ${String(i["source"] ?? "")}\nIntent: ${String(i["intent"] ?? "")}\nSummary: ${String(i["message"] ?? "")}`,
       });
     } catch (e) {
-      delivery.notification_error = e instanceof Error ? e.message : String(e);
+      delivery["notification_error"] = e instanceof Error ? e.message : String(e);
     }
   }
   if (webhookUrl) {
     try {
       const { postLeadWebhook } = await import("@/lib/integration-delivery.server");
-      delivery.webhook = await postLeadWebhook(webhookUrl, {
+      delivery["webhook"] = await postLeadWebhook(webhookUrl, {
         event: "lead.created",
         lead_id: lead.id,
         client_id: ctx.exec.client_id,
         automation_id: ctx.exec.automation_id,
-        name: i.name ?? null,
-        email: i.email ?? null,
-        phone: i.phone ?? null,
+        name: i["name"] ?? null,
+        email: i["email"] ?? null,
+        phone: i["phone"] ?? null,
         score,
         tier,
         qualified,
       });
     } catch (e) {
-      delivery.webhook_error = e instanceof Error ? e.message : String(e);
+      delivery["webhook_error"] = e instanceof Error ? e.message : String(e);
     }
   }
   return {
@@ -528,21 +528,21 @@ async function handleLeadCapture(ctx: Ctx) {
 // ---- Knowledge Base Support (kb_support) — knowledge in DB3, escalations in DB4 ----
 async function handleKbSupport(ctx: Ctx) {
   const i = asRecord(ctx.exec.input);
-  if (!i.question) throw new NonRetryableError("kb_support input requires question");
+  if (!i["question"]) throw new NonRetryableError("kb_support input requires question");
   const { retrieveKnowledge } = await import("@/lib/rag.server");
   const st = settingsOf(ctx);
   const minSim = cfg.kbMinSimilarity(st);
   const hits = (
-    await retrieveKnowledge(ctx.exec.automation_id, String(i.question), 5).catch(() => [])
+    await retrieveKnowledge(ctx.exec.automation_id, String(i["question"]), 5).catch(() => [])
   ).filter((h: { similarity?: unknown }) => !minSim || Number(h.similarity ?? 1) >= minSim);
   const conv = await openConversation(
     ctx,
     "web_chat",
-    i.contact ? String(i.contact) : null,
+    i["contact"] ? String(i["contact"]) : null,
     "Support question",
   );
-  await addMessage(conv, "user", String(i.question));
-  const ruleEscalation = cfg.matchesEscalation(String(i.question), st.escalation_rules);
+  await addMessage(conv, "user", String(i["question"]));
+  const ruleEscalation = cfg.matchesEscalation(String(i["question"]), st["escalation_rules"]);
   if (ruleEscalation || !hits?.length) {
     const { data: esc, error } = await db4Admin
       .from("ticket_escalations")
@@ -553,8 +553,8 @@ async function handleKbSupport(ctx: Ctx) {
         reason: ruleEscalation ? "escalation_rule" : "no_knowledge_match",
         sentiment: 0,
         status: "open",
-        visitor_contact: String(i.contact ?? "unknown"),
-        transcript: { question: String(i.question) },
+        visitor_contact: String(i["contact"] ?? "unknown"),
+        transcript: { question: String(i["question"]) },
       })
       .select("id")
       .single();
@@ -564,7 +564,7 @@ async function handleKbSupport(ctx: Ctx) {
       conversation_id: conv,
       escalated: true,
       ticket_id: esc.id,
-      handoff_message: String(st.handoff_message ?? ""),
+      handoff_message: String(st["handoff_message"] ?? ""),
       assignment_id: (assignment as { id?: string } | null)?.id ?? null,
     };
   }
@@ -573,7 +573,7 @@ async function handleKbSupport(ctx: Ctx) {
     .join("\n")
     .slice(0, 6000);
   const history = await recentConversationHistory(conv);
-  const reply = await aiReply(ctx, cfg.kbPrompt(st, context), String(i.question), history);
+  const reply = await aiReply(ctx, cfg.kbPrompt(st, context), String(i["question"]), history);
   if (!reply) throw new Error("no AI provider available"); // retryable
   await addMessage(conv, "assistant", reply);
   return { conversation_id: conv, escalated: false, sources: hits.length };
@@ -582,9 +582,9 @@ async function handleKbSupport(ctx: Ctx) {
 // ---- Social DM Assistant (messaging_ai) ----
 async function handleSocialDm(ctx: Ctx) {
   const i = asRecord(ctx.exec.input);
-  if (!i.platform || !i.sender_id || !i.text)
+  if (!i["platform"] || !i["sender_id"] || !i["text"])
     throw new NonRetryableError("DM input requires platform, sender_id, text");
-  const platform = String(i.platform).toLowerCase();
+  const platform = String(i["platform"]).toLowerCase();
   const st = settingsOf(ctx);
   if (!cfg.dmChannelAllowed(platform, st))
     throw new NonRetryableError(`channel ${platform} is not enabled for this deployment`);
@@ -599,14 +599,14 @@ async function handleSocialDm(ctx: Ctx) {
       .from("conversations")
       .select("id", { count: "exact", head: true })
       .eq("automation_id", ctx.exec.automation_id)
-      .eq("customer_phone_or_id", String(i.sender_id))
+      .eq("customer_phone_or_id", String(i["sender_id"]))
       .gte("created_at", since);
     if ((count ?? 0) >= limit)
       throw new NonRetryableError(`rate limit: ${limit} replies/hour reached for this contact`);
   }
-  const conv = await openConversation(ctx, channel, String(i.sender_id), "Direct message");
-  await addMessage(conv, "user", String(i.text), optionalText(i.message_id));
-  if (cfg.matchesEscalation(String(i.text), st.handoff_rules)) {
+  const conv = await openConversation(ctx, channel, String(i["sender_id"]), "Direct message");
+  await addMessage(conv, "user", String(i["text"]), optionalText(i["message_id"]));
+  if (cfg.matchesEscalation(String(i["text"]), st["handoff_rules"])) {
     const assignment = await assignRoundRobin(ctx, "conversation", conv);
     return {
       conversation_id: conv,
@@ -616,7 +616,7 @@ async function handleSocialDm(ctx: Ctx) {
     };
   }
   const history = await recentConversationHistory(conv);
-  const reply = await aiReply(ctx, cfg.dmPrompt(st), String(i.text), history);
+  const reply = await aiReply(ctx, cfg.dmPrompt(st), String(i["text"]), history);
   if (!reply) throw new Error("no AI provider available");
   const messageId = await addMessageAndReturnId(conv, "assistant", reply);
   const { sendMetaMessage, markMessageDelivered } =
@@ -624,7 +624,7 @@ async function handleSocialDm(ctx: Ctx) {
   const sent = await sendMetaMessage({
     automationId: ctx.exec.automation_id,
     platform,
-    recipientId: String(i.sender_id),
+    recipientId: String(i["sender_id"]),
     body: reply,
   });
   await markMessageDelivered(messageId, sent);
@@ -715,7 +715,7 @@ export async function runAutomationWorker(opts: { workerId?: string; limit?: num
   };
   for (const exec of claimedExecutions) {
     const gate = await runtimeBlockReason(exec.automation_id, {
-      isTest: asRecord(exec.input).test === true,
+      isTest: asRecord(exec.input)["test"] === true,
     }).catch((e) => ({
       reason: null as string | null,
       automation: null,
@@ -747,7 +747,7 @@ export async function runAutomationWorker(opts: { workerId?: string; limit?: num
     const kind = exec.automation_kind;
     const handler = HANDLERS[kind];
     const declared = String(
-      gate.automation?.automation_type ?? gate.automation?.product_type ?? "",
+      gate.automation?.["automation_type"] ?? gate.automation?.["product_type"] ?? "",
     );
     if (!handler || (declared && declared !== kind)) {
       await finish(

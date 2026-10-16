@@ -5,6 +5,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { SITES, type SiteId } from "./site-registry";
 import { db3Admin } from "@/server/db/clients.server";
+import { safeFetch, readLimitedText } from "@/lib/safe-fetch.server";
 import { hostOf } from "./site-context.server";
 import type { KnowledgeItem, KnowledgeSource, SiteConfig } from "./site-config.types";
 
@@ -77,7 +78,7 @@ export async function searchSiteKnowledge(
           title: String(d.title ?? ""),
           category: String(
             d.metadata && typeof d.metadata === "object" && !Array.isArray(d.metadata)
-              ? (d.metadata.category ?? "other")
+              ? (d.metadata["category"] ?? "other")
               : "other",
           ),
           authority: Number(d.authority ?? 50),
@@ -331,16 +332,19 @@ export async function scanSource(
   }
   let html: string;
   try {
-    const res = await fetch(src.url, {
-      headers: { "User-Agent": "AntheticPlus-KnowledgeBot/1.0", Accept: "text/html" },
-      signal: AbortSignal.timeout(15000),
-      redirect: "follow",
-    });
+    const { response: res } = await safeFetch(
+      src.url,
+      {
+        headers: { "User-Agent": "AntheticPlus-KnowledgeBot/1.0", Accept: "text/html" },
+        signal: AbortSignal.timeout(15000),
+      },
+      (target) => sourceAllowed(id, config, target),
+    );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const type = res.headers.get("content-type") ?? "";
     if (!type.includes("html")) throw new Error("Not an HTML page");
     if (!sourceAllowed(id, config, res.url || src.url)) throw new Error("Redirected off-site");
-    html = (await res.text()).slice(0, 1_500_000);
+    html = await readLimitedText(res);
   } catch (e) {
     const msg = e instanceof Error ? e.message.slice(0, 200) : "Fetch failed";
     return { config: update({ status: "failed", error: msg }), changed: false, error: msg };
@@ -355,6 +359,11 @@ export async function scanSource(
       return true;
     })
     .slice(0, 40);
+  if (!unique.length) {
+    const error =
+      "The website was reached, but no useful content was found. Try a specific content page.";
+    return { config: update({ status: "failed", error }), changed: false, error };
+  }
   const hash = createHash("sha256")
     .update(unique.map((s) => s.heading + s.text).join("\n"))
     .digest("hex");

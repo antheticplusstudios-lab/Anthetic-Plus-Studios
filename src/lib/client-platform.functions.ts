@@ -103,10 +103,12 @@ export const getActivePaymentMethods = createServerFn({ method: "GET" }).handler
         ? row.metadata
         : {};
     const instructions =
-      "instructions" in meta && typeof meta.instructions === "string" ? meta.instructions : "";
+      "instructions" in meta && typeof meta["instructions"] === "string"
+        ? meta["instructions"]
+        : "";
     const fields =
-      "required_fields" in meta && Array.isArray(meta.required_fields)
-        ? meta.required_fields.filter((field): field is string => typeof field === "string")
+      "required_fields" in meta && Array.isArray(meta["required_fields"])
+        ? meta["required_fields"].filter((field): field is string => typeof field === "string")
         : [];
     return {
       ...row,
@@ -175,10 +177,10 @@ export const getMyOrders = createServerFn({ method: "GET" })
           ? (order.metadata as Record<string, unknown>)
           : {};
       const pricing =
-        metadata.pricing_snapshot &&
-        typeof metadata.pricing_snapshot === "object" &&
-        !Array.isArray(metadata.pricing_snapshot)
-          ? (metadata.pricing_snapshot as Record<string, unknown>)
+        metadata["pricing_snapshot"] &&
+        typeof metadata["pricing_snapshot"] === "object" &&
+        !Array.isArray(metadata["pricing_snapshot"])
+          ? (metadata["pricing_snapshot"] as Record<string, unknown>)
           : {};
       const paymentMetadata =
         payment?.metadata &&
@@ -194,11 +196,11 @@ export const getMyOrders = createServerFn({ method: "GET" })
         automation_type: normalized.automation_type,
         target_domain_url: normalized.target_domain_url,
         automation_slug: String(normalized.product_type ?? ""),
-        billing_plan: String(pricing.plan ?? "monthly"),
+        billing_plan: String(pricing["plan"] ?? "monthly"),
         amount: payment?.amount ?? order.total_amount,
         payment_method: payment ? (methodMap.get(payment.payment_method_id ?? "") ?? "") : "",
         transaction_id: payment?.trx_id ?? "",
-        sender_name: String(paymentMetadata.sender_name ?? ""),
+        sender_name: String(paymentMetadata["sender_name"] ?? ""),
         rejection_reason: payment?.notes ?? order.rejection_reason ?? null,
         payment_status: payment?.status ?? order.status,
         payment_id: payment?.id ?? null,
@@ -290,7 +292,7 @@ export const getMyAutomations = createServerFn({ method: "GET" })
             ? automation.widget_config
             : {},
         order_id:
-          typeof automationMetadata.order_id === "string" ? automationMetadata.order_id : "",
+          typeof automationMetadata["order_id"] === "string" ? automationMetadata["order_id"] : "",
         website_domain: automation.domain_url ?? automation.domain ?? "",
         domain_url: automation.domain_url ?? automation.domain ?? "",
         status,
@@ -309,18 +311,18 @@ export const getMyAutomations = createServerFn({ method: "GET" })
           : 0,
         conversations_count: convCounts.get(automation.id) ?? 0,
         leads_count: leadCounts.get(automation.id) ?? 0,
-        business_context: String(behavior.business_context ?? ""),
+        business_context: String(behavior["business_context"] ?? ""),
         system_prompt: String(ai?.system_prompt ?? ""),
         subscription_status: subscription?.status ?? null,
         subscription_expires_at: automation.expires_at ?? subscription?.current_period_end ?? null,
         script_token: "",
         assigned_phone_number:
-          typeof automationMetadata.assigned_phone_number === "string"
-            ? automationMetadata.assigned_phone_number
+          typeof automationMetadata["assigned_phone_number"] === "string"
+            ? automationMetadata["assigned_phone_number"]
             : null,
         webhook_url:
-          typeof automationMetadata.webhook_url === "string"
-            ? automationMetadata.webhook_url
+          typeof automationMetadata["webhook_url"] === "string"
+            ? automationMetadata["webhook_url"]
             : null,
       };
     });
@@ -338,7 +340,7 @@ export const generateMyInstallScript = createServerFn({ method: "POST" })
       throw new Error(error?.message ?? "Could not generate installation token.");
     const { getRequest } = await import("@tanstack/react-start/server");
     const origin =
-      (process.env.VITE_APP_URL || process.env.APP_URL || "").replace(/\/$/, "") ||
+      (process.env["VITE_APP_URL"] || process.env["APP_URL"] || "").replace(/\/$/, "") ||
       new URL(getRequest().url).origin;
     const src = `${origin}/widget.js`;
     const snippet = `<script src="${src}" data-client-id="${automation.client_id}" data-automation-id="${automation.id}" data-token="${String(token)}" defer></script>`;
@@ -418,13 +420,13 @@ export const getMyAutomationPortal = createServerFn({ method: "GET" })
       automation_type: automation.automation_type ?? automation.product_type,
       domain_url: automation.domain_url ?? automation.domain ?? "",
       order_id:
-        "order_id" in automationMetadata && typeof automationMetadata.order_id === "string"
-          ? automationMetadata.order_id
+        "order_id" in automationMetadata && typeof automationMetadata["order_id"] === "string"
+          ? automationMetadata["order_id"]
           : "",
       assigned_phone_number:
         "assigned_phone_number" in automationMetadata &&
-        typeof automationMetadata.assigned_phone_number === "string"
-          ? automationMetadata.assigned_phone_number
+        typeof automationMetadata["assigned_phone_number"] === "string"
+          ? automationMetadata["assigned_phone_number"]
           : null,
       widget_config:
         automation.widget_config &&

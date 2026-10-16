@@ -142,18 +142,18 @@ function block(title: string, v: unknown) {
 
 export function receptionistPrompt(st: Settings) {
   return (
-    (s(st.system_prompt) ||
+    (s(st["system_prompt"]) ||
       "You are a polite business receptionist. Answer briefly and collect the caller's name and reason for contact.") +
-    block("Business", st.business_info) +
-    block("Hours", st.hours) +
-    block("Services", st.services) +
-    block("FAQs", st.faqs) +
-    block("Appointment rules", st.appointment_rules) +
-    block("SMS behaviour", st.sms_behavior) +
-    block("Greeting (use for the first reply)", st.greeting) +
-    block("Outside business hours say", st.after_hours_message) +
-    block("Escalate to a human when", st.escalation_rules) +
-    block("Human handoff contact", st.handoff_contact) +
+    block("Business", st["business_info"]) +
+    block("Hours", st["hours"]) +
+    block("Services", st["services"]) +
+    block("FAQs", st["faqs"]) +
+    block("Appointment rules", st["appointment_rules"]) +
+    block("SMS behaviour", st["sms_behavior"]) +
+    block("Greeting (use for the first reply)", st["greeting"]) +
+    block("Outside business hours say", st["after_hours_message"]) +
+    block("Escalate to a human when", st["escalation_rules"]) +
+    block("Human handoff contact", st["handoff_contact"]) +
     "\n\nNever invent prices, availability or bookings that are not stated above."
   );
 }
@@ -169,7 +169,7 @@ export function matchesEscalation(text: string, rules: unknown) {
 }
 
 export function requiredLeadFields(st: Settings) {
-  const f = s(st.required_fields)
+  const f = s(st["required_fields"])
     .split(",")
     .map((x) => x.trim().toLowerCase())
     .filter(Boolean);
@@ -178,17 +178,17 @@ export function requiredLeadFields(st: Settings) {
 
 export function scoreLead(i: Record<string, unknown>, st: Settings) {
   let score = 0;
-  if (i.email) score += 25;
-  if (i.phone) score += 25;
-  if (i.company) score += 15;
-  const msg = String(i.message ?? "");
-  const kw = s(st.hot_keywords) || "budget,price,quote,buy,demo,urgent";
+  if (i["email"]) score += 25;
+  if (i["phone"]) score += 25;
+  if (i["company"]) score += 15;
+  const msg = String(i["message"] ?? "");
+  const kw = s(st["hot_keywords"]) || "budget,price,quote,buy,demo,urgent";
   if (kw.split(",").some((k) => k.trim() && msg.toLowerCase().includes(k.trim().toLowerCase())))
     score += 25;
   if (msg.length > 80) score += 10;
   score = Math.min(100, score);
-  const hot = Number(st.hot_threshold ?? 60) || 60;
-  const warm = Number(st.warm_threshold ?? 35) || 35;
+  const hot = Number(st["hot_threshold"] ?? 60) || 60;
+  const warm = Number(st["warm_threshold"] ?? 35) || 35;
   return {
     score,
     tier: score >= hot ? "hot" : score >= warm ? "warm" : ("cold" as "hot" | "warm" | "cold"),
@@ -197,18 +197,18 @@ export function scoreLead(i: Record<string, unknown>, st: Settings) {
 
 export function missingLeadFields(i: Record<string, unknown>, st: Settings) {
   return requiredLeadFields(st).filter((f) =>
-    f === "email|phone" ? !i.email && !i.phone : !s(i[f]),
+    f === "email|phone" ? !i["email"] && !i["phone"] : !s(i[f]),
   );
 }
 
 export function kbPrompt(st: Settings, context: string) {
   const cite =
-    s(st.citation_mode) === "none"
+    s(st["citation_mode"]) === "none"
       ? ""
       : "\nCite sources inline as [1], [2] matching the numbered knowledge.";
-  const style = s(st.answer_style) ? `\nAnswer style: ${s(st.answer_style)}.` : "";
+  const style = s(st["answer_style"]) ? `\nAnswer style: ${s(st["answer_style"])}.` : "";
   return (
-    (s(st.system_prompt) || "Answer ONLY from the provided knowledge.") +
+    (s(st["system_prompt"]) || "Answer ONLY from the provided knowledge.") +
     style +
     "\nIf the knowledge does not cover the question, say you will hand it to a person." +
     cite +
@@ -217,18 +217,18 @@ export function kbPrompt(st: Settings, context: string) {
   );
 }
 export function kbMinSimilarity(st: Settings) {
-  const v = Number(st.confidence_threshold);
+  const v = Number(st["confidence_threshold"]);
   return Number.isFinite(v) && v > 0 && v < 1 ? v : 0;
 }
 
 /** Max replies per contact per hour; 0 = unlimited. */
 export function dmRateLimit(st: Settings) {
-  const v = Number(st.rate_limit_per_hour);
+  const v = Number(st["rate_limit_per_hour"]);
   return Number.isFinite(v) && v > 0 ? Math.floor(v) : 0;
 }
 
 export function dmChannelAllowed(platform: string, st: Settings) {
-  const list = s(st.channels)
+  const list = s(st["channels"])
     .toLowerCase()
     .split(/[,\s]+/)
     .filter(Boolean);
@@ -240,14 +240,14 @@ export function dmChannelAllowed(platform: string, st: Settings) {
 }
 export function dmPrompt(st: Settings) {
   return (
-    (s(st.dm_prompt) ||
+    (s(st["dm_prompt"]) ||
       "You reply to social media DMs for a business: friendly, short, no prices unless known.") +
-    block("Business", st.business_info) +
-    block("Products & services", st.products) +
-    block("FAQs", st.faqs) +
-    block("Brand tone", st.brand_tone) +
-    block("Qualify interested buyers by asking", st.qualification_questions) +
-    block("Hand off to a human when", st.handoff_rules)
+    block("Business", st["business_info"]) +
+    block("Products & services", st["products"]) +
+    block("FAQs", st["faqs"]) +
+    block("Brand tone", st["brand_tone"]) +
+    block("Qualify interested buyers by asking", st["qualification_questions"]) +
+    block("Hand off to a human when", st["handoff_rules"])
   );
 }
 
@@ -511,7 +511,7 @@ export function settingsFromConfig(config: unknown): Settings {
     config && typeof config === "object" && !Array.isArray(config)
       ? (config as Record<string, unknown>)
       : {};
-  const st = c.settings;
+  const st = c["settings"];
   return st && typeof st === "object" && !Array.isArray(st) ? (st as Settings) : {};
 }
 

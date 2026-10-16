@@ -176,12 +176,13 @@ export function SiteHeader() {
                   </Link>
                 </motion.div>
               ))}
-              <a
-                href="mailto:antheticplusstudios@gmail.com"
-                className="block rounded-xl px-4 py-3 text-base font-semibold hover:bg-accent"
+              <Link
+                to="/contact"
+                onClick={() => setOpen(false)}
+                className="block rounded-xl px-4 py-3 text-base font-semibold hover:bg-accent data-[status=active]:bg-accent data-[status=active]:text-primary"
               >
                 Contact
-              </a>
+              </Link>
               <div className="mt-2 grid gap-2 border-t border-border pt-3">
                 {signedIn ? (
                   <Button asChild className="w-full rounded-full">

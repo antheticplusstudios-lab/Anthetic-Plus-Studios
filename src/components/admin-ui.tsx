@@ -25,7 +25,7 @@ export function AdminPage({
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
             Control Center
           </p>
-          <h1 className="mt-2 truncate text-2xl font-semibold tracking-tight sm:text-3xl">
+          <h1 className="mt-2 break-words text-2xl font-semibold tracking-tight sm:text-3xl">
             {title}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
@@ -53,7 +53,7 @@ export function Panel({
   return (
     <section
       className={cn(
-        "card-premium overflow-hidden rounded-2xl border border-border bg-card",
+        "workspace-panel card-premium overflow-hidden rounded-lg border border-border bg-card",
         className,
       )}
     >
@@ -91,7 +91,7 @@ export function StatCard({
     bad: "text-destructive",
   }[tone];
   return (
-    <div className="card-premium group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground/20">
+    <div className="card-premium group rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/20">
       <div className="flex items-start justify-between gap-3">
         <p className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           {label}
@@ -229,10 +229,10 @@ export function Loading({ label = "Loading" }: { label?: string | undefined }) {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-28 animate-pulse rounded-2xl border border-border bg-card" />
+          <div key={i} className="h-28 animate-pulse rounded-lg border border-border bg-card" />
         ))}
       </div>
-      <div className="h-72 animate-pulse rounded-2xl border border-border bg-card" />
+      <div className="h-72 animate-pulse rounded-lg border border-border bg-card" />
     </div>
   );
 }

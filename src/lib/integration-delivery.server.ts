@@ -65,7 +65,7 @@ async function postForm(url: string, fields: Record<string, string>, auth?: stri
     /* non-json response */
   }
   if (!response.ok)
-    throw new Error(String(json.message ?? json.error_message ?? text).slice(0, 500));
+    throw new Error(String(json["message"] ?? json["error_message"] ?? text).slice(0, 500));
   return json;
 }
 
@@ -83,7 +83,9 @@ async function postJson(url: string, body: unknown, token: string) {
     /* non-json response */
   }
   if (!response.ok)
-    throw new Error(String(record(json.error).message ?? json.message ?? text).slice(0, 500));
+    throw new Error(
+      String(record(json["error"])["message"] ?? json["message"] ?? text).slice(0, 500),
+    );
   return json;
 }
 
@@ -91,12 +93,12 @@ export async function sendTwilioMessage(args: { automationId: string; to: string
   const integration = await getIntegration(args.automationId, ["twilio"]);
   if (!integration) throw new Error("Twilio integration is not connected.");
   const c = decryptIntegration(integration);
-  const accountSid = stringValue(c.accountSid);
-  const apiKey = stringValue(c.apiKeySid);
-  const apiSecret = stringValue(c.apiKeySecret);
-  const authToken = stringValue(c.authToken);
-  const from = stringValue(c.fromNumber);
-  const messagingServiceSid = stringValue(c.messagingServiceSid);
+  const accountSid = stringValue(c["accountSid"]);
+  const apiKey = stringValue(c["apiKeySid"]);
+  const apiSecret = stringValue(c["apiKeySecret"]);
+  const authToken = stringValue(c["authToken"]);
+  const from = stringValue(c["fromNumber"]);
+  const messagingServiceSid = stringValue(c["messagingServiceSid"]);
   if (!accountSid || (!from && !messagingServiceSid) || (!apiKey && !authToken))
     throw new Error("Twilio credentials are incomplete.");
   const authUser = apiKey || accountSid;
@@ -113,13 +115,13 @@ export async function sendTwilioMessage(args: { automationId: string; to: string
   );
   return {
     provider: "twilio",
-    externalId: stringValue(result.sid),
-    status: stringValue(result.status) || "queued",
+    externalId: stringValue(result["sid"]),
+    status: stringValue(result["status"]) || "queued",
   };
 }
 
 function graphVersion(c: RecordValue) {
-  return stringValue(c.graphVersion) || process.env.META_GRAPH_VERSION?.trim() || "v26.0";
+  return stringValue(c["graphVersion"]) || process.env["META_GRAPH_VERSION"]?.trim() || "v26.0";
 }
 
 export async function sendMetaMessage(args: {
@@ -135,13 +137,13 @@ export async function sendMetaMessage(args: {
   );
   if (!integration) throw new Error(`Meta ${platform} integration is not connected.`);
   const c = decryptIntegration(integration);
-  const token = stringValue(c.accessToken);
+  const token = stringValue(c["accessToken"]);
   if (!token) throw new Error("Meta access token is missing.");
   const base = `https://graph.facebook.com/${graphVersion(c)}`;
   let endpoint: string;
   let payload: RecordValue;
   if (platform === "whatsapp") {
-    const phoneNumberId = stringValue(c.phoneNumberId);
+    const phoneNumberId = stringValue(c["phoneNumberId"]);
     if (!phoneNumberId) throw new Error("WhatsApp phone number ID is missing.");
     endpoint = `${base}/${encodeURIComponent(phoneNumberId)}/messages`;
     payload = {
@@ -152,7 +154,7 @@ export async function sendMetaMessage(args: {
       text: { preview_url: false, body: args.body.slice(0, 4096) },
     };
   } else if (platform === "messenger") {
-    const pageId = stringValue(c.pageId);
+    const pageId = stringValue(c["pageId"]);
     if (!pageId) throw new Error("Meta Page ID is missing.");
     endpoint = `${base}/${encodeURIComponent(pageId)}/messages`;
     payload = {
@@ -161,7 +163,7 @@ export async function sendMetaMessage(args: {
       message: { text: args.body.slice(0, 2000) },
     };
   } else if (platform === "instagram") {
-    const igUserId = stringValue(c.instagramBusinessAccountId || c.igUserId);
+    const igUserId = stringValue(c["instagramBusinessAccountId"] || c["igUserId"]);
     if (!igUserId) throw new Error("Instagram business account ID is missing.");
     endpoint = `${base}/${encodeURIComponent(igUserId)}/messages`;
     payload = { recipient: { id: args.recipientId }, message: { text: args.body.slice(0, 2000) } };
@@ -171,18 +173,18 @@ export async function sendMetaMessage(args: {
   const result = await postJson(endpoint, payload, token);
   return {
     provider: platform,
-    externalId: stringValue(result.message_id || result.id),
+    externalId: stringValue(result["message_id"] || result["id"]),
     status: "sent",
   };
 }
 
 async function googleAccessToken(c: RecordValue) {
-  const access = stringValue(c.accessToken);
-  const expiresAt = Number(c.expiresAt ?? 0);
+  const access = stringValue(c["accessToken"]);
+  const expiresAt = Number(c["expiresAt"] ?? 0);
   if (access && (!expiresAt || expiresAt > Date.now() + 60_000)) return access;
-  const refresh = stringValue(c.refreshToken);
-  const clientId = stringValue(c.clientId);
-  const clientSecret = stringValue(c.clientSecret);
+  const refresh = stringValue(c["refreshToken"]);
+  const clientId = stringValue(c["clientId"]);
+  const clientSecret = stringValue(c["clientSecret"]);
   if (!refresh || !clientId || !clientSecret)
     throw new Error("Google Calendar credentials are incomplete or expired.");
   const token = await postForm("https://oauth2.googleapis.com/token", {
@@ -191,7 +193,7 @@ async function googleAccessToken(c: RecordValue) {
     refresh_token: refresh,
     grant_type: "refresh_token",
   });
-  const next = stringValue(token.access_token);
+  const next = stringValue(token["access_token"]);
   if (!next) throw new Error("Google did not return a refreshed access token.");
   return next;
 }
@@ -206,7 +208,7 @@ export async function findCalendarAvailability(args: {
   if (!integration) throw new Error("Google Calendar integration is not connected.");
   const c = decryptIntegration(integration);
   const token = await googleAccessToken(c);
-  const calendarId = args.calendarId || stringValue(c.calendarId) || "primary";
+  const calendarId = args.calendarId || stringValue(c["calendarId"]) || "primary";
   const url = new URL(`https://www.googleapis.com/calendar/v3/freeBusy`);
   const response = await fetch(url, {
     method: "POST",
@@ -219,7 +221,7 @@ export async function findCalendarAvailability(args: {
   });
   const text = await response.text();
   const json = record(JSON.parse(text));
-  if (!response.ok) throw new Error(String(record(json.error).message ?? text).slice(0, 500));
+  if (!response.ok) throw new Error(String(record(json["error"])["message"] ?? text).slice(0, 500));
   return json;
 }
 
@@ -236,7 +238,9 @@ export async function createCalendarEvent(args: {
   if (!integration) throw new Error("Google Calendar integration is not connected.");
   const c = decryptIntegration(integration);
   const token = await googleAccessToken(c);
-  const calendarId = encodeURIComponent(args.calendarId || stringValue(c.calendarId) || "primary");
+  const calendarId = encodeURIComponent(
+    args.calendarId || stringValue(c["calendarId"]) || "primary",
+  );
   const response = await fetch(
     `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`,
     {
@@ -253,8 +257,8 @@ export async function createCalendarEvent(args: {
   );
   const text = await response.text();
   const json = record(JSON.parse(text));
-  if (!response.ok) throw new Error(String(record(json.error).message ?? text).slice(0, 500));
-  return { id: stringValue(json.id), htmlLink: stringValue(json.htmlLink) };
+  if (!response.ok) throw new Error(String(record(json["error"])["message"] ?? text).slice(0, 500));
+  return { id: stringValue(json["id"]), htmlLink: stringValue(json["htmlLink"]) };
 }
 
 export async function markMessageDelivered(
@@ -268,7 +272,7 @@ export async function markMessageDelivered(
     .maybeSingle();
   if (error) throw new Error(error.message);
   const metadata = record(data?.metadata);
-  metadata.delivery = {
+  metadata["delivery"] = {
     status: result.status || "sent",
     provider: result.provider,
     external_id: result.externalId || null,
@@ -282,8 +286,8 @@ export async function markMessageDelivered(
 }
 
 export async function sendResendEmail(args: { to: string; subject: string; body: string }) {
-  const key = process.env.RESEND_API_KEY?.trim();
-  const from = process.env.RESEND_FROM_EMAIL?.trim();
+  const key = process.env["RESEND_API_KEY"]?.trim();
+  const from = process.env["RESEND_FROM_EMAIL"]?.trim();
   if (!key || !from) throw new Error("Resend email delivery is not configured.");
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -297,8 +301,8 @@ export async function sendResendEmail(args: { to: string; subject: string; body:
   });
   const text = await response.text();
   const json = record(JSON.parse(text));
-  if (!response.ok) throw new Error(String(json.message ?? text).slice(0, 500));
-  return { provider: "resend", externalId: stringValue(json.id), status: "sent" };
+  if (!response.ok) throw new Error(String(json["message"] ?? text).slice(0, 500));
+  return { provider: "resend", externalId: stringValue(json["id"]), status: "sent" };
 }
 
 export async function postLeadWebhook(url: string, payload: RecordValue) {
@@ -315,9 +319,11 @@ export async function postLeadWebhook(url: string, payload: RecordValue) {
 export async function verifyIntegrationCredentials(provider: string, credentials: RecordValue) {
   const c = credentials;
   if (provider === "twilio") {
-    const sid = stringValue(c.accountSid);
-    const user = stringValue(c.apiKeySid) || sid;
-    const pass = stringValue(c.apiKeySid) ? stringValue(c.apiKeySecret) : stringValue(c.authToken);
+    const sid = stringValue(c["accountSid"]);
+    const user = stringValue(c["apiKeySid"]) || sid;
+    const pass = stringValue(c["apiKeySid"])
+      ? stringValue(c["apiKeySecret"])
+      : stringValue(c["authToken"]);
     if (!sid || !user || !pass)
       throw new Error("Twilio Account SID and API credentials are required.");
     const response = await fetch(
@@ -325,19 +331,19 @@ export async function verifyIntegrationCredentials(provider: string, credentials
       { headers: { authorization: `Basic ${Buffer.from(`${user}:${pass}`).toString("base64")}` } },
     );
     if (!response.ok) throw new Error("Twilio rejected the supplied credentials.");
-    if (!stringValue(c.fromNumber) && !stringValue(c.messagingServiceSid))
+    if (!stringValue(c["fromNumber"]) && !stringValue(c["messagingServiceSid"]))
       throw new Error("Twilio requires a From number or Messaging Service SID.");
     return { account: sid };
   }
   if (["whatsapp", "meta_page", "messenger", "instagram"].includes(provider)) {
-    const token = stringValue(c.accessToken);
+    const token = stringValue(c["accessToken"]);
     if (!token) throw new Error("Meta access token is required.");
     const id =
       provider === "whatsapp"
-        ? stringValue(c.phoneNumberId)
+        ? stringValue(c["phoneNumberId"])
         : provider === "instagram"
-          ? stringValue(c.instagramBusinessAccountId || c.igUserId)
-          : stringValue(c.pageId);
+          ? stringValue(c["instagramBusinessAccountId"] || c["igUserId"])
+          : stringValue(c["pageId"]);
     if (!id) throw new Error("The provider asset ID is required.");
     const response = await fetch(
       `https://graph.facebook.com/${graphVersion(c)}/${encodeURIComponent(id)}?fields=id`,
@@ -353,7 +359,7 @@ export async function verifyIntegrationCredentials(provider: string, credentials
       { headers: { authorization: `Bearer ${token}` } },
     );
     if (!response.ok) throw new Error("Google rejected the supplied Calendar credentials.");
-    return { account: stringValue(c.calendarId) || "primary" };
+    return { account: stringValue(c["calendarId"]) || "primary" };
   }
   throw new Error(`Unsupported integration provider: ${provider}`);
 }

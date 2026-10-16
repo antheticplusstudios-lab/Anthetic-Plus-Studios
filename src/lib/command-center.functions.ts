@@ -174,7 +174,7 @@ export const listUsers = createServerFn({ method: "GET" })
         return {
           id: u.id as string,
           email: (u.email ?? "") as string,
-          name: p?.full_name || String(u.user_metadata?.full_name ?? ""),
+          name: p?.full_name || String(u.user_metadata?.["full_name"] ?? ""),
           company: p?.company_name ?? "",
           clientId: p?.client_id ?? "",
           roles: roleMap.get(u.id) ?? [],
@@ -288,7 +288,7 @@ export const getUserDetail = createServerFn({ method: "GET" })
       },
       profile: p,
       origin: originLabel(p?.registered_origin_domain ?? "", partners),
-      roles: ((roles.data ?? []) as Row[]).map((r) => r.role as string),
+      roles: ((roles.data ?? []) as Row[]).map((r) => r["role"] as string),
       restriction: restr.data ?? null,
       orders: orders.data ?? [],
       automations: autos.data ?? [],
@@ -337,7 +337,7 @@ export const moderateUser = createServerFn({ method: "POST" })
     // Mirror to the auth service so blocked users cannot obtain new sessions.
     const { db1Admin: supabaseAdmin } = await import("@/server/db/clients.server");
     const afterRecord = recordValue(after);
-    const status = typeof afterRecord?.status === "string" ? afterRecord.status : "unknown";
+    const status = typeof afterRecord?.["status"] === "string" ? afterRecord["status"] : "unknown";
     const ban = status === "active" ? "none" : "876000h";
     const { error: aErr } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
       ban_duration: ban,
@@ -345,7 +345,7 @@ export const moderateUser = createServerFn({ method: "POST" })
     return {
       ok: true,
       status,
-      muted: typeof afterRecord?.muted === "boolean" ? afterRecord.muted : null,
+      muted: typeof afterRecord?.["muted"] === "boolean" ? afterRecord["muted"] : null,
       authSync: aErr ? aErr.message : "ok",
     };
   });
@@ -419,7 +419,7 @@ export const listAutomations = createServerFn({ method: "GET" })
             const { data: result } = await db2Admin.rpc("automation_local_runtime_state", {
               p_automation_id: id,
             });
-            const state = recordValue(result)?.state;
+            const state = recordValue(result)?.["state"];
             return [id, typeof state === "string" ? state : ""] as const;
           }),
         ),
@@ -535,11 +535,11 @@ export const getAutomationDetail = createServerFn({ method: "GET" })
       runtime,
     ] = await Promise.all([
       admin.db1.from("profiles").select("*").eq("client_id", a.client_id).maybeSingle(),
-      (a.metadata as Record<string, unknown> | null)?.order_id
+      (a.metadata as Record<string, unknown> | null)?.["order_id"]
         ? admin.db2
             .from("orders")
             .select("*")
-            .eq("id", String((a.metadata as Record<string, unknown>).order_id))
+            .eq("id", String((a.metadata as Record<string, unknown>)["order_id"]))
             .maybeSingle()
         : { data: null },
       a.subscription_id
@@ -707,8 +707,8 @@ export const getAutomationDetail = createServerFn({ method: "GET" })
         hmac_key_version: hmacRotation?.credential_version ?? null,
       },
       runtime:
-        typeof recordValue(runtime.data)?.state === "string"
-          ? (recordValue(runtime.data)?.state as string)
+        typeof recordValue(runtime.data)?.["state"] === "string"
+          ? (recordValue(runtime.data)?.["state"] as string)
           : "",
       subscription: subscription.data ?? null,
       installations: installations.data ?? [],
@@ -977,7 +977,7 @@ export const generateScript = createServerFn({ method: "POST" })
     const { getRequest } = await import("@tanstack/react-start/server");
     const base =
       (process.env["VITE_APP_URL"] ?? "").replace(/\/$/, "") || new URL(getRequest().url).origin;
-    const snippet = `<script\n  src="${base}/widget.js"\n  data-client-id="${a?.client_id ?? ""}"\n  data-order-id="${String((a?.metadata as Record<string, unknown> | null)?.order_id ?? "")}"\n  data-automation-id="${data.id}"\n  data-token="${token}"\n  async>\n</script>`;
+    const snippet = `<script\n  src="${base}/widget.js"\n  data-client-id="${a?.client_id ?? ""}"\n  data-order-id="${String((a?.metadata as Record<string, unknown> | null)?.["order_id"] ?? "")}"\n  data-automation-id="${data.id}"\n  data-token="${token}"\n  async>\n</script>`;
     await auditMutation(context, {
       action: "automation.install_script.generated",
       targetId: data.id,

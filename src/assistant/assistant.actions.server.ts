@@ -17,7 +17,7 @@ export type ActionPayload = {
 };
 
 function key(): Buffer {
-  const master = process.env.ANTHETICPLUS_DB3_MASTER_KEY;
+  const master = process.env["ANTHETICPLUS_DB3_MASTER_KEY"];
   if (!master)
     throw new Error("Missing required server environment variable: ANTHETICPLUS_DB3_MASTER_KEY");
   return createHmac("sha256", master).update("assistant-action-v1").digest();

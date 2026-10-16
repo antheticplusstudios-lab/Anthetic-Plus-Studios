@@ -69,7 +69,7 @@ function Page() {
         data: {
           full_name:
             profile?.full_name ||
-            user.user_metadata?.full_name ||
+            user.user_metadata?.["full_name"] ||
             user.email?.split("@")[0] ||
             "Customer",
           ...form,

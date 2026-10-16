@@ -236,7 +236,7 @@ function Checkout() {
           },
           deliveryChannel: "web",
           features: [form.context.slice(0, 500), form.instructions.slice(0, 500)].filter(Boolean),
-          fullName: user.user_metadata?.full_name || user.email?.split("@")[0] || "Customer",
+          fullName: user.user_metadata?.["full_name"] || user.email?.split("@")[0] || "Customer",
           company: form.company,
           email: form.email,
           country: "Unspecified",
@@ -370,6 +370,41 @@ function Checkout() {
             className="mt-2 min-h-28 rounded-xl"
           />
         </div>
+        <fieldset className="rounded-2xl border border-border p-4">
+          <legend className="px-1 text-sm font-bold">Phone calls &amp; SMS (Twilio)</legend>
+          <p className="text-xs text-muted-foreground">
+            Want your AI to answer real phone calls or texts? We set up the phone line for you.
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {[
+              { v: "twilio", t: "Yes, add a phone line", d: "We connect Twilio for you" },
+              { v: "later", t: "Maybe later", d: "Ask support anytime from your dashboard" },
+              { v: "none", t: "No phone", d: "Website & chat only" },
+            ].map((o) => {
+              const active = (config["phone_line"] ?? "later") === o.v;
+              return (
+                <button
+                  type="button"
+                  key={o.v}
+                  aria-pressed={active}
+                  onClick={() => setConfig((c) => ({ ...c, phone_line: o.v }))}
+                  className={`rounded-xl border p-3 text-left text-sm transition ${active ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"}`}
+                >
+                  <span className="block font-bold">{o.t}</span>
+                  <span className="block text-xs text-muted-foreground">{o.d}</span>
+                </button>
+              );
+            })}
+          </div>
+          {config["phone_line"] === "twilio" && (
+            <Input
+              className="mt-3"
+              placeholder="Preferred country / area code for your number (e.g. +1 New York)"
+              value={config["phone_region"] ?? ""}
+              onChange={(e) => setConfig((c) => ({ ...c, phone_region: e.target.value }))}
+            />
+          )}
+        </fieldset>
       </div>
     ) : prodStep && kind ? (
       <div className="grid gap-4">

@@ -23,6 +23,7 @@ import { siteForStaffPreview } from "@/assistant/sites/site-context.server";
 import { runAssistant } from "@/assistant/assistant.service.server";
 import type { AssistantResponse } from "@/assistant/assistant.types";
 import type { KnowledgeItem, SiteConfig } from "@/assistant/sites/site-config.types";
+import { normalizeWebsiteUrl } from "@/lib/website-url";
 
 const siteSchema = z.enum(SITE_IDS);
 
@@ -170,14 +171,27 @@ export const adminDeleteKnowledge = createServerFn({ method: "POST" })
 export const adminAddSource = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) =>
-    z.object({ siteId: siteSchema, url: z.string().trim().url().max(500) }).parse(d),
+    z
+      .object({
+        siteId: siteSchema,
+        url: z.string().trim().max(500).transform(normalizeWebsiteUrl),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     assertAdmin(context);
     const c = await loadSiteConfig(data.siteId);
-    if (!sourceAllowed(data.siteId, c, data.url))
-      throw new Error("Sources must be on this site's own domains.");
-    if (c.sources.some((s) => s.url === data.url)) throw new Error("That source is already added.");
+    // Domain settings are saved as drafts. Source configuration must use that
+    // same draft, rather than rejecting newly approved domains until publishing.
+    const { loadAgent } = await import("@/assistant/sites/site-publishing.server");
+    const agent = await loadAgent(data.siteId);
+    const sourceConfig = { ...c, extraDomains: agent.working.extraDomains ?? c.extraDomains };
+    if (!sourceAllowed(data.siteId, sourceConfig, data.url))
+      throw new Error(
+        "Approve this website's domain in Discovery settings and save the draft, then add its URL here.",
+      );
+    if (c.sources.some((s) => normalizeWebsiteUrl(s.url) === data.url))
+      throw new Error("That source is already added.");
     const source = {
       id: randomUUID(),
       url: data.url,
@@ -242,7 +256,12 @@ export const adminScanSource = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     assertAdmin(context);
     const c = await loadSiteConfig(data.siteId);
-    const result = await scanSource(data.siteId, c, data.id);
+    const { loadAgent } = await import("@/assistant/sites/site-publishing.server");
+    const agent = await loadAgent(data.siteId);
+    const workingConfig = { ...c, extraDomains: agent.working.extraDomains ?? c.extraDomains };
+    const result = await scanSource(data.siteId, workingConfig, data.id);
+    // Never publish draft domain changes as a side effect of a knowledge scan.
+    result.config.extraDomains = c.extraDomains;
     const saved = await saveSiteConfig(data.siteId, result.config);
     await syncKnowledgeSnapshot(data.siteId, saved);
     await audit(context, data.siteId, "source.scanned", {

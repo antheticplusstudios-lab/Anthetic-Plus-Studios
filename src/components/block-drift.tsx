@@ -204,8 +204,7 @@ void main() {
 
   // Fade blocks out with depth so the field dissolves into the page instead of
   // reading as a separate rectangle of video.
-  float alpha = pow(1.0 - clamp(vDepth, 0.0, 1.0), 1.4) * 0.62;
-  gl_FragColor = vec4(max(col, 0.0) * alpha, alpha);
+  gl_FragColor = vec4(max(col, 0.0), 1.0);
 }
 `;
 
@@ -472,9 +471,9 @@ function tokenHex(name: string, fallback: string): string {
 function themeConfig(): Config {
   return {
     ...DEFAULTS,
-    near: tokenHex("--drift-near", DEFAULTS.near),
+    near: tokenHex("--foreground", DEFAULTS.near),
     far: tokenHex("--background", DEFAULTS.far),
-    edge: tokenHex("--drift-edge", DEFAULTS.edge),
+    edge: tokenHex("--foreground", DEFAULTS.edge),
   };
 }
 

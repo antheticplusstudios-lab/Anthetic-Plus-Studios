@@ -40,9 +40,9 @@ function PaymentMethodsPage() {
         data: {
           id,
           method_name: String(current?.method_name ?? "Payment method"),
-          instructions: String(patch.instructions ?? current?.instructions ?? ""),
-          required_fields: (patch.required_fields as string[]) ?? current?.required_fields ?? [],
-          is_active: Boolean(patch.is_active ?? current?.is_active ?? true),
+          instructions: String(patch["instructions"] ?? current?.instructions ?? ""),
+          required_fields: (patch["required_fields"] as string[]) ?? current?.required_fields ?? [],
+          is_active: Boolean(patch["is_active"] ?? current?.is_active ?? true),
         },
       });
       toast.success("Saved");

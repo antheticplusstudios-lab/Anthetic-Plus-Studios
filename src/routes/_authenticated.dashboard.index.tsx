@@ -58,7 +58,10 @@ function DashboardOverview() {
       <h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">
         Welcome back{profile?.company_name ? `, ${profile.company_name}` : ""}.
       </h1>
-      <p className="mt-2 text-muted-foreground">Here’s how your AI workforce is performing.</p>
+      <p className="mt-2 text-muted-foreground">
+        Your automations at a glance. Tap “Manage” on any one to change settings, view chats or get
+        help.
+      </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (
@@ -103,7 +106,7 @@ function DashboardOverview() {
       <section className="mt-6 rounded-3xl border border-border bg-card p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-extrabold">Automation health</h2>
+            <h2 className="text-xl font-extrabold">Your automations</h2>
             <p className="mt-1 text-sm text-muted-foreground">Live status across your workspace</p>
           </div>
           <Button variant="outline" asChild>
@@ -119,7 +122,7 @@ function DashboardOverview() {
                 Pick an AI teammate from the catalog to get started.
               </p>
               <Button className="mt-4" asChild>
-                <Link to="/">Explore automations</Link>
+                <Link to="/automations">Explore automations</Link>
               </Button>
             </div>
           )}
@@ -134,11 +137,18 @@ function DashboardOverview() {
                   <p className="truncate font-bold">{meta?.name ?? item.automation_slug}</p>
                   <p className="truncate text-sm text-muted-foreground">{item.website_domain}</p>
                 </div>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass(item.status)}`}
-                >
-                  {statusLabels[item.status] ?? item.status}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass(item.status)}`}
+                  >
+                    {statusLabels[item.status] ?? item.status}
+                  </span>
+                  <Button size="sm" asChild>
+                    <Link to="/dashboard/automations/$id" params={{ id: item.id }}>
+                      Manage
+                    </Link>
+                  </Button>
+                </div>
               </div>
             );
           })}
