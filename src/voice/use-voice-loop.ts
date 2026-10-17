@@ -205,11 +205,11 @@ export function useVoiceLoop(
         return listenNow();
       }
       if (myTurn !== turn.current || !active.current) {
-        speechStream?.cancel();
+        speechStream.current?.cancel();
         return;
       }
       if (!reply) {
-        speechStream?.cancel();
+        speechStream.current?.cancel();
         return listenNow();
       }
       if (speechStream.current && streamedText.trim() === reply.trim()) {
@@ -218,7 +218,7 @@ export function useVoiceLoop(
       }
       // If the request ended with a tool confirmation, a server error, or a cancelled stream,
       // no speculative partial speech survives. Speak only the authoritative final response.
-      speechStream?.cancel();
+      speechStream.current?.cancel();
       speak(reply, myTurn, result.language);
     },
     [listenNow, send, setVoiceState, speak],
