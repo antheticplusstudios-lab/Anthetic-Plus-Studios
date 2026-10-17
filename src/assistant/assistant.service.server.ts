@@ -211,13 +211,19 @@ export async function runAssistant(args: {
       let reply = decision.reply || "Sorry, I didn't catch that. Could you rephrase?";
       if (args.onReplyDelta) {
         if (args.signal?.aborted) throw new DOMException("Aborted", "AbortError");
-        const systemMessages = messages
-          .filter((message) => message.role === "system")
+        // The decision-mode system prompt deliberately requires JSON, so do not reuse it verbatim
+        // for the final stream. Keep trusted site/persona context and language instructions, but
+        // remove the JSON-only protocol that would conflict with the plain-text stream.
+        const finalContextPrompt =
+          baseSystemPrompt.split("\n\nOUTPUT PROTOCOL")[0] ?? baseSystemPrompt;
+        const additionalSystemMessages = messages
+          .filter((message) => message.role === "system" && message.content !== decisionSystemPrompt)
           .map((message) => message.content);
         const conversationMessages = messages.filter((message) => message.role !== "system");
         const finalSystem = [
-          ...systemMessages,
-          "FINAL ANSWER MODE (overrides the earlier JSON/tool protocol): Tool selection and any permitted read-only tool calls for this turn have completed. Do not call or propose tools, and do not output JSON. Respond with concise plain text only. Use only the user's request, trusted system context, and verified TOOL_RESULT messages. Do not invent facts, and do not claim a side effect occurred unless a TOOL_RESULT confirms it.",
+          finalContextPrompt,
+          ...additionalSystemMessages,
+          "FINAL ANSWER MODE: Tool selection and any permitted read-only tool calls for this turn have completed. Do not call or propose tools, and do not output JSON. Respond with concise plain text only. Use only the user's request, trusted system context, and verified TOOL_RESULT messages. Do not invent facts, and do not claim a side effect occurred unless a TOOL_RESULT confirms it.",
         ].join("\n\n");
         const finalMessages: ProviderMessage[] = [
           { role: "system", content: finalSystem },
