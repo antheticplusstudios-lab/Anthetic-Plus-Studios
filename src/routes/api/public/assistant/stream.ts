@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { authContextFromRequest } from "@/integrations/supabase/auth-middleware";
+import { authContextFromRequest, type AuthContext } from "@/integrations/supabase/auth-middleware";
 import { runAssistant } from "@/assistant/assistant.service.server";
 import { MAX_HISTORY_TURNS, MAX_MESSAGE_LENGTH, type AssistantResponse } from "@/assistant/assistant.types";
 import { requestOrigin } from "@/assistant/sites/site-http.server";
@@ -63,7 +63,7 @@ export const Route = createFileRoute("/api/public/assistant/stream")({
           );
         }
 
-        let auth;
+        let auth: AuthContext | null;
         try {
           auth = await authContextFromRequest(request);
         } catch (error) {
