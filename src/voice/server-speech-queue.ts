@@ -20,7 +20,7 @@ type AudioChunk = { blob: Blob; info: ServerSpeechInfo };
 let generation = 0;
 let activeAudio: HTMLAudioElement | null = null;
 let activeUrl: string | null = null;
-let controllers = new Set<AbortController>();
+const controllers = new Set<AbortController>();
 
 export function splitSpeechIntoChunks(text: string): string[] {
   const clean = text
@@ -32,7 +32,7 @@ export function splitSpeechIntoChunks(text: string): string[] {
     .slice(0, MAX_CHARS);
   if (!clean) return [];
 
-  const sentences = clean.match(/[^.!?。！？\n]+[.!?。！？]?/g) ?? [clean];
+  const sentences = clean.match(/[^.!?。！？।؟\n]+[.!?。！？।؟]?/g) ?? [clean];
   const chunks: string[] = [];
   let current = "";
   for (const raw of sentences) {
@@ -352,7 +352,7 @@ export function createStreamingSpeechQueue(opts: ServerSpeakOptions): StreamingS
   const acceptSentences = () => {
     // Sentence terminators can arrive in separate network chunks. Require following whitespace
     // before releasing a sentence; finish() flushes the final tail without punctuation.
-    const boundary = /[.!?。！？]["'”’)]*\s+/u;
+    const boundary = /[.!?。！？।؟]["'”’)]*\s+/u;
     while (true) {
       const match = boundary.exec(pendingText);
       if (!match) break;
