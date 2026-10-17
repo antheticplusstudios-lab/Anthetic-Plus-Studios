@@ -177,6 +177,7 @@ export function useAssistantSession() {
         const sessionData = await supabase.auth.getSession();
         if (gen !== generation.current || ctrl.signal.aborted) return null;
         const token = sessionData.data.session?.access_token;
+        if (user && !token) throw new Response("Unauthorized", { status: 401 });
         const response = await fetch("/api/public/assistant/stream", {
           method: "POST",
           headers: {
@@ -323,7 +324,7 @@ export function useAssistantSession() {
         if (gen === generation.current) setBusy(false);
       }
     },
-    [pending, confirm, dismiss, push, patch],
+    [pending, confirm, dismiss, push, patch, user],
   );
 
   const cancel = useCallback(() => {
