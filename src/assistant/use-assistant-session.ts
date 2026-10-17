@@ -5,9 +5,7 @@
  */
 import { useCallback, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  confirmAssistantAction,
-} from "@/lib/assistant-agent.functions";
+import { confirmAssistantAction } from "@/lib/assistant-agent.functions";
 import { useCurrentUser } from "@/hooks/use-portal";
 import { supabase } from "@/integrations/supabase/client";
 import type { AssistantResponse, ChatTurn, PendingAction, ToolOutcome } from "./assistant.types";
@@ -53,7 +51,9 @@ export function useAssistantSession() {
   const activeRequest = useRef<AbortController | null>(null);
 
   const patch = useCallback((id: string, updates: Partial<ChatEntry>) => {
-    entriesRef.current = entriesRef.current.map((entry) => entry.id === id ? { ...entry, ...updates } : entry);
+    entriesRef.current = entriesRef.current.map((entry) =>
+      entry.id === id ? { ...entry, ...updates } : entry,
+    );
     setEntries(entriesRef.current);
   }, []);
 
@@ -184,16 +184,19 @@ export function useAssistantSession() {
             message: text,
             history,
             ...(language?.language ? { language: language.language } : {}),
-            ...(language?.confidence !== undefined ? { languageConfidence: language.confidence } : {}),
+            ...(language?.confidence !== undefined
+              ? { languageConfidence: language.confidence }
+              : {}),
           }),
           signal: ctrl.signal,
         });
 
         if (!response.ok) {
-          const payload = await response.json().catch(() => null) as
-            | { error?: { message?: string } }
-            | null;
-          const message = payload?.error?.message || "I couldn't reach the assistant. Please try again.";
+          const payload = (await response.json().catch(() => null)) as {
+            error?: { message?: string };
+          } | null;
+          const message =
+            payload?.error?.message || "I couldn't reach the assistant. Please try again.";
           finalResponse.current = {
             ok: false,
             error: { code: response.status === 401 ? "unauthenticated" : "network", message },
@@ -202,7 +205,10 @@ export function useAssistantSession() {
         } else if (!response.body) {
           finalResponse.current = {
             ok: false,
-            error: { code: "network", message: "Your browser couldn't open the assistant stream. Please try again." },
+            error: {
+              code: "network",
+              message: "Your browser couldn't open the assistant stream. Please try again.",
+            },
             requestId: "client",
           };
         } else {
@@ -251,7 +257,10 @@ export function useAssistantSession() {
           if (!finalResponse.current) {
             finalResponse.current = {
               ok: false,
-              error: { code: "network", message: "The assistant stream ended unexpectedly. Please try again." },
+              error: {
+                code: "network",
+                message: "The assistant stream ended unexpectedly. Please try again.",
+              },
               requestId: "client",
             };
           }
@@ -267,7 +276,12 @@ export function useAssistantSession() {
               pending: null,
             });
           } else {
-            push({ id: assistantId, role: "assistant", content: finalResult.error.message, isError: true });
+            push({
+              id: assistantId,
+              role: "assistant",
+              content: finalResult.error.message,
+              isError: true,
+            });
           }
           return finalResult.error.message;
         }

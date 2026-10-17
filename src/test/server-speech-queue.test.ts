@@ -9,7 +9,10 @@ describe("sentence-aware speech chunking", () => {
   });
 
   it("splits long replies into bounded chunks without losing words", () => {
-    const input = Array.from({ length: 18 }, (_, i) => `Sentence number ${i + 1} has a little bit of text.`).join(" ");
+    const input = Array.from(
+      { length: 18 },
+      (_, i) => `Sentence number ${i + 1} has a little bit of text.`,
+    ).join(" ");
     const chunks = splitSpeechIntoChunks(input);
     expect(chunks.length).toBeGreaterThan(1);
     expect(chunks.every((chunk) => chunk.length <= 320)).toBe(true);
@@ -23,9 +26,9 @@ describe("sentence-aware speech chunking", () => {
   });
 
   it("strips markdown links and URLs before sending speech text", () => {
-    expect(splitSpeechIntoChunks("Read [the docs](https://example.com) at https://example.com now.")).toEqual([
-      "Read the docs at now.",
-    ]);
+    expect(
+      splitSpeechIntoChunks("Read [the docs](https://example.com) at https://example.com now."),
+    ).toEqual(["Read the docs at now."]);
   });
 
   it("returns no chunks for blank input", () => {

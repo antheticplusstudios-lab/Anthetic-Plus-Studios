@@ -83,7 +83,11 @@ export function stopServerSpeechChunks() {
   cleanupAudio();
 }
 
-async function fetchChunk(text: string, lang: string | undefined, mine: number): Promise<AudioChunk> {
+async function fetchChunk(
+  text: string,
+  lang: string | undefined,
+  mine: number,
+): Promise<AudioChunk> {
   const ctrl = new AbortController();
   controllers.add(ctrl);
   try {
@@ -99,8 +103,10 @@ async function fetchChunk(text: string, lang: string | undefined, mine: number):
     });
     if (mine !== generation) throw new DOMException("Cancelled", "AbortError");
     if (!res.ok) {
-      if (res.status === 429) throw new Error("Voice is temporarily rate-limited. Please try again shortly.");
-      if (res.status === 503) throw new Error("Voice is unavailable right now. The reply is shown below.");
+      if (res.status === 429)
+        throw new Error("Voice is temporarily rate-limited. Please try again shortly.");
+      if (res.status === 503)
+        throw new Error("Voice is unavailable right now. The reply is shown below.");
       throw new Error(GENERIC_ERROR);
     }
     if (!(res.headers.get("content-type") ?? "").toLowerCase().startsWith("audio/"))
@@ -206,7 +212,6 @@ export function speakServerChunks(text: string, opts: ServerSpeakOptions) {
   void playNext();
 }
 
-
 export type StreamingSpeechController = {
   push: (delta: string) => void;
   finish: () => void;
@@ -297,46 +302,51 @@ export function createStreamingSpeechQueue(opts: ServerSpeakOptions): StreamingS
     const promise = pending.get(nextIndex);
     if (!promise) return;
     activePlayback = true;
-    void promise.then((chunk) => {
-      if (!isCurrent() || failed) return;
-      pending.delete(nextIndex);
-      const audio = new Audio();
-      activeAudio = audio;
-      activeUrl = URL.createObjectURL(chunk.blob);
-      audio.preload = "auto";
-      audio.src = activeUrl;
+    void promise
+      .then((chunk) => {
+        if (!isCurrent() || failed) return;
+        pending.delete(nextIndex);
+        const audio = new Audio();
+        activeAudio = audio;
+        activeUrl = URL.createObjectURL(chunk.blob);
+        audio.preload = "auto";
+        audio.src = activeUrl;
 
-      const playFollowing = () => {
-        if (!isCurrent()) return;
-        cleanupAudio();
-        activePlayback = false;
-        nextIndex++;
-        pump();
-      };
-      audio.onplaying = () => {
-        if (!isCurrent() || started) return;
-        started = true;
-        opts.onStart?.(chunk.info);
-      };
-      audio.onended = playFollowing;
-      audio.onerror = () => reportError(GENERIC_ERROR);
-      void audio.play().then(() => {
-        if (isCurrent() && !started) {
+        const playFollowing = () => {
+          if (!isCurrent()) return;
+          cleanupAudio();
+          activePlayback = false;
+          nextIndex++;
+          pump();
+        };
+        audio.onplaying = () => {
+          if (!isCurrent() || started) return;
           started = true;
           opts.onStart?.(chunk.info);
-        }
-      }).catch((error) => {
-        if (!isCurrent()) return;
-        reportError(
-          error instanceof DOMException && error.name === "NotAllowedError"
-            ? "Your browser blocked audio playback. Tap the microphone again to enable it."
-            : GENERIC_ERROR,
-        );
+        };
+        audio.onended = playFollowing;
+        audio.onerror = () => reportError(GENERIC_ERROR);
+        void audio
+          .play()
+          .then(() => {
+            if (isCurrent() && !started) {
+              started = true;
+              opts.onStart?.(chunk.info);
+            }
+          })
+          .catch((error) => {
+            if (!isCurrent()) return;
+            reportError(
+              error instanceof DOMException && error.name === "NotAllowedError"
+                ? "Your browser blocked audio playback. Tap the microphone again to enable it."
+                : GENERIC_ERROR,
+            );
+          });
+      })
+      .catch((error) => {
+        if (!isCurrent() || (error instanceof DOMException && error.name === "AbortError")) return;
+        reportError(error instanceof Error ? error.message : GENERIC_ERROR);
       });
-    }).catch((error) => {
-      if (!isCurrent() || (error instanceof DOMException && error.name === "AbortError")) return;
-      reportError(error instanceof Error ? error.message : GENERIC_ERROR);
-    });
   };
 
   const acceptSentences = () => {

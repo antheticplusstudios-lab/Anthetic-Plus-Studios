@@ -28,8 +28,7 @@ export async function authContextFromRequest(request: Request): Promise<AuthCont
   if (!authHeader) return null;
   if (!authHeader.startsWith("Bearer ")) throw new Response("Unauthorized", { status: 401 });
   const token = authHeader.slice("Bearer ".length).trim();
-  if (!token || token.split(".").length !== 3)
-    throw new Response("Unauthorized", { status: 401 });
+  if (!token || token.split(".").length !== 3) throw new Response("Unauthorized", { status: 401 });
 
   const supabase = createAuthClient(token);
   const { data, error } = await supabase.auth.getClaims(token);

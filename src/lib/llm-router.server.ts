@@ -254,7 +254,6 @@ export async function routeChat(
   return null;
 }
 
-
 type StreamUsage = { text: string; tokensIn: number; tokensOut: number };
 
 async function consumeProviderStream(
@@ -283,22 +282,30 @@ async function consumeProviderStream(
       return;
     }
     if (payload?.type === "error" || payload?.error) {
-      throw new Error(String(payload?.error?.message ?? payload?.message ?? "Provider stream failed."));
+      throw new Error(
+        String(payload?.error?.message ?? payload?.message ?? "Provider stream failed."),
+      );
     }
     const inputCount = Number(
-      payload?.usage?.prompt_tokens ?? payload?.usage?.input_tokens ?? payload?.message?.usage?.input_tokens ?? 0,
+      payload?.usage?.prompt_tokens ??
+        payload?.usage?.input_tokens ??
+        payload?.message?.usage?.input_tokens ??
+        0,
     );
     const outputCount = Number(
-      payload?.usage?.completion_tokens ?? payload?.usage?.output_tokens ?? payload?.message?.usage?.output_tokens ?? 0,
+      payload?.usage?.completion_tokens ??
+        payload?.usage?.output_tokens ??
+        payload?.message?.usage?.output_tokens ??
+        0,
     );
     if (Number.isFinite(inputCount)) tokensIn = Math.max(tokensIn, inputCount);
     if (Number.isFinite(outputCount)) tokensOut = Math.max(tokensOut, outputCount);
 
     const delta =
       provider === "anthropic"
-        ? (payload?.type === "content_block_delta" && payload?.delta?.type === "text_delta"
-            ? payload.delta.text
-            : "")
+        ? payload?.type === "content_block_delta" && payload?.delta?.type === "text_delta"
+          ? payload.delta.text
+          : ""
         : (payload?.choices?.[0]?.delta?.content ?? "");
     if (typeof delta === "string" && delta) {
       text += delta;
@@ -347,15 +354,18 @@ export async function routeChatStream(
 ): Promise<RouteResult | null> {
   let query = admin
     .from("llm_api_keys")
-    .select("id,provider_key,label,key_ciphertext,model,cooldown_until,request_count,error_count,priority,is_active")
+    .select(
+      "id,provider_key,label,key_ciphertext,model,cooldown_until,request_count,error_count,priority,is_active",
+    )
     .eq("is_active", true);
   if (o.provider) query = query.eq("provider_key", o.provider);
   if (o.keyLabel) query = query.eq("label", o.keyLabel);
   const { data } = await query.order("priority", { ascending: true });
   const now = Date.now();
   const keys = orderKeys(
-    (data ?? []).filter((k) => !k.cooldown_until || new Date(k.cooldown_until).getTime() < now) as unknown as
-      (PoolKey & (typeof data extends (infer R)[] | null ? R : never))[],
+    (data ?? []).filter(
+      (k) => !k.cooldown_until || new Date(k.cooldown_until).getTime() < now,
+    ) as unknown as (PoolKey & (typeof data extends (infer R)[] | null ? R : never))[],
     o.pool ?? null,
   );
   let emitted = false;
@@ -366,12 +376,17 @@ export async function routeChatStream(
     if (!endpoint) continue;
     const secret = await decryptKey(keyRow);
     if (!secret) continue;
-    const model = String(o.model?.trim() || modelFor(o.pool ?? null, provider) || keyRow.model || endpoint.model);
+    const model = String(
+      o.model?.trim() || modelFor(o.pool ?? null, provider) || keyRow.model || endpoint.model,
+    );
     const started = Date.now();
     let status = 0;
     try {
       const isAnthropic = provider === "anthropic";
-      const system = messages.filter((m) => m.role === "system").map((m) => m.content).join("\n\n");
+      const system = messages
+        .filter((m) => m.role === "system")
+        .map((m) => m.content)
+        .join("\n\n");
       const bodyMessages = messages.filter((m) => m.role !== "system");
       const response = await fetch(endpoint.url, {
         method: "POST",
@@ -412,16 +427,24 @@ export async function routeChatStream(
         const details = (await response.text().catch(() => "")).slice(0, 400);
         throw new Error(`Provider HTTP ${response.status}: ${details}`);
       }
-      const streamed = await consumeProviderStream(response, provider, (delta) => {
-        emitted = true;
-        onDelta(delta);
-      }, o.signal);
+      const streamed = await consumeProviderStream(
+        response,
+        provider,
+        (delta) => {
+          emitted = true;
+          onDelta(delta);
+        },
+        o.signal,
+      );
       if (!streamed.text.trim()) throw new Error("Provider returned an empty stream.");
       try {
-        await admin.from("llm_api_keys").update({
-          request_count: Number(keyRow.request_count ?? 0) + 1,
-          last_used_at: new Date().toISOString(),
-        }).eq("id", keyRow.id);
+        await admin
+          .from("llm_api_keys")
+          .update({
+            request_count: Number(keyRow.request_count ?? 0) + 1,
+            last_used_at: new Date().toISOString(),
+          })
+          .eq("id", keyRow.id);
       } catch (e) {
         console.error("llm streamed key usage update failed", e);
       }
@@ -467,11 +490,16 @@ export async function routeChatStream(
         console.error("llm streamed error log failed", logError);
       }
       try {
-        await admin.from("llm_api_keys").update({
-          error_count: Number(keyRow.error_count ?? 0) + 1,
-          last_error: detail,
-          cooldown_until: new Date(Date.now() + (status === 429 ? 60_000 : 300_000)).toISOString(),
-        }).eq("id", keyRow.id);
+        await admin
+          .from("llm_api_keys")
+          .update({
+            error_count: Number(keyRow.error_count ?? 0) + 1,
+            last_error: detail,
+            cooldown_until: new Date(
+              Date.now() + (status === 429 ? 60_000 : 300_000),
+            ).toISOString(),
+          })
+          .eq("id", keyRow.id);
       } catch (updateError) {
         console.error("llm streamed cooldown update failed", updateError);
       }

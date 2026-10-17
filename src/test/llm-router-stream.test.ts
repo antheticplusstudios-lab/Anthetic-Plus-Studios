@@ -44,7 +44,9 @@ function fakeFrom(table: string) {
         const data =
           table === "llm_api_keys"
             ? state.keys.filter((row) =>
-                Object.entries(filters).every(([key, value]) => (row as Record<string, unknown>)[key] === value),
+                Object.entries(filters).every(
+                  ([key, value]) => (row as Record<string, unknown>)[key] === value,
+                ),
               )
             : null;
         return Promise.resolve({ data, error: null }).then(resolve, reject);
@@ -57,7 +59,9 @@ function fakeFrom(table: string) {
 }
 
 vi.mock("@/server/db/clients.server", () => ({ db3Admin: { from: fakeFrom } }));
-vi.mock("@/server/security/envelope.server", () => ({ decryptSecret: () => "test-provider-secret" }));
+vi.mock("@/server/security/envelope.server", () => ({
+  decryptSecret: () => "test-provider-secret",
+}));
 vi.mock("@/lib/provider-pool", () => ({
   orderKeys: (keys: KeyRow[]) => keys,
   modelFor: () => null,
@@ -143,7 +147,10 @@ describe("LLM provider streaming", () => {
     );
     const deltas: string[] = [];
     const result = await router.routeChatStream(
-      [{ role: "system", content: "Answer plainly." }, { role: "user", content: "Salut." }],
+      [
+        { role: "system", content: "Answer plainly." },
+        { role: "user", content: "Salut." },
+      ],
       {},
       (delta) => deltas.push(delta),
     );

@@ -12,12 +12,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MicSession, micErrorFrom, type MicError, type Utterance } from "./mic-session";
 import { transcribeUtterance } from "./transcribe-client";
+import { isServerSpeechSupported, primeServerSpeech, stopServerSpeech } from "./server-speech";
 import {
-  isServerSpeechSupported,
-  primeServerSpeech,
-  stopServerSpeech,
-} from "./server-speech";
-import { createStreamingSpeechQueue, speakServerChunks, stopServerSpeechChunks, type StreamingSpeechController } from "./server-speech-queue";
+  createStreamingSpeechQueue,
+  speakServerChunks,
+  stopServerSpeechChunks,
+  type StreamingSpeechController,
+} from "./server-speech-queue";
 
 export type VoiceState = "idle" | "listening" | "processing" | "speaking" | "error";
 
@@ -166,38 +167,34 @@ export function useVoiceLoop(
       const speechStream = { current: null as StreamingSpeechController | null };
       try {
         // The server emits deltas only after its structured tool decision is validated as tool:null.
-        reply = await send(
-          result.text,
-          { language: result.language },
-          (delta) => {
-            if (myTurn !== turn.current) return;
-            streamedText += delta;
-            if (!speechStream.current && isServerSpeechSupported()) {
-              setVoiceState("speaking");
-              speechStream.current = createStreamingSpeechQueue({
-                ...(result.language ? { lang: result.language } : {}),
-                onStart: () => {
-                  if (myTurn === turn.current && handsFreeRef.current && !mutedRef.current)
-                    mic.current?.watchForBargeIn();
-                },
-                onEnd: () => {
-                  if (myTurn !== turn.current) return;
-                  mic.current?.pause();
-                  if (active.current) listenNow();
-                  else setVoiceState("idle");
-                },
-                onError: (message) => {
-                  if (myTurn !== turn.current) return;
-                  mic.current?.pause();
-                  setError(message || ERROR_TEXT.tts);
-                  if (active.current) listenNow();
-                  else setVoiceState("idle");
-                },
-              });
-            }
-            speechStream.current?.push(delta);
-          },
-        );
+        reply = await send(result.text, { language: result.language }, (delta) => {
+          if (myTurn !== turn.current) return;
+          streamedText += delta;
+          if (!speechStream.current && isServerSpeechSupported()) {
+            setVoiceState("speaking");
+            speechStream.current = createStreamingSpeechQueue({
+              ...(result.language ? { lang: result.language } : {}),
+              onStart: () => {
+                if (myTurn === turn.current && handsFreeRef.current && !mutedRef.current)
+                  mic.current?.watchForBargeIn();
+              },
+              onEnd: () => {
+                if (myTurn !== turn.current) return;
+                mic.current?.pause();
+                if (active.current) listenNow();
+                else setVoiceState("idle");
+              },
+              onError: (message) => {
+                if (myTurn !== turn.current) return;
+                mic.current?.pause();
+                setError(message || ERROR_TEXT.tts);
+                if (active.current) listenNow();
+                else setVoiceState("idle");
+              },
+            });
+          }
+          speechStream.current?.push(delta);
+        });
       } catch {
         speechStream.current?.cancel();
         if (myTurn !== turn.current) return;

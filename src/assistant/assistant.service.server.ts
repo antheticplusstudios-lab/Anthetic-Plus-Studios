@@ -242,7 +242,12 @@ export async function runAssistant(args: {
         );
         if (completion?.text.trim()) reply = completion.text.trim();
         else if (streamed.trim()) reply = streamed.trim();
-        else return fail(requestId, "ai_unavailable", "I'm having trouble finishing that response right now. Please try again.");
+        else
+          return fail(
+            requestId,
+            "ai_unavailable",
+            "I'm having trouble finishing that response right now. Please try again.",
+          );
       }
       const uncertain =
         /\b(i (?:don't|do not) know|not sure|i can(?:not|'t) (?:verify|confirm)|i don't have (?:that )?information|i'm not certain|cannot verify)\b/i.test(

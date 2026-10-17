@@ -4,7 +4,11 @@ import { z } from "zod";
 import { authContextFromRequest } from "@/server/auth/request-context.server";
 import type { AuthContext } from "@/integrations/supabase/auth-middleware";
 import { runAssistant } from "@/assistant/assistant.service.server";
-import { MAX_HISTORY_TURNS, MAX_MESSAGE_LENGTH, type AssistantResponse } from "@/assistant/assistant.types";
+import {
+  MAX_HISTORY_TURNS,
+  MAX_MESSAGE_LENGTH,
+  type AssistantResponse,
+} from "@/assistant/assistant.types";
 import { requestOrigin } from "@/assistant/sites/site-http.server";
 import { resolveSiteForOrigin } from "@/assistant/sites/site-context.server";
 
@@ -19,11 +23,20 @@ const bodySchema = z.object({
   languageConfidence: z.number().min(0).max(1).optional(),
 });
 
-function event(controller: ReadableStreamDefaultController<Uint8Array>, name: string, payload: unknown) {
-  controller.enqueue(new TextEncoder().encode(`event: ${name}\ndata: ${JSON.stringify(payload)}\n\n`));
+function event(
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  name: string,
+  payload: unknown,
+) {
+  controller.enqueue(
+    new TextEncoder().encode(`event: ${name}\ndata: ${JSON.stringify(payload)}\n\n`),
+  );
 }
 
-function failure(requestId: string, message = "Something went wrong on our side. Please try again."): AssistantResponse {
+function failure(
+  requestId: string,
+  message = "Something went wrong on our side. Please try again.",
+): AssistantResponse {
   return {
     ok: false,
     error: { code: "internal", message },
@@ -60,7 +73,10 @@ export const Route = createFileRoute("/api/public/assistant/stream")({
         if (!resolved.ok) {
           return Response.json(
             { ok: false, error: { code: "forbidden", message: resolved.message }, requestId },
-            { status: resolved.code === "invalid_site" ? 404 : 403, headers: { "Cache-Control": "no-store" } },
+            {
+              status: resolved.code === "invalid_site" ? 404 : 403,
+              headers: { "Cache-Control": "no-store" },
+            },
           );
         }
 
@@ -70,13 +86,21 @@ export const Route = createFileRoute("/api/public/assistant/stream")({
         } catch (error) {
           if (error instanceof Response) {
             return Response.json(
-              { ok: false, error: { code: "unauthenticated", message: "Please sign in again." }, requestId },
+              {
+                ok: false,
+                error: { code: "unauthenticated", message: "Please sign in again." },
+                requestId,
+              },
               { status: error.status, headers: { "Cache-Control": "no-store" } },
             );
           }
           console.error(`[assistant stream ${requestId}] auth failure`, error);
           return Response.json(
-            { ok: false, error: { code: "unauthenticated", message: "Please sign in again." }, requestId },
+            {
+              ok: false,
+              error: { code: "unauthenticated", message: "Please sign in again." },
+              requestId,
+            },
             { status: 401, headers: { "Cache-Control": "no-store" } },
           );
         }
@@ -104,7 +128,11 @@ export const Route = createFileRoute("/api/public/assistant/stream")({
                   signal: abort.signal,
                   onReplyDelta: (delta) => {
                     if (!abort.signal.aborted) {
-                      controller.enqueue(encoder.encode(`event: delta\ndata: ${JSON.stringify({ text: delta })}\n\n`));
+                      controller.enqueue(
+                        encoder.encode(
+                          `event: delta\ndata: ${JSON.stringify({ text: delta })}\n\n`,
+                        ),
+                      );
                     }
                   },
                 });
@@ -118,7 +146,10 @@ export const Route = createFileRoute("/api/public/assistant/stream")({
                   event(
                     controller,
                     "error",
-                    failure(requestId, "I'm having trouble finishing that response right now. Please try again."),
+                    failure(
+                      requestId,
+                      "I'm having trouble finishing that response right now. Please try again.",
+                    ),
                   );
                   controller.close();
                 }
