@@ -314,7 +314,12 @@ export function useAssistantSession() {
         if (gen !== generation.current || ctrl.signal.aborted) return null;
         const message = errorFromThrown(error);
         if (partialEntry) {
-          patch(assistantId, { content: message, isError: true, isStreaming: false, pending: null });
+          patch(assistantId, {
+            content: message,
+            isError: true,
+            isStreaming: false,
+            pending: null,
+          });
         } else {
           push({ id: assistantId, role: "assistant", content: message, isError: true });
         }
