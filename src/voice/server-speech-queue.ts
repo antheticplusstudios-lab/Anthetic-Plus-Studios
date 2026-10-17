@@ -11,7 +11,7 @@ import { SERVER_SPEECH_ENDPOINT, SERVER_SPEECH_SITE } from "./server-speech";
 
 const MAX_CHARS = 6000;
 const CHUNK_TARGET = 320;
-const MAX_CHUNKS = 8;
+const MAX_CHUNKS = 12;
 const GENERIC_ERROR = "I couldn't play audio, but the reply is shown below.";
 const EMPTY_ERROR = "The voice service returned no audio.";
 
