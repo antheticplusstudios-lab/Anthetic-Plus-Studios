@@ -154,7 +154,7 @@ export function useAssistantSession() {
       const assistantId = uid();
       let partialEntry = false;
       let partialText = "";
-      const finalResponse.current = { current: null as AssistantResponse | null };
+      const finalResponse = { current: null as AssistantResponse | null };
 
       const appendDelta = (delta: string) => {
         if (gen !== generation.current || ctrl.signal.aborted || !delta) return;
