@@ -84,7 +84,7 @@ export function useVoiceLoop(
     }
     return () => {
       active.current = false;
-      turn.current++;
+      turnRef.current++;
       transcribeAbort.current?.abort();
       mic.current?.close();
       mic.current = null;
