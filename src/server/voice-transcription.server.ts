@@ -1,6 +1,7 @@
 /** Server-only multilingual speech-to-text implementation for the website assistant. */
 import { db3Admin } from "@/server/db/clients.server";
 import { decryptSecret } from "@/server/security/envelope.server";
+import { audioFileName, cleanTranscript, type WhisperSegment } from "@/voice/transcript-filter";
 
 const MAX_BASE64 = 4_000_000;
 const GROQ_URL = "https://api.groq.com/openai/v1/audio/transcriptions";
@@ -56,7 +57,7 @@ const getDedicatedGroqKey = async () => {
 };
 
 export async function transcribeVoiceAudioData(
-  data: { audioBase64: string; mimeType?: string },
+  data: { audioBase64: string; mimeType?: string; languageHint?: string | undefined },
   signal?: AbortSignal,
 ) {
   const started = Date.now();
@@ -80,12 +81,15 @@ export async function transcribeVoiceAudioData(
   form.append(
     "file",
     new Blob([audioBytes.buffer], { type: data.mimeType || parsed.mimeType }),
-    "voice.webm",
+    audioFileName(data.mimeType || parsed.mimeType),
   );
 
   form.append("model", GROQ_MODEL);
   form.append("response_format", "verbose_json");
   form.append("temperature", "0");
+  // Keep this vocabulary-only: carrying the previous turn's detected language into the prompt
+  // can bias Whisper away from a new language or a Bangla-English code-switch.
+  form.append("prompt", "AntheticPlus Studios, AI receptionist, automation, booking, appointment.");
 
   const response = await fetch(GROQ_URL, {
     method: "POST",
@@ -98,7 +102,11 @@ export async function transcribeVoiceAudioData(
 
   const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
 
-  const text = typeof payload["text"] === "string" ? payload["text"].trim() : "";
+  const rawText = typeof payload["text"] === "string" ? payload["text"].trim() : "";
+  const segments = Array.isArray(payload["segments"])
+    ? (payload["segments"] as WhisperSegment[])
+    : null;
+  const text = cleanTranscript(rawText, segments);
 
   const language =
     typeof payload["language"] === "string" ? payload["language"].toLowerCase() : null;
@@ -108,7 +116,7 @@ export async function transcribeVoiceAudioData(
       key_id: secret.id,
       provider_key: "groq",
       model: GROQ_MODEL,
-      status: response.ok && text ? "success" : "error",
+      status: response.ok ? (text ? "success" : "empty") : "error",
       http_status: response.status,
       latency_ms: Date.now() - started,
       tokens_in: 0,
@@ -123,9 +131,11 @@ export async function transcribeVoiceAudioData(
     console.error("voice transcription log failed", e);
   }
 
-  if (!response.ok || !text) {
+  if (!response.ok) {
     throw new Error("I couldn't understand the audio. Please try again.");
   }
+  // Empty text is a normal outcome (noise, a cough, filtered hallucination): the client keeps
+  // listening instead of ending the conversation with an error.
 
   return {
     text,

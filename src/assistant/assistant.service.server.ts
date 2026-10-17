@@ -78,7 +78,7 @@ function languageInstruction(language: AssistantLanguage): string {
 async function completeDecision(
   provider: ReturnType<typeof getAssistantProvider>,
   messages: ProviderMessage[],
-  ctx: { clientId: string | null; maxTokens: number; temperature: number },
+  ctx: { clientId: string | null; maxTokens: number; temperature: number; signal?: AbortSignal },
 ) {
   const completion = await provider.complete(messages, { ...ctx, json: true });
   if (!completion) return null;
@@ -120,6 +120,9 @@ export async function runAssistant(args: {
   providerKeyLabel?: string;
   language?: string | null;
   languageConfidence?: number;
+  /** Streams plain-text answer deltas only after the server validates tool:null. */
+  onReplyDelta?: (delta: string) => void;
+  signal?: AbortSignal;
 }): Promise<AssistantResponse> {
   const { requestId, auth, site } = args;
   const settings = await loadAssistantSettings();
@@ -146,8 +149,12 @@ export async function runAssistant(args: {
     args.language,
     args.languageConfidence ?? 0,
   );
+  const baseSystemPrompt = buildSystemPrompt(ctx, tools);
+  const decisionSystemPrompt = args.onReplyDelta
+    ? `${baseSystemPrompt}\n\nSTREAMING DECISION MODE: This call chooses tools only. Always set the reply field to an empty string. Select a tool only if it is needed and permitted; otherwise return tool:null. Do not draft or reveal a user-facing answer in this phase. Action tools still require confirmation.`
+    : baseSystemPrompt;
   const messages: ProviderMessage[] = [
-    { role: "system", content: buildSystemPrompt(ctx, tools) },
+    { role: "system", content: decisionSystemPrompt },
     ...args.history
       .slice(-MAX_HISTORY_TURNS)
       .map((t) => ({ role: t.role, content: t.content.slice(0, 2000) })),
@@ -159,8 +166,9 @@ export async function runAssistant(args: {
   for (let step = 0; step < MAX_STEPS; step++) {
     const result = await completeDecision(provider, messages, {
       clientId: auth?.tenant.clientId ?? null,
-      maxTokens: settings.maxTokens,
+      maxTokens: args.onReplyDelta ? Math.min(settings.maxTokens, 800) : settings.maxTokens,
       temperature: settings.temperature,
+      ...(args.signal ? { signal: args.signal } : {}),
       ...(args.providerKeyLabel ? { keyLabel: args.providerKeyLabel } : {}),
     });
     if (!result)
@@ -185,8 +193,9 @@ export async function runAssistant(args: {
         ],
         {
           clientId: auth?.tenant.clientId ?? null,
-          maxTokens: settings.maxTokens,
+          maxTokens: args.onReplyDelta ? Math.min(settings.maxTokens, 800) : settings.maxTokens,
           temperature: 0,
+          ...(args.signal ? { signal: args.signal } : {}),
           ...(args.providerKeyLabel ? { keyLabel: args.providerKeyLabel } : {}),
         },
       );
@@ -199,7 +208,55 @@ export async function runAssistant(args: {
         "I couldn't format that response safely. Please try again.",
       );
     if (!decision.tool) {
-      const reply = decision.reply || "Sorry, I didn't catch that. Could you rephrase?";
+      let reply = decision.reply || "Sorry, I didn't catch that. Could you rephrase?";
+      if (args.onReplyDelta) {
+        if (args.signal?.aborted) throw new DOMException("Aborted", "AbortError");
+        // The decision-mode system prompt deliberately requires JSON, so do not reuse it verbatim
+        // for the final stream. Keep trusted site/persona context and language instructions, but
+        // remove the JSON-only protocol that would conflict with the plain-text stream.
+        const finalContextPrompt =
+          baseSystemPrompt.split("\n\nOUTPUT PROTOCOL")[0] ?? baseSystemPrompt;
+        const additionalSystemMessages = messages
+          .filter(
+            (message) => message.role === "system" && message.content !== decisionSystemPrompt,
+          )
+          .map((message) => message.content);
+        const conversationMessages = messages.filter((message) => message.role !== "system");
+        const finalSystem = [
+          finalContextPrompt,
+          ...additionalSystemMessages,
+          "FINAL ANSWER MODE: Tool selection and any permitted read-only tool calls for this turn have completed. Do not call or propose tools, and do not output JSON. Respond with concise plain text only. Use only the user's request, trusted system context, and verified TOOL_RESULT messages. Do not invent facts, and do not claim a side effect occurred unless a TOOL_RESULT confirms it.",
+        ].join("\n\n");
+        const finalMessages: ProviderMessage[] = [
+          { role: "system", content: finalSystem },
+          ...conversationMessages,
+          { role: "assistant", content: JSON.stringify({ reply: "", tool: null }) },
+          { role: "user", content: "Now provide the final user-facing response in plain text." },
+        ];
+        let streamed = "";
+        const completion = await provider.streamText?.(
+          finalMessages,
+          {
+            clientId: auth?.tenant.clientId ?? null,
+            maxTokens: settings.maxTokens,
+            temperature: settings.temperature,
+            ...(args.providerKeyLabel ? { keyLabel: args.providerKeyLabel } : {}),
+            ...(args.signal ? { signal: args.signal } : {}),
+          },
+          (delta) => {
+            streamed += delta;
+            args.onReplyDelta?.(delta);
+          },
+        );
+        if (completion?.text.trim()) reply = completion.text.trim();
+        else if (streamed.trim()) reply = streamed.trim();
+        else
+          return fail(
+            requestId,
+            "ai_unavailable",
+            "I'm having trouble finishing that response right now. Please try again.",
+          );
+      }
       const uncertain =
         /\b(i (?:don't|do not) know|not sure|i can(?:not|'t) (?:verify|confirm)|i don't have (?:that )?information|i'm not certain|cannot verify)\b/i.test(
           reply,

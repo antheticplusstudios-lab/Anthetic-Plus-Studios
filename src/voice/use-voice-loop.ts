@@ -1,245 +1,384 @@
 /**
- * Voice orchestration: speech input -> assistant session -> speech output.
- * Contains no business logic; it only drives the shared assistant session.
- * Spoken replies come from the server TTS route (Inworld); there is no browser-voice fallback.
+ * Voice orchestration: one persistent mic session -> transcription -> assistant -> server TTS.
+ *
+ * Invariants (see AGENTS.md / docs/VOICE-AGENT.md):
+ *  - Exactly one microphone stream per conversation (MicSession). No per-turn or per-reply mics.
+ *  - Every async continuation carries a turn id; anything from an older turn is ignored, so a
+ *    stale transcription or reply can never overwrite or speak over a newer one.
+ *  - Interruptions only fire on sustained speech above the learned echo floor (BARGE_CONFIG), or
+ *    manually via `interrupt()`. Hands-free interruption can be switched off (speaker setups).
+ *  - No browser speechSynthesis fallback: a provider failure is shown, never re-voiced.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import { MicSession, micErrorFrom, type MicError, type Utterance } from "./mic-session";
+import { transcribeUtterance } from "./transcribe-client";
+import { isServerSpeechSupported, primeServerSpeech, stopServerSpeech } from "./server-speech";
 import {
-  isSpeechInputSupported,
-  listenOnce,
-  monitorSpeechStart,
-  requestMicrophone,
-  type ListenHandle,
-  type SpeechInputError,
-  type SpeechInputResult,
-} from "./speech-input";
-import {
-  isServerSpeechSupported,
-  primeServerSpeech,
-  speakServer,
-  stopServerSpeech,
-} from "./server-speech";
+  createStreamingSpeechQueue,
+  speakServerChunks,
+  stopServerSpeechChunks,
+  type StreamingSpeechController,
+} from "./server-speech-queue";
 
 export type VoiceState = "idle" | "listening" | "processing" | "speaking" | "error";
 
-const ERROR_TEXT: Record<SpeechInputError | "tts", string> = {
+const ERROR_TEXT: Record<MicError | "tts" | "network" | "stt", string> = {
   mic_denied: "Microphone access is blocked. Allow it in your browser settings, or type below.",
   no_mic: "No microphone was found. You can type your message instead.",
-  no_speech: "I didn't hear anything. Tap the mic and try again.",
-  network: "Speech recognition lost its connection. Please try again or type below.",
   unsupported: "Voice input isn't supported in this browser. You can type instead.",
-  failed: "Voice input stopped unexpectedly. Please try again.",
+  failed: "Voice input stopped unexpectedly. Tap the mic to try again.",
+  device_lost: "Your microphone was disconnected. Tap the mic to reconnect.",
+  network: "The connection dropped while transcribing. Please say that again.",
+  stt: "I couldn't transcribe that. Please try again or type below.",
   tts: "I couldn't play audio, but the reply is shown below.",
 };
+
+const HANDS_FREE_KEY = "ap-voice-hands-free";
+
+export function isVoiceInputSupported() {
+  return (
+    typeof window !== "undefined" &&
+    "MediaRecorder" in window &&
+    !!navigator.mediaDevices?.getUserMedia
+  );
+}
 
 export function useVoiceLoop(
   send: (
     text: string,
     language?: { language?: string | null; confidence?: number },
+    onDelta?: (delta: string) => void,
   ) => Promise<string | null>,
+  cancelPending?: () => void,
 ) {
   const [state, setState] = useState<VoiceState>("idle");
   const [interim, setInterim] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [supported, setSupported] = useState({ input: false, output: false });
   const [muted, setMuted] = useState(false);
+  const [userSpeaking, setUserSpeaking] = useState(false);
+  const [handsFree, setHandsFreeState] = useState(true);
+  const handsFreeRef = useRef(true);
   const mutedRef = useRef(false);
   const audioLevelRef = useRef(-1);
   const stateRef = useRef<VoiceState>("idle");
-  const handle = useRef<ListenHandle | null>(null);
-  const bargeHandle = useRef<ListenHandle | null>(null);
+  const mic = useRef<MicSession | null>(null);
+  const turn = useRef(0);
   const active = useRef(false);
-  const listenRef = useRef<(() => void) | null>(null);
+  const lastLanguage = useRef<string | null>(null);
+  const transcribeAbort = useRef<AbortController | null>(null);
 
-  // Single choke point so handlers/callbacks can read the CURRENT state without stale closures.
-  const setVoiceState = useCallback((next: VoiceState | ((prev: VoiceState) => VoiceState)) => {
-    const value = typeof next === "function" ? next(stateRef.current) : next;
+  const setVoiceState = useCallback((value: VoiceState) => {
     stateRef.current = value;
     setState(value);
   }, []);
 
   useEffect(() => {
-    setSupported({ input: isSpeechInputSupported(), output: isServerSpeechSupported() });
+    const turnRef = turn;
+    setSupported({ input: isVoiceInputSupported(), output: isServerSpeechSupported() });
+    try {
+      const saved = localStorage.getItem(HANDS_FREE_KEY);
+      if (saved !== null) {
+        handsFreeRef.current = saved === "1";
+        setHandsFreeState(saved === "1");
+      }
+    } catch {
+      /* storage blocked */
+    }
     return () => {
       active.current = false;
-      handle.current?.abort();
-      bargeHandle.current?.abort();
+      turnRef.current++;
+      transcribeAbort.current?.abort();
+      mic.current?.close();
+      mic.current = null;
       stopServerSpeech();
+      stopServerSpeechChunks();
     };
   }, []);
 
-  const startBargeInMonitor = useCallback(() => {
-    if (!active.current || mutedRef.current || stateRef.current !== "speaking") return;
-    bargeHandle.current?.abort();
-    bargeHandle.current = monitorSpeechStart({
-      onSpeechStart: () => {
-        stopServerSpeech();
-        bargeHandle.current?.abort();
-        bargeHandle.current = null;
-        setInterim("");
-        setVoiceState("listening");
-        listenRef.current?.();
-      },
-      onError: (err) => {
-        if (err !== "no_speech" && active.current && stateRef.current === "speaking") {
-          setError(ERROR_TEXT[err]);
-        }
-      },
-      onEnd: () => {
-        bargeHandle.current = null;
-        if (stateRef.current === "speaking" && active.current && !mutedRef.current) {
-          startBargeInMonitor();
-        }
-      },
-    });
+  const listenNow = useCallback(() => {
+    if (!active.current || mutedRef.current || !mic.current) {
+      setVoiceState("idle");
+      return;
+    }
+    setInterim("");
+    setUserSpeaking(false);
+    setVoiceState("listening");
+    mic.current.listen();
   }, [setVoiceState]);
 
-  const listen = useCallback(() => {
-    setInterim("");
-    setVoiceState("listening");
-    audioLevelRef.current = -1;
-    handle.current = listenOnce({
-      onInterim: setInterim,
-      onLevel: (level) => {
-        audioLevelRef.current = level;
-      },
-      onError: (err) => {
-        if (err === "no_speech" && active.current) {
-          active.current = false;
-          setVoiceState("idle");
-          return;
-        }
-        active.current = false;
-        setError(ERROR_TEXT[err]);
-        setVoiceState("error");
-      },
-      onFinal: async ({ text, language }: SpeechInputResult) => {
-        setInterim("");
-        if (mutedRef.current || !active.current) {
-          setVoiceState("idle");
-          return;
-        }
-        setError(null);
-        setVoiceState("processing");
-        let reply: string | null;
-        try {
-          reply = await send(text, { language, ...(language ? { confidence: 0.95 } : {}) });
-        } catch {
-          if (active.current) {
-            setError("I couldn't reach the assistant. Please try again or type your message.");
-            setVoiceState("error");
-          } else {
-            setVoiceState("idle");
-          }
-          return;
-        }
-        if (!active.current) {
-          setVoiceState("idle");
-          return;
-        }
-        if (reply === null) {
-          // Empty/cancelled turn: never leave the ring stuck in "processing".
-          if (!mutedRef.current) listen();
+  const speak = useCallback(
+    (reply: string, myTurn: number, lang?: string | null) => {
+      if (!isServerSpeechSupported()) return listenNow();
+      setVoiceState("speaking");
+      speakServerChunks(reply, {
+        ...(lang ? { lang } : {}),
+        onStart: () => {
+          if (myTurn !== turn.current) return;
+          if (handsFreeRef.current && !mutedRef.current) mic.current?.watchForBargeIn();
+        },
+        onEnd: () => {
+          if (myTurn !== turn.current) return;
+          mic.current?.pause();
+          if (active.current) listenNow();
           else setVoiceState("idle");
-          return;
-        }
-        if (!isServerSpeechSupported()) {
-          if (active.current && !mutedRef.current) listen();
+        },
+        onError: (message) => {
+          if (myTurn !== turn.current) return;
+          mic.current?.pause();
+          setError(message || ERROR_TEXT.tts);
+          if (active.current) listenNow();
           else setVoiceState("idle");
-          return;
-        }
-        setVoiceState("speaking");
-        speakServer(reply, {
-          onStart: () => startBargeInMonitor(),
-          ...(language ? { lang: language } : {}),
-          onEnd: () => {
-            if (active.current && !mutedRef.current) listen();
-            else setVoiceState("idle");
-          },
-          onError: (message) => {
-            setError(message || ERROR_TEXT.tts);
-            if (active.current && !mutedRef.current) listen();
-            else setVoiceState("idle");
-          },
-        });
-      },
-      onEnd: () => {
-        handle.current = null;
-        setVoiceState((s) => (s === "listening" ? "idle" : s));
-      },
-    });
-  }, [send, setVoiceState, startBargeInMonitor]);
+        },
+      });
+    },
+    [listenNow, setVoiceState],
+  );
 
-  listenRef.current = listen;
+  const handleUtterance = useCallback(
+    async (u: Utterance) => {
+      const myTurn = ++turn.current;
+      setUserSpeaking(false);
+      setVoiceState("processing");
+      setInterim("Transcribing…");
+      transcribeAbort.current?.abort();
+      const ctrl = new AbortController();
+      transcribeAbort.current = ctrl;
+      let result: Awaited<ReturnType<typeof transcribeUtterance>>;
+      try {
+        result = await transcribeUtterance(u, {
+          signal: ctrl.signal,
+          languageHint: lastLanguage.current,
+        });
+      } catch (e) {
+        if (myTurn !== turn.current) return;
+        setInterim("");
+        const offline = typeof navigator !== "undefined" && !navigator.onLine;
+        setError(offline || /network|fetch/i.test(String(e)) ? ERROR_TEXT.network : ERROR_TEXT.stt);
+        return listenNow();
+      }
+      if (myTurn !== turn.current) return;
+      setInterim("");
+      if (!result.text) return listenNow(); // silence / noise / hallucination: keep listening
+      if (result.language) lastLanguage.current = result.language;
+      setError(null);
+      let reply: string | null;
+      let streamedText = "";
+      const speechStream = { current: null as StreamingSpeechController | null };
+      try {
+        // The server emits deltas only after its structured tool decision is validated as tool:null.
+        reply = await send(result.text, { language: result.language }, (delta) => {
+          if (myTurn !== turn.current) return;
+          streamedText += delta;
+          if (!speechStream.current && isServerSpeechSupported()) {
+            setVoiceState("speaking");
+            speechStream.current = createStreamingSpeechQueue({
+              ...(result.language ? { lang: result.language } : {}),
+              onStart: () => {
+                if (myTurn === turn.current && handsFreeRef.current && !mutedRef.current)
+                  mic.current?.watchForBargeIn();
+              },
+              onEnd: () => {
+                if (myTurn !== turn.current) return;
+                mic.current?.pause();
+                if (active.current) listenNow();
+                else setVoiceState("idle");
+              },
+              onError: (message) => {
+                if (myTurn !== turn.current) return;
+                mic.current?.pause();
+                setError(message || ERROR_TEXT.tts);
+                if (active.current) listenNow();
+                else setVoiceState("idle");
+              },
+            });
+          }
+          speechStream.current?.push(delta);
+        });
+      } catch {
+        speechStream.current?.cancel();
+        if (myTurn !== turn.current) return;
+        setError("I couldn't reach the assistant. Please try again or type your message.");
+        return listenNow();
+      }
+      if (myTurn !== turn.current || !active.current) {
+        speechStream.current?.cancel();
+        return;
+      }
+      if (!reply) {
+        speechStream.current?.cancel();
+        return listenNow();
+      }
+      if (speechStream.current && streamedText.trim() === reply.trim()) {
+        speechStream.current.finish();
+        return;
+      }
+      // If the request ended with a tool confirmation, a server error, or a cancelled stream,
+      // no speculative partial speech survives. Speak only the authoritative final response.
+      speechStream.current?.cancel();
+      speak(reply, myTurn, result.language);
+    },
+    [listenNow, send, setVoiceState, speak],
+  );
+
+  const interrupt = useCallback(() => {
+    if (stateRef.current !== "speaking" && stateRef.current !== "processing") return;
+    turn.current++;
+    cancelPending?.();
+    stopServerSpeech();
+    stopServerSpeechChunks();
+    transcribeAbort.current?.abort();
+    if (active.current) listenNow();
+    else setVoiceState("idle");
+  }, [listenNow, setVoiceState, cancelPending]);
 
   const start = useCallback(async () => {
-    primeServerSpeech(); // must run inside the user's tap so replies are allowed to play later
+    primeServerSpeech(); // must run inside the user's tap so replies may play later
     setError(null);
-    if (!isSpeechInputSupported()) {
+    if (!isVoiceInputSupported()) {
       setError(ERROR_TEXT.unsupported);
       setVoiceState("error");
       return;
     }
-    const perm = await requestMicrophone();
-    if (perm) {
-      setError(ERROR_TEXT[perm]);
+    if (mic.current?.isOpen) {
+      active.current = true;
+      mutedRef.current = false;
+      setMuted(false);
+      listenNow();
+      return;
+    }
+    const session = new MicSession();
+    mic.current = session;
+    try {
+      await session.open({
+        onLevel: (level) => {
+          audioLevelRef.current = level;
+        },
+        onSpeechStart: () => {
+          setUserSpeaking(true);
+          setInterim("Listening…");
+        },
+        onUtterance: (u) => void handleUtterance(u),
+        onIdle: () => {
+          if (stateRef.current !== "listening") return;
+          // Nobody spoke for a while: end hands-free mode quietly instead of looping forever.
+          active.current = false;
+          setInterim("");
+          setUserSpeaking(false);
+          setVoiceState("idle");
+        },
+        onBargeIn: () => {
+          if (stateRef.current !== "speaking") return;
+          turn.current++; // the reply being spoken is now stale
+          cancelPending?.();
+          stopServerSpeech();
+          stopServerSpeechChunks();
+          setUserSpeaking(true);
+          setInterim("Listening…");
+          setVoiceState("listening");
+        },
+        onError: (err) => {
+          active.current = false;
+          turn.current++;
+          cancelPending?.();
+          stopServerSpeech();
+          stopServerSpeechChunks();
+          mic.current?.close();
+          mic.current = null;
+          setError(ERROR_TEXT[err]);
+          setVoiceState("error");
+        },
+      });
+    } catch (e) {
+      session.close();
+      mic.current = null;
+      const err = (e as { name?: string }).name === "Unsupported" ? "unsupported" : micErrorFrom(e);
+      setError(ERROR_TEXT[err]);
       setVoiceState("error");
       return;
     }
     active.current = true;
     mutedRef.current = false;
     setMuted(false);
-    listen();
-  }, [listen, setVoiceState]);
+    listenNow();
+  }, [handleUtterance, listenNow, setVoiceState, cancelPending]);
 
   const toggleMute = useCallback(() => {
     const next = !mutedRef.current;
     mutedRef.current = next;
     setMuted(next);
     if (next) {
-      // Mute stops the microphone immediately. A reply that is processing/speaking is allowed to finish;
-      // the loop will not re-open the mic afterwards while muted.
-      handle.current?.abort();
-      bargeHandle.current?.abort();
-      handle.current = null;
-      bargeHandle.current = null;
+      // Mute stops listening immediately; an in-flight reply may finish but won't reopen the mic.
+      mic.current?.pause();
       setInterim("");
+      setUserSpeaking(false);
       if (stateRef.current === "listening" || stateRef.current === "error") setVoiceState("idle");
     } else if (active.current && stateRef.current === "idle") {
-      // Only re-open the mic when nothing else is in flight (never while speaking, or the mic hears the TTS).
-      listen();
+      listenNow();
+    } else if (stateRef.current === "speaking" && handsFreeRef.current) {
+      mic.current?.watchForBargeIn();
     }
-  }, [listen, setVoiceState]);
+  }, [listenNow, setVoiceState]);
+
+  /** User tapped "done talking": send what was said without waiting for the pause timeout. */
+  const finishUtterance = useCallback(() => {
+    if (stateRef.current === "listening") void mic.current?.flush();
+  }, []);
 
   const stop = useCallback(() => {
     active.current = false;
-    handle.current?.abort();
-    bargeHandle.current?.abort();
-    handle.current = null;
-    bargeHandle.current = null;
+    turn.current++;
+    cancelPending?.();
+    transcribeAbort.current?.abort();
+    mic.current?.close();
+    mic.current = null;
     stopServerSpeech();
+    stopServerSpeechChunks();
     setInterim("");
+    setUserSpeaking(false);
     audioLevelRef.current = -1;
     setVoiceState("idle");
     mutedRef.current = false;
     setMuted(false);
-  }, [setVoiceState]);
+  }, [setVoiceState, cancelPending]);
 
-  /** Speak a reply that came from typed input, when voice mode is idle. */
+  const setHandsFree = useCallback((value: boolean) => {
+    handsFreeRef.current = value;
+    setHandsFreeState(value);
+    try {
+      localStorage.setItem(HANDS_FREE_KEY, value ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+    if (!value && stateRef.current === "speaking") mic.current?.pause();
+    if (value && stateRef.current === "speaking" && !mutedRef.current)
+      mic.current?.watchForBargeIn();
+  }, []);
+
+  /** Speak a reply that came from typed input (no microphone involved). */
   const say = useCallback(
     (text: string) => {
-      if (!isServerSpeechSupported() || muted) return;
+      if (!isServerSpeechSupported() || mutedRef.current) return;
+      const myTurn = ++turn.current;
       setVoiceState("speaking");
-      speakServer(text, {
-        onStart: () => startBargeInMonitor(),
-        onEnd: () => setVoiceState("idle"),
+      speakServerChunks(text, {
+        onStart: () => {
+          if (myTurn === turn.current && active.current && handsFreeRef.current)
+            mic.current?.watchForBargeIn();
+        },
+        onEnd: () => {
+          if (myTurn !== turn.current) return;
+          if (active.current) listenNow();
+          else setVoiceState("idle");
+        },
         onError: (message) => {
+          if (myTurn !== turn.current) return;
           setError(message || ERROR_TEXT.tts);
           setVoiceState("idle");
         },
       });
     },
-    [muted, setVoiceState, startBargeInMonitor],
+    [listenNow, setVoiceState],
   );
 
   return {
@@ -248,8 +387,13 @@ export function useVoiceLoop(
     error,
     supported,
     muted,
+    userSpeaking,
+    handsFree,
+    setHandsFree,
     start,
     stop,
+    interrupt,
+    finishUtterance,
     toggleMute,
     say,
     clearError: () => setError(null),

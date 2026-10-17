@@ -32,6 +32,7 @@ type Opts = {
   jsonMode?: boolean;
   /** Per-automation provider pool (from DB2 client_automations.config.provider_pool). */
   pool?: ProviderPool | null;
+  signal?: AbortSignal;
 };
 
 const ENDPOINT: Record<string, { url: string; model: string }> = {
@@ -54,6 +55,11 @@ async function log(
   row: import("@/server/db/server-db.types").DB3Database["public"]["Tables"]["llm_requests"]["Insert"],
 ) {
   await admin.from("llm_requests").insert(row);
+}
+
+function requestSignal(signal?: AbortSignal): AbortSignal {
+  const timeout = AbortSignal.timeout(25_000);
+  return signal ? AbortSignal.any([signal, timeout]) : timeout;
 }
 
 async function requestProvider(
@@ -80,7 +86,7 @@ async function requestProvider(
         system,
         messages: bodyMessages,
       }),
-      signal: AbortSignal.timeout(25_000),
+      signal: requestSignal(o.signal),
     });
     const j = await res.json().catch(() => ({}) as unknown);
     return {
@@ -213,6 +219,7 @@ export async function routeChat(
         console.error("llm key cooldown update failed", e);
       }
     } catch (e) {
+      if (o.signal?.aborted) throw e;
       const latency = Date.now() - t0;
       const error = String(e).slice(0, 500);
       try {
@@ -242,6 +249,275 @@ export async function routeChat(
       } catch (updateError) {
         console.error("llm exception cooldown update failed", updateError);
       }
+    }
+  }
+  return null;
+}
+
+type StreamUsage = { text: string; tokensIn: number; tokensOut: number };
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+async function consumeProviderStream(
+  response: Response,
+  provider: string,
+  onDelta: (delta: string) => void,
+  signal?: AbortSignal,
+): Promise<StreamUsage> {
+  if (!response.body) throw new Error("Provider returned no streaming body.");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let text = "";
+  let tokensIn = 0;
+  let tokensOut = 0;
+
+  const line = (raw: string) => {
+    const value = raw.trim();
+    if (!value.startsWith("data:")) return;
+    const data = value.slice(5).trim();
+    if (!data || data === "[DONE]") return;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(data) as unknown;
+    } catch {
+      return;
+    }
+    const payload = asRecord(parsed);
+    const rawError = payload["error"];
+    const errorObject = asRecord(rawError);
+    if (payload["type"] === "error" || rawError) {
+      const message =
+        typeof rawError === "string" ? rawError : (errorObject["message"] ?? payload["message"]);
+      throw new Error(String(message ?? "Provider stream failed."));
+    }
+    const usage = asRecord(payload["usage"]);
+    const message = asRecord(payload["message"]);
+    const messageUsage = asRecord(message["usage"]);
+    const inputCount = Number(
+      usage["prompt_tokens"] ?? usage["input_tokens"] ?? messageUsage["input_tokens"] ?? 0,
+    );
+    const outputCount = Number(
+      usage["completion_tokens"] ?? usage["output_tokens"] ?? messageUsage["output_tokens"] ?? 0,
+    );
+    if (Number.isFinite(inputCount)) tokensIn = Math.max(tokensIn, inputCount);
+    if (Number.isFinite(outputCount)) tokensOut = Math.max(tokensOut, outputCount);
+
+    let delta: unknown = "";
+    if (provider === "anthropic") {
+      const deltaRecord = asRecord(payload["delta"]);
+      if (payload["type"] === "content_block_delta" && deltaRecord["type"] === "text_delta") {
+        delta = deltaRecord["text"];
+      }
+    } else {
+      const choices = Array.isArray(payload["choices"]) ? payload["choices"] : [];
+      const choice = asRecord(choices[0]);
+      const deltaRecord = asRecord(choice["delta"]);
+      delta = deltaRecord["content"] ?? "";
+    }
+    if (typeof delta === "string" && delta) {
+      text += delta;
+      onDelta(delta);
+    } else if (Array.isArray(delta)) {
+      for (const item of delta) {
+        const part = asRecord(item);
+        const partText = part["text"];
+        if (typeof partText === "string" && partText) {
+          text += partText;
+          onDelta(partText);
+        }
+      }
+    }
+  };
+
+  try {
+    while (true) {
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+      const next = await reader.read();
+      buffer += decoder.decode(next.value, { stream: !next.done });
+      let newline = buffer.indexOf("\n");
+      while (newline >= 0) {
+        const current = buffer.slice(0, newline).replace(/\r$/, "");
+        buffer = buffer.slice(newline + 1);
+        line(current);
+        newline = buffer.indexOf("\n");
+      }
+      if (next.done) break;
+    }
+    if (buffer.trim()) line(buffer.replace(/\r$/, ""));
+    return { text, tokensIn, tokensOut };
+  } finally {
+    if (signal?.aborted) await reader.cancel().catch(() => undefined);
+    reader.releaseLock();
+  }
+}
+
+/**
+ * Streams a plain-text final response through the same encrypted DB3 key pool used by routeChat.
+ * Provider failover is allowed only before visible output, so text from two models is never mixed.
+ */
+export async function routeChatStream(
+  messages: ChatMsg[],
+  o: Opts = {},
+  onDelta: (delta: string) => void,
+  admin: Admin = db3Admin,
+): Promise<RouteResult | null> {
+  let query = admin
+    .from("llm_api_keys")
+    .select(
+      "id,provider_key,label,key_ciphertext,model,cooldown_until,request_count,error_count,priority,is_active",
+    )
+    .eq("is_active", true);
+  if (o.provider) query = query.eq("provider_key", o.provider);
+  if (o.keyLabel) query = query.eq("label", o.keyLabel);
+  const { data } = await query.order("priority", { ascending: true });
+  const now = Date.now();
+  const keys = orderKeys(
+    (data ?? []).filter(
+      (k) => !k.cooldown_until || new Date(k.cooldown_until).getTime() < now,
+    ) as unknown as (PoolKey & (typeof data extends (infer R)[] | null ? R : never))[],
+    o.pool ?? null,
+  );
+  let emitted = false;
+
+  for (const keyRow of keys) {
+    const provider = String(keyRow.provider_key);
+    const endpoint = ENDPOINT[provider];
+    if (!endpoint) continue;
+    const secret = await decryptKey(keyRow);
+    if (!secret) continue;
+    const model = String(
+      o.model?.trim() || modelFor(o.pool ?? null, provider) || keyRow.model || endpoint.model,
+    );
+    const started = Date.now();
+    let status = 0;
+    try {
+      const isAnthropic = provider === "anthropic";
+      const system = messages
+        .filter((m) => m.role === "system")
+        .map((m) => m.content)
+        .join("\n\n");
+      const bodyMessages = messages.filter((m) => m.role !== "system");
+      const response = await fetch(endpoint.url, {
+        method: "POST",
+        headers: isAnthropic
+          ? {
+              "x-api-key": secret,
+              "anthropic-version": "2023-06-01",
+              "Content-Type": "application/json",
+              Accept: "text/event-stream",
+            }
+          : {
+              Authorization: `Bearer ${secret}`,
+              "Content-Type": "application/json",
+              Accept: "text/event-stream",
+            },
+        body: JSON.stringify(
+          isAnthropic
+            ? {
+                model,
+                max_tokens: o.maxTokens ?? 1200,
+                temperature: o.temperature ?? 0.2,
+                system,
+                messages: bodyMessages,
+                stream: true,
+              }
+            : {
+                model,
+                messages,
+                max_tokens: o.maxTokens ?? 1200,
+                temperature: o.temperature ?? 0.2,
+                stream: true,
+              },
+        ),
+        signal: requestSignal(o.signal),
+      });
+      status = response.status;
+      if (!response.ok) {
+        const details = (await response.text().catch(() => "")).slice(0, 400);
+        throw new Error(`Provider HTTP ${response.status}: ${details}`);
+      }
+      const streamed = await consumeProviderStream(
+        response,
+        provider,
+        (delta) => {
+          emitted = true;
+          onDelta(delta);
+        },
+        o.signal,
+      );
+      if (!streamed.text.trim()) throw new Error("Provider returned an empty stream.");
+      try {
+        await admin
+          .from("llm_api_keys")
+          .update({
+            request_count: Number(keyRow.request_count ?? 0) + 1,
+            last_used_at: new Date().toISOString(),
+          })
+          .eq("id", keyRow.id);
+      } catch (e) {
+        console.error("llm streamed key usage update failed", e);
+      }
+      try {
+        await log(admin, {
+          client_id: o.clientId ?? null,
+          automation_id: o.automationId ?? null,
+          key_id: keyRow.id,
+          provider_key: provider,
+          model,
+          status: "success",
+          http_status: status || 200,
+          latency_ms: Date.now() - started,
+          tokens_in: streamed.tokensIn,
+          tokens_out: streamed.tokensOut || Math.ceil(streamed.text.length / 4),
+        });
+      } catch (e) {
+        console.error("llm streamed success log failed", e);
+      }
+      return {
+        reply: streamed.text,
+        provider,
+        model,
+        tokensIn: streamed.tokensIn,
+        tokensOut: streamed.tokensOut || Math.ceil(streamed.text.length / 4),
+      };
+    } catch (error) {
+      if (o.signal?.aborted) throw error;
+      const detail = String(error).slice(0, 500);
+      try {
+        await log(admin, {
+          client_id: o.clientId ?? null,
+          automation_id: o.automationId ?? null,
+          key_id: keyRow.id,
+          provider_key: provider,
+          model,
+          status: "error",
+          http_status: status,
+          latency_ms: Date.now() - started,
+          error: detail,
+        });
+      } catch (logError) {
+        console.error("llm streamed error log failed", logError);
+      }
+      try {
+        await admin
+          .from("llm_api_keys")
+          .update({
+            error_count: Number(keyRow.error_count ?? 0) + 1,
+            last_error: detail,
+            cooldown_until: new Date(
+              Date.now() + (status === 429 ? 60_000 : 300_000),
+            ).toISOString(),
+          })
+          .eq("id", keyRow.id);
+      } catch (updateError) {
+        console.error("llm streamed cooldown update failed", updateError);
+      }
+      if (emitted) throw error;
     }
   }
   return null;

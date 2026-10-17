@@ -59,6 +59,8 @@ export function primeServerSpeech() {
 function releaseAudio() {
   if (player) {
     player.onended = null;
+    player.onpause = null;
+    player.onplaying = null;
     player.onerror = null;
     try {
       player.pause();
@@ -148,6 +150,22 @@ export function speakServer(text: string, opts: ServerSpeakOptions) {
       };
       const audio = player ?? (player = new Audio());
       objectUrl = URL.createObjectURL(blob);
+      let started = false;
+      let resumes = 0;
+      audio.onplaying = () => {
+        if (!current() || started) return;
+        started = true;
+        opts.onStart?.(info);
+      };
+      // Android may pause media briefly when audio focus changes (e.g. a notification or the
+      // capture stream starting). That is not the user stopping us: resume, a bounded number of times.
+      audio.onpause = () => {
+        if (!current() || audio.ended || resumes >= 3) return;
+        resumes += 1;
+        setTimeout(() => {
+          if (current() && audio.paused && !audio.ended) void audio.play().catch(() => undefined);
+        }, 120);
+      };
       audio.onended = () => {
         if (!current()) return;
         releaseAudio();
@@ -158,9 +176,13 @@ export function speakServer(text: string, opts: ServerSpeakOptions) {
         releaseAudio();
         opts.onError(MESSAGES.generic);
       };
+      audio.preload = "auto";
       audio.src = objectUrl;
       await audio.play();
-      if (current()) opts.onStart?.(info);
+      if (current() && !started) {
+        started = true;
+        opts.onStart?.(info);
+      }
     } catch (e) {
       if (!current() || (e instanceof DOMException && e.name === "AbortError")) return;
       releaseAudio();
