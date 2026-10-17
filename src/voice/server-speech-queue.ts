@@ -205,3 +205,168 @@ export function speakServerChunks(text: string, opts: ServerSpeakOptions) {
   };
   void playNext();
 }
+
+
+export type StreamingSpeechController = {
+  push: (delta: string) => void;
+  finish: () => void;
+  cancel: () => void;
+};
+
+/**
+ * Consumes model text deltas and begins TTS as soon as one or two complete
+ * sentences are available. Audio synthesis runs one chunk ahead of playback.
+ */
+export function createStreamingSpeechQueue(opts: ServerSpeakOptions): StreamingSpeechController {
+  stopServerSpeechChunks();
+  const mine = ++generation;
+  const isCurrent = () => mine === generation;
+  let pendingText = "";
+  let totalSpeechChars = 0;
+  let sentenceGroup: string[] = [];
+  let sentenceGroupLength = 0;
+  let finished = false;
+  let failed = false;
+  let started = false;
+  let ended = false;
+  let activePlayback = false;
+  let nextIndex = 0;
+  const texts: string[] = [];
+  const pending = new Map<number, Promise<AudioChunk>>();
+
+  const reportError = (message: string) => {
+    if (!isCurrent() || failed) return;
+    failed = true;
+    stopServerSpeechChunks();
+    opts.onError(message.slice(0, 200));
+  };
+
+  const enqueueSentence = (sentence: string) => {
+    const value = sentence.trim();
+    if (!value || totalSpeechChars >= MAX_CHARS) return;
+    const allowed = value.slice(0, MAX_CHARS - totalSpeechChars);
+    totalSpeechChars += allowed.length;
+    if (allowed.length <= CHUNK_TARGET) {
+      sentenceGroup.push(allowed);
+      sentenceGroupLength += allowed.length;
+    } else {
+      flushSentenceGroup();
+      let rest = allowed;
+      while (rest.length > CHUNK_TARGET) {
+        let split = rest.lastIndexOf(" ", CHUNK_TARGET);
+        if (split < CHUNK_TARGET / 2) split = CHUNK_TARGET;
+        texts.push(rest.slice(0, split).trim());
+        rest = rest.slice(split).trim();
+      }
+      if (rest) sentenceGroup.push(rest);
+      sentenceGroupLength = rest.length;
+    }
+    if (sentenceGroupLength >= 180 || sentenceGroup.length >= 2) flushSentenceGroup();
+  };
+
+  function flushSentenceGroup() {
+    if (!sentenceGroup.length) return;
+    const text = sentenceGroup.join(" ").trim();
+    sentenceGroup = [];
+    sentenceGroupLength = 0;
+    if (text) texts.push(text);
+  }
+
+  const prepare = (index: number) => {
+    if (index >= texts.length || pending.has(index) || !isCurrent()) return;
+    pending.set(index, fetchChunk(texts[index]!, opts.lang, mine));
+  };
+
+  const pump = () => {
+    if (!isCurrent() || failed || activePlayback) return;
+    if (nextIndex >= texts.length) {
+      if (finished && !ended) {
+        ended = true;
+        if (totalSpeechChars) opts.onEnd();
+        else opts.onError(GENERIC_ERROR);
+      }
+      return;
+    }
+    prepare(nextIndex);
+    prepare(nextIndex + 1);
+    const promise = pending.get(nextIndex);
+    if (!promise) return;
+    activePlayback = true;
+    void promise.then((chunk) => {
+      if (!isCurrent() || failed) return;
+      pending.delete(nextIndex);
+      const audio = new Audio();
+      activeAudio = audio;
+      activeUrl = URL.createObjectURL(chunk.blob);
+      audio.preload = "auto";
+      audio.src = activeUrl;
+
+      const playFollowing = () => {
+        if (!isCurrent()) return;
+        cleanupAudio();
+        activePlayback = false;
+        nextIndex++;
+        pump();
+      };
+      audio.onplaying = () => {
+        if (!isCurrent() || started) return;
+        started = true;
+        opts.onStart?.(chunk.info);
+      };
+      audio.onended = playFollowing;
+      audio.onerror = () => reportError(GENERIC_ERROR);
+      void audio.play().then(() => {
+        if (isCurrent() && !started) {
+          started = true;
+          opts.onStart?.(chunk.info);
+        }
+      }).catch((error) => {
+        if (!isCurrent()) return;
+        reportError(
+          error instanceof DOMException && error.name === "NotAllowedError"
+            ? "Your browser blocked audio playback. Tap the microphone again to enable it."
+            : GENERIC_ERROR,
+        );
+      });
+    }).catch((error) => {
+      if (!isCurrent() || (error instanceof DOMException && error.name === "AbortError")) return;
+      reportError(error instanceof Error ? error.message : GENERIC_ERROR);
+    });
+  };
+
+  const acceptSentences = () => {
+    // Sentence terminators can arrive in separate network chunks. Require following whitespace
+    // before releasing a sentence; finish() flushes the final tail without punctuation.
+    const boundary = /[.!?。！？]["'”’)]*\s+/u;
+    while (true) {
+      const match = boundary.exec(pendingText);
+      if (!match) break;
+      const end = match.index + match[0].length;
+      enqueueSentence(pendingText.slice(0, end).trim());
+      pendingText = pendingText.slice(end);
+    }
+    pump();
+  };
+
+  return {
+    push(delta) {
+      if (!isCurrent() || finished || failed || !delta) return;
+      pendingText += delta;
+      acceptSentences();
+    },
+    finish() {
+      if (!isCurrent() || finished || failed) return;
+      finished = true;
+      if (pendingText.trim()) enqueueSentence(pendingText.trim());
+      pendingText = "";
+      flushSentenceGroup();
+      // The final flush may have added new work after pump's previous check.
+      prepare(nextIndex);
+      prepare(nextIndex + 1);
+      pump();
+    },
+    cancel() {
+      if (isCurrent()) stopServerSpeechChunks();
+    },
+  };
+}
