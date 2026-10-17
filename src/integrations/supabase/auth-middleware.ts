@@ -27,34 +27,28 @@ export type AuthContext = {
   tenant: TenantContext;
 };
 
-/**
- * Resolve the same Supabase claims and tenant context for direct HTTP endpoints.
- * An absent bearer token means guest access; a supplied malformed/invalid token is never
- * silently downgraded to guest access.
- */
-export async function authContextFromRequest(request: Request): Promise<AuthContext | null> {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader) return null;
-  if (!authHeader.startsWith("Bearer ")) throw new Response("Unauthorized", { status: 401 });
-  const token = authHeader.slice("Bearer ".length).trim();
-  if (!token || token.split(".").length !== 3)
-    throw new Response("Unauthorized", { status: 401 });
-
-  const supabase = createAuthClient(token);
-  const { data, error } = await supabase.auth.getClaims(token);
-  if (error || !data?.claims?.sub) throw new Response("Unauthorized", { status: 401 });
-
-  const claims = data.claims as Record<string, unknown>;
-  const tenant = await resolveTenantContext(token, claims);
-  return { supabase, userId: String(data.claims.sub), claims, tenant };
-}
-
 export const requireSupabaseAuth = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
     const request = getRequest();
-    if (!request) throw new Response("Unauthorized", { status: 401 });
-    const context = await authContextFromRequest(request);
-    if (!context) throw new Response("Unauthorized", { status: 401 });
-    return next({ context: context satisfies AuthContext });
+    const authHeader = request?.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) throw new Response("Unauthorized", { status: 401 });
+    const token = authHeader.slice("Bearer ".length).trim();
+    if (!token || token.split(".").length !== 3)
+      throw new Response("Unauthorized", { status: 401 });
+
+    const supabase = createAuthClient(token);
+    const { data, error } = await supabase.auth.getClaims(token);
+    if (error || !data?.claims?.sub) throw new Response("Unauthorized", { status: 401 });
+
+    const claims = data.claims as Record<string, unknown>;
+    const tenant = await resolveTenantContext(token, claims);
+    return next({
+      context: {
+        supabase,
+        userId: String(data.claims.sub),
+        claims,
+        tenant,
+      } satisfies AuthContext,
+    });
   },
 );
