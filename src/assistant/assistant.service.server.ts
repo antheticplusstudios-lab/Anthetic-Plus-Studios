@@ -217,7 +217,9 @@ export async function runAssistant(args: {
         const finalContextPrompt =
           baseSystemPrompt.split("\n\nOUTPUT PROTOCOL")[0] ?? baseSystemPrompt;
         const additionalSystemMessages = messages
-          .filter((message) => message.role === "system" && message.content !== decisionSystemPrompt)
+          .filter(
+            (message) => message.role === "system" && message.content !== decisionSystemPrompt,
+          )
           .map((message) => message.content);
         const conversationMessages = messages.filter((message) => message.role !== "system");
         const finalSystem = [
