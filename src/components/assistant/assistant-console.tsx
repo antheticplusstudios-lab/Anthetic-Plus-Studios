@@ -58,7 +58,7 @@ export function AssistantConsole({ variant = "compact" }: { variant?: "compact" 
     staleTime: 60_000,
   });
   const session = useAssistantSession();
-  const voice = useVoiceLoop(session.send);
+  const voice = useVoiceLoop(session.send, session.cancel);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
