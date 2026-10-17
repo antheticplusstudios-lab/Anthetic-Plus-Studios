@@ -51,17 +51,18 @@ export const routerProvider: AssistantModelProvider = {
     return { text: result.reply, provider: result.provider, model: result.model };
   },
   async streamText(messages, options, onDelta) {
-    const result = await routeChatStream(
-      messages,
-      {
-        clientId: options.clientId,
-        maxTokens: options.maxTokens,
-        temperature: options.temperature,
-        ...(options.keyLabel ? { keyLabel: options.keyLabel } : {}),
-        ...(options.signal ? { signal: options.signal } : {}),
-      },
-      onDelta,
-    );
+    const streamOptions = {
+      clientId: options.clientId,
+      maxTokens: options.maxTokens,
+      temperature: options.temperature,
+      ...(options.signal ? { signal: options.signal } : {}),
+    };
+    const preferred = options.keyLabel
+      ? await routeChatStream(messages, { ...streamOptions, keyLabel: options.keyLabel }, onDelta)
+      : await routeChatStream(messages, streamOptions, onDelta);
+    const result =
+      preferred ??
+      (options.keyLabel ? await routeChatStream(messages, streamOptions, onDelta) : null);
     return result ? { text: result.reply, provider: result.provider, model: result.model } : null;
   },
 };
