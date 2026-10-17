@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { authContextFromRequest, type AuthContext } from "@/integrations/supabase/auth-middleware";
+import { authContextFromRequest } from "@/server/auth/request-context.server";
+import type { AuthContext } from "@/integrations/supabase/auth-middleware";
 import { runAssistant } from "@/assistant/assistant.service.server";
 import { MAX_HISTORY_TURNS, MAX_MESSAGE_LENGTH, type AssistantResponse } from "@/assistant/assistant.types";
 import { requestOrigin } from "@/assistant/sites/site-http.server";
