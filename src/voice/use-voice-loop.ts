@@ -17,7 +17,7 @@ import {
   primeServerSpeech,
   stopServerSpeech,
 } from "./server-speech";
-import { speakServerChunks, stopServerSpeechChunks } from "./server-speech-queue";
+import { createStreamingSpeechQueue, speakServerChunks, stopServerSpeechChunks, type StreamingSpeechController } from "./server-speech-queue";
 
 export type VoiceState = "idle" | "listening" | "processing" | "speaking" | "error";
 
@@ -46,6 +46,7 @@ export function useVoiceLoop(
   send: (
     text: string,
     language?: { language?: string | null; confidence?: number },
+    onDelta?: (delta: string) => void,
   ) => Promise<string | null>,
   cancelPending?: () => void,
 ) {
@@ -161,18 +162,63 @@ export function useVoiceLoop(
       if (result.language) lastLanguage.current = result.language;
       setError(null);
       let reply: string | null;
+      let streamedText = "";
+      let speechStream: StreamingSpeechController | null = null;
       try {
-        // Whisper returns a language label, not a calibrated confidence score.
-        reply = await send(result.text, {
-          language: result.language,
-        });
+        // The server emits deltas only after its structured tool decision is validated as tool:null.
+        reply = await send(
+          result.text,
+          { language: result.language },
+          (delta) => {
+            if (myTurn !== turn.current) return;
+            streamedText += delta;
+            if (!speechStream && isServerSpeechSupported()) {
+              setVoiceState("speaking");
+              speechStream = createStreamingSpeechQueue({
+                ...(result.language ? { lang: result.language } : {}),
+                onStart: () => {
+                  if (myTurn === turn.current && handsFreeRef.current && !mutedRef.current)
+                    mic.current?.watchForBargeIn();
+                },
+                onEnd: () => {
+                  if (myTurn !== turn.current) return;
+                  mic.current?.pause();
+                  if (active.current) listenNow();
+                  else setVoiceState("idle");
+                },
+                onError: (message) => {
+                  if (myTurn !== turn.current) return;
+                  mic.current?.pause();
+                  setError(message || ERROR_TEXT.tts);
+                  if (active.current) listenNow();
+                  else setVoiceState("idle");
+                },
+              });
+            }
+            speechStream?.push(delta);
+          },
+        );
       } catch {
+        speechStream?.cancel();
         if (myTurn !== turn.current) return;
         setError("I couldn't reach the assistant. Please try again or type your message.");
         return listenNow();
       }
-      if (myTurn !== turn.current || !active.current) return;
-      if (!reply) return listenNow();
+      if (myTurn !== turn.current || !active.current) {
+        speechStream?.cancel();
+        return;
+      }
+      if (!reply) {
+        speechStream?.cancel();
+        return listenNow();
+      }
+      if (speechStream && streamedText.trim() === reply.trim()) {
+        speechStream.finish();
+        return;
+      }
+      // If the request ended with a tool confirmation, a server error, or a cancelled stream,
+      // no speculative partial speech survives. Speak only the authoritative final response.
+      speechStream?.cancel();
       speak(reply, myTurn, result.language);
     },
     [listenNow, send, setVoiceState, speak],
