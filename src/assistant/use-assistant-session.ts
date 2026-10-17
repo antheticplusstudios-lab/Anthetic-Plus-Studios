@@ -154,7 +154,7 @@ export function useAssistantSession() {
       const assistantId = uid();
       let partialEntry = false;
       let partialText = "";
-      let finalResponse: AssistantResponse | null = null;
+      const finalResponse = { current: null as AssistantResponse | null };
 
       const appendDelta = (delta: string) => {
         if (gen !== generation.current || ctrl.signal.aborted || !delta) return;
@@ -227,7 +227,7 @@ export function useAssistantSession() {
               const delta = (payload as { text?: unknown })?.text;
               if (typeof delta === "string") appendDelta(delta);
             } else if (eventName === "complete" || eventName === "error") {
-              finalResponse = payload as AssistantResponse;
+              finalResponse.current = payload as AssistantResponse;
             }
           };
 
@@ -248,8 +248,8 @@ export function useAssistantSession() {
             if (next.done) break;
           }
           if (buffer.trim()) handleEvent(buffer.replace(/\r/g, ""));
-          if (!finalResponse) {
-            finalResponse = {
+          if (!finalResponse.current) {
+            finalResponse.current = {
               ok: false,
               error: { code: "network", message: "The assistant stream ended unexpectedly. Please try again." },
               requestId: "client",
@@ -257,38 +257,43 @@ export function useAssistantSession() {
           }
         }
 
-        if (gen !== generation.current || ctrl.signal.aborted || !finalResponse) return null;
-        if (!finalResponse.ok) {
+        const finalResult = finalResponse.current;
+        if (gen !== generation.current || ctrl.signal.aborted || !finalResult) return null;
+        if (!finalResult.ok) {
           if (partialEntry) {
-            patch(assistantId, { content: finalResponse.error.message, isError: true, actions: undefined, pending: null });
+            patch(assistantId, {
+              content: finalResult.error.message,
+              isError: true,
+              pending: null,
+            });
           } else {
-            push({ id: assistantId, role: "assistant", content: finalResponse.error.message, isError: true });
+            push({ id: assistantId, role: "assistant", content: finalResult.error.message, isError: true });
           }
-          return finalResponse.error.message;
+          return finalResult.error.message;
         }
-        setPending(finalResponse.pending);
+        setPending(finalResult.pending);
         if (partialEntry) {
           patch(assistantId, {
-            content: finalResponse.reply,
-            actions: finalResponse.actions,
-            pending: finalResponse.pending,
+            content: finalResult.reply,
+            actions: finalResult.actions,
+            pending: finalResult.pending,
             isError: false,
           });
         } else {
           push({
             id: assistantId,
             role: "assistant",
-            content: finalResponse.reply,
-            actions: finalResponse.actions,
-            pending: finalResponse.pending,
+            content: finalResult.reply,
+            actions: finalResult.actions,
+            pending: finalResult.pending,
           });
         }
-        return finalResponse.reply;
+        return finalResult.reply;
       } catch (error) {
         if (gen !== generation.current || ctrl.signal.aborted) return null;
         const message = errorFromThrown(error);
         if (partialEntry) {
-          patch(assistantId, { content: message, isError: true, actions: undefined, pending: null });
+          patch(assistantId, { content: message, isError: true, pending: null });
         } else {
           push({ id: assistantId, role: "assistant", content: message, isError: true });
         }
