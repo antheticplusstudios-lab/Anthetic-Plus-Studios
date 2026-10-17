@@ -154,7 +154,7 @@ export function useAssistantSession() {
       const assistantId = uid();
       let partialEntry = false;
       let partialText = "";
-      const finalResponse = { current: null as AssistantResponse | null };
+      const finalResponse.current = { current: null as AssistantResponse | null };
 
       const appendDelta = (delta: string) => {
         if (gen !== generation.current || ctrl.signal.aborted || !delta) return;
@@ -194,13 +194,13 @@ export function useAssistantSession() {
             | { error?: { message?: string } }
             | null;
           const message = payload?.error?.message || "I couldn't reach the assistant. Please try again.";
-          finalResponse = {
+          finalResponse.current = {
             ok: false,
             error: { code: response.status === 401 ? "unauthenticated" : "network", message },
             requestId: "client",
           };
         } else if (!response.body) {
-          finalResponse = {
+          finalResponse.current = {
             ok: false,
             error: { code: "network", message: "Your browser couldn't open the assistant stream. Please try again." },
             requestId: "client",
