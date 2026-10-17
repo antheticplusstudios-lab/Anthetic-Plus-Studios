@@ -58,7 +58,7 @@ export function AssistantConsole({ variant = "compact" }: { variant?: "compact" 
     staleTime: 60_000,
   });
   const session = useAssistantSession();
-  const voice = useVoiceLoop(session.send);
+  const voice = useVoiceLoop(session.send, session.cancel);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -70,7 +70,7 @@ export function AssistantConsole({ variant = "compact" }: { variant?: "compact" 
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [session.entries.length, session.busy, voice.interim]);
+  }, [session.entries, session.busy, voice.interim]);
 
   const submit = async () => {
     const text = input.trim();

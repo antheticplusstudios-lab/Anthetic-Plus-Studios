@@ -12,12 +12,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MicSession, micErrorFrom, type MicError, type Utterance } from "./mic-session";
 import { transcribeUtterance } from "./transcribe-client";
+import { isServerSpeechSupported, primeServerSpeech, stopServerSpeech } from "./server-speech";
 import {
-  isServerSpeechSupported,
-  primeServerSpeech,
-  speakServer,
-  stopServerSpeech,
-} from "./server-speech";
+  createStreamingSpeechQueue,
+  speakServerChunks,
+  stopServerSpeechChunks,
+  type StreamingSpeechController,
+} from "./server-speech-queue";
 
 export type VoiceState = "idle" | "listening" | "processing" | "speaking" | "error";
 
@@ -46,7 +47,9 @@ export function useVoiceLoop(
   send: (
     text: string,
     language?: { language?: string | null; confidence?: number },
+    onDelta?: (delta: string) => void,
   ) => Promise<string | null>,
+  cancelPending?: () => void,
 ) {
   const [state, setState] = useState<VoiceState>("idle");
   const [interim, setInterim] = useState("");
@@ -89,6 +92,7 @@ export function useVoiceLoop(
       mic.current?.close();
       mic.current = null;
       stopServerSpeech();
+      stopServerSpeechChunks();
     };
   }, []);
 
@@ -107,7 +111,7 @@ export function useVoiceLoop(
     (reply: string, myTurn: number, lang?: string | null) => {
       if (!isServerSpeechSupported()) return listenNow();
       setVoiceState("speaking");
-      speakServer(reply, {
+      speakServerChunks(reply, {
         ...(lang ? { lang } : {}),
         onStart: () => {
           if (myTurn !== turn.current) return;
@@ -159,18 +163,59 @@ export function useVoiceLoop(
       if (result.language) lastLanguage.current = result.language;
       setError(null);
       let reply: string | null;
+      let streamedText = "";
+      const speechStream = { current: null as StreamingSpeechController | null };
       try {
-        // Whisper returns a language label, not a calibrated confidence score.
-        reply = await send(result.text, {
-          language: result.language,
+        // The server emits deltas only after its structured tool decision is validated as tool:null.
+        reply = await send(result.text, { language: result.language }, (delta) => {
+          if (myTurn !== turn.current) return;
+          streamedText += delta;
+          if (!speechStream.current && isServerSpeechSupported()) {
+            setVoiceState("speaking");
+            speechStream.current = createStreamingSpeechQueue({
+              ...(result.language ? { lang: result.language } : {}),
+              onStart: () => {
+                if (myTurn === turn.current && handsFreeRef.current && !mutedRef.current)
+                  mic.current?.watchForBargeIn();
+              },
+              onEnd: () => {
+                if (myTurn !== turn.current) return;
+                mic.current?.pause();
+                if (active.current) listenNow();
+                else setVoiceState("idle");
+              },
+              onError: (message) => {
+                if (myTurn !== turn.current) return;
+                mic.current?.pause();
+                setError(message || ERROR_TEXT.tts);
+                if (active.current) listenNow();
+                else setVoiceState("idle");
+              },
+            });
+          }
+          speechStream.current?.push(delta);
         });
       } catch {
+        speechStream.current?.cancel();
         if (myTurn !== turn.current) return;
         setError("I couldn't reach the assistant. Please try again or type your message.");
         return listenNow();
       }
-      if (myTurn !== turn.current || !active.current) return;
-      if (!reply) return listenNow();
+      if (myTurn !== turn.current || !active.current) {
+        speechStream.current?.cancel();
+        return;
+      }
+      if (!reply) {
+        speechStream.current?.cancel();
+        return listenNow();
+      }
+      if (speechStream.current && streamedText.trim() === reply.trim()) {
+        speechStream.current.finish();
+        return;
+      }
+      // If the request ended with a tool confirmation, a server error, or a cancelled stream,
+      // no speculative partial speech survives. Speak only the authoritative final response.
+      speechStream.current?.cancel();
       speak(reply, myTurn, result.language);
     },
     [listenNow, send, setVoiceState, speak],
@@ -179,11 +224,13 @@ export function useVoiceLoop(
   const interrupt = useCallback(() => {
     if (stateRef.current !== "speaking" && stateRef.current !== "processing") return;
     turn.current++;
+    cancelPending?.();
     stopServerSpeech();
+    stopServerSpeechChunks();
     transcribeAbort.current?.abort();
     if (active.current) listenNow();
     else setVoiceState("idle");
-  }, [listenNow, setVoiceState]);
+  }, [listenNow, setVoiceState, cancelPending]);
 
   const start = useCallback(async () => {
     primeServerSpeech(); // must run inside the user's tap so replies may play later
@@ -223,7 +270,9 @@ export function useVoiceLoop(
         onBargeIn: () => {
           if (stateRef.current !== "speaking") return;
           turn.current++; // the reply being spoken is now stale
+          cancelPending?.();
           stopServerSpeech();
+          stopServerSpeechChunks();
           setUserSpeaking(true);
           setInterim("Listening…");
           setVoiceState("listening");
@@ -231,7 +280,9 @@ export function useVoiceLoop(
         onError: (err) => {
           active.current = false;
           turn.current++;
+          cancelPending?.();
           stopServerSpeech();
+          stopServerSpeechChunks();
           mic.current?.close();
           mic.current = null;
           setError(ERROR_TEXT[err]);
@@ -250,7 +301,7 @@ export function useVoiceLoop(
     mutedRef.current = false;
     setMuted(false);
     listenNow();
-  }, [handleUtterance, listenNow, setVoiceState]);
+  }, [handleUtterance, listenNow, setVoiceState, cancelPending]);
 
   const toggleMute = useCallback(() => {
     const next = !mutedRef.current;
@@ -277,17 +328,19 @@ export function useVoiceLoop(
   const stop = useCallback(() => {
     active.current = false;
     turn.current++;
+    cancelPending?.();
     transcribeAbort.current?.abort();
     mic.current?.close();
     mic.current = null;
     stopServerSpeech();
+    stopServerSpeechChunks();
     setInterim("");
     setUserSpeaking(false);
     audioLevelRef.current = -1;
     setVoiceState("idle");
     mutedRef.current = false;
     setMuted(false);
-  }, [setVoiceState]);
+  }, [setVoiceState, cancelPending]);
 
   const setHandsFree = useCallback((value: boolean) => {
     handsFreeRef.current = value;
@@ -308,7 +361,7 @@ export function useVoiceLoop(
       if (!isServerSpeechSupported() || mutedRef.current) return;
       const myTurn = ++turn.current;
       setVoiceState("speaking");
-      speakServer(text, {
+      speakServerChunks(text, {
         onStart: () => {
           if (myTurn === turn.current && active.current && handsFreeRef.current)
             mic.current?.watchForBargeIn();
