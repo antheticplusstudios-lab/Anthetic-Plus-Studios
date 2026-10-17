@@ -103,7 +103,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("LLM provider streaming", () => {
   it("parses OpenAI-compatible SSE deltas and logs a successful request", async () => {
     addKey("groq");
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
       sseResponse([
         'data: {"choices":[{"delta":{"content":"Hello "}}]}\n\n',
         'data: {"choices":[{"delta":{"content":"world."}}]}\n\n',
@@ -122,8 +122,9 @@ describe("LLM provider streaming", () => {
     expect(result?.reply).toBe("Hello world.");
     expect(deltas).toEqual(["Hello ", "world."]);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
-    expect(JSON.parse(String(init.body)).stream).toBe(true);
+    const init = fetchMock.mock.calls[0]?.[1];
+    expect(init).toBeDefined();
+    expect(JSON.parse(String(init?.body)).stream).toBe(true);
     expect(state.logs.at(-1)).toMatchObject({ provider_key: "groq", status: "success" });
   });
 
