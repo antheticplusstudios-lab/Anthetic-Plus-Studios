@@ -5,6 +5,7 @@ import { z } from "zod";
 const input = z.object({
   audioBase64: z.string().startsWith("data:").max(4_000_000),
   mimeType: z.string().trim().max(100).default("audio/webm"),
+  languageHint: z.string().trim().max(20).optional(),
 });
 
 export const transcribeVoiceAudio = createServerFn({ method: "POST" })

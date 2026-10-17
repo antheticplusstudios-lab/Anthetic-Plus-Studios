@@ -1,5 +1,6 @@
 /** Inworld text-to-speech with per-automation key rotation (DB2 automation_key_pools). */
 import { getDb } from "@/server/db/clients.server";
+import { joinMp3 } from "@/lib/mp3-join";
 import { decryptSecret } from "@/server/security/envelope.server";
 import { runWithPool, type PoolKeyState, type PoolRunOutcome, type PoolScope } from "./key-pool";
 import {
@@ -40,17 +41,6 @@ function isAbort(e: unknown, signal?: AbortSignal) {
 
 function decodeBase64(b64: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-}
-
-function concat(parts: Uint8Array<ArrayBuffer>[]): Uint8Array<ArrayBuffer> {
-  if (parts.length === 1) return parts[0]!;
-  const out = new Uint8Array(parts.reduce((n, p) => n + p.byteLength, 0));
-  let at = 0;
-  for (const p of parts) {
-    out.set(p, at);
-    at += p.byteLength;
-  }
-  return out;
 }
 
 const KIND_TO_CODE: Record<string, InworldFailureCode> = {
@@ -201,7 +191,7 @@ export async function inworldSpeak(args: {
     );
   }
 
-  const audio = concat(parts);
+  const audio = joinMp3(parts);
   if (!audio.byteLength) throw new InworldTtsError("empty_audio", "Inworld returned no audio.");
   return audio;
 }
