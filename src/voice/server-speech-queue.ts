@@ -24,15 +24,15 @@ let controllers = new Set<AbortController>();
 
 function sentenceChunks(text: string): string[] {
   const clean = text
-    .replace(/```[\\s\\S]*?```/g, " ")
-    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, "$1")
-    .replace(/https?:\\/\\/\\S+/gi, "")
-    .replace(/\\s+/g, " ")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/\s+/g, " ")
     .trim()
     .slice(0, MAX_CHARS);
   if (!clean) return [];
 
-  const sentences = clean.match(/[^.!?。！？\\n]+[.!?。！？]?/g) ?? [clean];
+  const sentences = clean.match(/[^.!?。！？\n]+[.!?。！？]?/g) ?? [clean];
   const chunks: string[] = [];
   let current = "";
   for (const raw of sentences) {
