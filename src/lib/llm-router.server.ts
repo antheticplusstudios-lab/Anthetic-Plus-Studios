@@ -256,6 +256,12 @@ export async function routeChat(
 
 type StreamUsage = { text: string; tokensIn: number; tokensOut: number };
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
 async function consumeProviderStream(
   response: Response,
   provider: string,
@@ -275,46 +281,54 @@ async function consumeProviderStream(
     if (!value.startsWith("data:")) return;
     const data = value.slice(5).trim();
     if (!data || data === "[DONE]") return;
-    let payload: any;
+    let parsed: unknown;
     try {
-      payload = JSON.parse(data);
+      parsed = JSON.parse(data) as unknown;
     } catch {
       return;
     }
-    if (payload?.type === "error" || payload?.error) {
-      throw new Error(
-        String(payload?.error?.message ?? payload?.message ?? "Provider stream failed."),
-      );
+    const payload = asRecord(parsed);
+    const rawError = payload["error"];
+    const errorObject = asRecord(rawError);
+    if (payload["type"] === "error" || rawError) {
+      const message =
+        typeof rawError === "string" ? rawError : errorObject["message"] ?? payload["message"];
+      throw new Error(String(message ?? "Provider stream failed."));
     }
+    const usage = asRecord(payload["usage"]);
+    const message = asRecord(payload["message"]);
+    const messageUsage = asRecord(message["usage"]);
     const inputCount = Number(
-      payload?.usage?.prompt_tokens ??
-        payload?.usage?.input_tokens ??
-        payload?.message?.usage?.input_tokens ??
-        0,
+      usage["prompt_tokens"] ?? usage["input_tokens"] ?? messageUsage["input_tokens"] ?? 0,
     );
     const outputCount = Number(
-      payload?.usage?.completion_tokens ??
-        payload?.usage?.output_tokens ??
-        payload?.message?.usage?.output_tokens ??
-        0,
+      usage["completion_tokens"] ?? usage["output_tokens"] ?? messageUsage["output_tokens"] ?? 0,
     );
     if (Number.isFinite(inputCount)) tokensIn = Math.max(tokensIn, inputCount);
     if (Number.isFinite(outputCount)) tokensOut = Math.max(tokensOut, outputCount);
 
-    const delta =
-      provider === "anthropic"
-        ? payload?.type === "content_block_delta" && payload?.delta?.type === "text_delta"
-          ? payload.delta.text
-          : ""
-        : (payload?.choices?.[0]?.delta?.content ?? "");
+    let delta: unknown = "";
+    if (provider === "anthropic") {
+      const deltaRecord = asRecord(payload["delta"]);
+      if (payload["type"] === "content_block_delta" && deltaRecord["type"] === "text_delta") {
+        delta = deltaRecord["text"];
+      }
+    } else {
+      const choices = Array.isArray(payload["choices"]) ? payload["choices"] : [];
+      const choice = asRecord(choices[0]);
+      const deltaRecord = asRecord(choice["delta"]);
+      delta = deltaRecord["content"] ?? "";
+    }
     if (typeof delta === "string" && delta) {
       text += delta;
       onDelta(delta);
     } else if (Array.isArray(delta)) {
-      for (const part of delta) {
-        if (typeof part?.text === "string" && part.text) {
-          text += part.text;
-          onDelta(part.text);
+      for (const item of delta) {
+        const part = asRecord(item);
+        const partText = part["text"];
+        if (typeof partText === "string" && partText) {
+          text += partText;
+          onDelta(partText);
         }
       }
     }
