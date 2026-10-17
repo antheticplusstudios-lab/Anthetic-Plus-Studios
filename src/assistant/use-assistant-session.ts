@@ -6,8 +6,6 @@
 import { useCallback, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  askAssistantGuest,
-  askAssistantUser,
   confirmAssistantAction,
 } from "@/lib/assistant-agent.functions";
 import { useCurrentUser } from "@/hooks/use-portal";
@@ -45,8 +43,6 @@ function errorFromThrown(e: unknown): string {
 
 export function useAssistantSession() {
   const { data: user } = useCurrentUser();
-  const guestAsk = useServerFn(askAssistantGuest);
-  const userAsk = useServerFn(askAssistantUser);
   const confirmFn = useServerFn(confirmAssistantAction);
 
   const [entries, setEntries] = useState<ChatEntry[]>([]);
@@ -174,9 +170,7 @@ export function useAssistantSession() {
       };
 
       try {
-        const sessionData = user
-          ? await supabase.auth.getSession()
-          : { data: { session: null } };
+        const sessionData = await supabase.auth.getSession();
         if (gen !== generation.current || ctrl.signal.aborted) return null;
         const token = sessionData.data.session?.access_token;
         const response = await fetch("/api/public/assistant/stream", {
