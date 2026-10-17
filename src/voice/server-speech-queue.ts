@@ -22,7 +22,7 @@ let activeAudio: HTMLAudioElement | null = null;
 let activeUrl: string | null = null;
 let controllers = new Set<AbortController>();
 
-function sentenceChunks(text: string): string[] {
+export function splitSpeechIntoChunks(text: string): string[] {
   const clean = text
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
@@ -124,7 +124,7 @@ async function fetchChunk(text: string, lang: string | undefined, mine: number):
  * on barge-in/unmount so no old audio or queued network request survives the turn.
  */
 export function speakServerChunks(text: string, opts: ServerSpeakOptions) {
-  const chunks = sentenceChunks(text);
+  const chunks = splitSpeechIntoChunks(text);
   if (!chunks.length) {
     opts.onError(GENERIC_ERROR);
     return;
