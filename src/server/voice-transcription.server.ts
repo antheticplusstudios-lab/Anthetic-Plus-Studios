@@ -87,14 +87,9 @@ export async function transcribeVoiceAudioData(
   form.append("model", GROQ_MODEL);
   form.append("response_format", "verbose_json");
   form.append("temperature", "0");
-  // Vocabulary prompt (not a forced language) so brand names are spelled right while the
-  // visitor can still switch languages. The previous turn's language only biases the prompt.
-  form.append(
-    "prompt",
-    `AntheticPlus Studios, AI receptionist, automation, booking, appointment.${
-      data.languageHint ? ` (${data.languageHint.slice(0, 10)})` : ""
-    }`,
-  );
+  // Keep this vocabulary-only: carrying the previous turn's detected language into the prompt
+  // can bias Whisper away from a new language or a Bangla-English code-switch.
+  form.append("prompt", "AntheticPlus Studios, AI receptionist, automation, booking, appointment.");
 
   const response = await fetch(GROQ_URL, {
     method: "POST",

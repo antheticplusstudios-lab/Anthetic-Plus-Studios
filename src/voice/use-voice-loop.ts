@@ -160,9 +160,9 @@ export function useVoiceLoop(
       setError(null);
       let reply: string | null;
       try {
+        // Whisper returns a language label, not a calibrated confidence score.
         reply = await send(result.text, {
           language: result.language,
-          ...(result.language ? { confidence: 0.95 } : {}),
         });
       } catch {
         if (myTurn !== turn.current) return;
