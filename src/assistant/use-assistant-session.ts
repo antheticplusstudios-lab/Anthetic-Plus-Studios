@@ -317,7 +317,7 @@ export function useAssistantSession() {
         if (gen === generation.current) setBusy(false);
       }
     },
-    [pending, confirm, dismiss, push, patch, user],
+    [pending, confirm, dismiss, push, patch],
   );
 
   const cancel = useCallback(() => {
