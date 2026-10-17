@@ -47,6 +47,7 @@ export function useVoiceLoop(
     text: string,
     language?: { language?: string | null; confidence?: number },
   ) => Promise<string | null>,
+  cancelPending?: () => void,
 ) {
   const [state, setState] = useState<VoiceState>("idle");
   const [interim, setInterim] = useState("");
@@ -89,7 +90,7 @@ export function useVoiceLoop(
       mic.current?.close();
       mic.current = null;
       stopServerSpeech();
-    stopServerSpeechChunks();
+      stopServerSpeechChunks();
     };
   }, []);
 
@@ -180,6 +181,7 @@ export function useVoiceLoop(
   const interrupt = useCallback(() => {
     if (stateRef.current !== "speaking" && stateRef.current !== "processing") return;
     turn.current++;
+    cancelPending?.();
     stopServerSpeech();
     stopServerSpeechChunks();
     transcribeAbort.current?.abort();
@@ -225,8 +227,9 @@ export function useVoiceLoop(
         onBargeIn: () => {
           if (stateRef.current !== "speaking") return;
           turn.current++; // the reply being spoken is now stale
+          cancelPending?.();
           stopServerSpeech();
-    stopServerSpeechChunks();
+          stopServerSpeechChunks();
           setUserSpeaking(true);
           setInterim("Listening…");
           setVoiceState("listening");
@@ -234,8 +237,9 @@ export function useVoiceLoop(
         onError: (err) => {
           active.current = false;
           turn.current++;
+          cancelPending?.();
           stopServerSpeech();
-    stopServerSpeechChunks();
+          stopServerSpeechChunks();
           mic.current?.close();
           mic.current = null;
           setError(ERROR_TEXT[err]);
@@ -281,6 +285,7 @@ export function useVoiceLoop(
   const stop = useCallback(() => {
     active.current = false;
     turn.current++;
+    cancelPending?.();
     transcribeAbort.current?.abort();
     mic.current?.close();
     mic.current = null;
