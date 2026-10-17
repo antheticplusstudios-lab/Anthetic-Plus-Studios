@@ -230,7 +230,7 @@ export function useVoiceLoop(
     transcribeAbort.current?.abort();
     if (active.current) listenNow();
     else setVoiceState("idle");
-  }, [listenNow, setVoiceState]);
+  }, [listenNow, setVoiceState, cancelPending]);
 
   const start = useCallback(async () => {
     primeServerSpeech(); // must run inside the user's tap so replies may play later
@@ -301,7 +301,7 @@ export function useVoiceLoop(
     mutedRef.current = false;
     setMuted(false);
     listenNow();
-  }, [handleUtterance, listenNow, setVoiceState]);
+  }, [handleUtterance, listenNow, setVoiceState, cancelPending]);
 
   const toggleMute = useCallback(() => {
     const next = !mutedRef.current;
@@ -340,7 +340,7 @@ export function useVoiceLoop(
     setVoiceState("idle");
     mutedRef.current = false;
     setMuted(false);
-  }, [setVoiceState]);
+  }, [setVoiceState, cancelPending]);
 
   const setHandsFree = useCallback((value: boolean) => {
     handsFreeRef.current = value;
