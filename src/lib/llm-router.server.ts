@@ -292,7 +292,7 @@ async function consumeProviderStream(
     const errorObject = asRecord(rawError);
     if (payload["type"] === "error" || rawError) {
       const message =
-        typeof rawError === "string" ? rawError : errorObject["message"] ?? payload["message"];
+        typeof rawError === "string" ? rawError : (errorObject["message"] ?? payload["message"]);
       throw new Error(String(message ?? "Provider stream failed."));
     }
     const usage = asRecord(payload["usage"]);
