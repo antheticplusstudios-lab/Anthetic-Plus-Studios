@@ -1,6 +1,7 @@
 /**
  * Voice orchestration: speech input -> assistant session -> speech output.
  * Contains no business logic; it only drives the shared assistant session.
+ * Spoken replies come from the server TTS route (Inworld); there is no browser-voice fallback.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -12,7 +13,12 @@ import {
   type SpeechInputError,
   type SpeechInputResult,
 } from "./speech-input";
-import { isSpeechOutputSupported, speak, stopSpeaking } from "./speech-output";
+import {
+  isServerSpeechSupported,
+  primeServerSpeech,
+  speakServer,
+  stopServerSpeech,
+} from "./server-speech";
 
 export type VoiceState = "idle" | "listening" | "processing" | "speaking" | "error";
 
@@ -53,12 +59,12 @@ export function useVoiceLoop(
   }, []);
 
   useEffect(() => {
-    setSupported({ input: isSpeechInputSupported(), output: isSpeechOutputSupported() });
+    setSupported({ input: isSpeechInputSupported(), output: isServerSpeechSupported() });
     return () => {
       active.current = false;
       handle.current?.abort();
       bargeHandle.current?.abort();
-      stopSpeaking();
+      stopServerSpeech();
     };
   }, []);
 
@@ -67,7 +73,7 @@ export function useVoiceLoop(
     bargeHandle.current?.abort();
     bargeHandle.current = monitorSpeechStart({
       onSpeechStart: () => {
-        stopSpeaking();
+        stopServerSpeech();
         bargeHandle.current?.abort();
         bargeHandle.current = null;
         setInterim("");
@@ -137,21 +143,21 @@ export function useVoiceLoop(
           else setVoiceState("idle");
           return;
         }
-        if (!isSpeechOutputSupported()) {
+        if (!isServerSpeechSupported()) {
           if (active.current && !mutedRef.current) listen();
           else setVoiceState("idle");
           return;
         }
         setVoiceState("speaking");
-        speak(reply, {
+        speakServer(reply, {
           onStart: () => startBargeInMonitor(),
           ...(language ? { lang: language } : {}),
           onEnd: () => {
             if (active.current && !mutedRef.current) listen();
             else setVoiceState("idle");
           },
-          onError: () => {
-            setError(ERROR_TEXT.tts);
+          onError: (message) => {
+            setError(message || ERROR_TEXT.tts);
             if (active.current && !mutedRef.current) listen();
             else setVoiceState("idle");
           },
@@ -167,6 +173,7 @@ export function useVoiceLoop(
   listenRef.current = listen;
 
   const start = useCallback(async () => {
+    primeServerSpeech(); // must run inside the user's tap so replies are allowed to play later
     setError(null);
     if (!isSpeechInputSupported()) {
       setError(ERROR_TEXT.unsupported);
@@ -210,7 +217,7 @@ export function useVoiceLoop(
     bargeHandle.current?.abort();
     handle.current = null;
     bargeHandle.current = null;
-    stopSpeaking();
+    stopServerSpeech();
     setInterim("");
     audioLevelRef.current = -1;
     setVoiceState("idle");
@@ -221,12 +228,15 @@ export function useVoiceLoop(
   /** Speak a reply that came from typed input, when voice mode is idle. */
   const say = useCallback(
     (text: string) => {
-      if (!isSpeechOutputSupported() || muted) return;
+      if (!isServerSpeechSupported() || muted) return;
       setVoiceState("speaking");
-      speak(text, {
+      speakServer(text, {
         onStart: () => startBargeInMonitor(),
         onEnd: () => setVoiceState("idle"),
-        onError: () => setVoiceState("idle"),
+        onError: (message) => {
+          setError(message || ERROR_TEXT.tts);
+          setVoiceState("idle");
+        },
       });
     },
     [muted, setVoiceState, startBargeInMonitor],

@@ -1,7 +1,7 @@
 /** HTTP helpers for the public, embeddable Web Assistant endpoints. */
-import { resolveSiteForOrigin, type SiteResolution } from "./site-context.server";
+import { hostOf, resolveSiteForOrigin, type SiteResolution } from "./site-context.server";
 import { loadSiteConfig } from "./site-config.server";
-import { isSiteId } from "./site-registry";
+import { SITES, isSiteId } from "./site-registry";
 import { loadKeyStore, touchKey, verifyRawKey } from "@/lib/site-keys.server";
 import type { SiteKeyScope } from "@/lib/site-keys";
 
@@ -82,6 +82,30 @@ export async function resolveFromRequest(
     void touchKey(res.site.id, chk.key.id);
   }
   return res;
+}
+
+/**
+ * Like resolveFromRequest, but the first-party app pages (same host as this application, e.g. the
+ * homepage voice agent) are not "embedded widgets" and carry no installation key, so the embed-key
+ * requirement does not apply to them. Everything else, including every other origin and any
+ * Bearer secret key, goes through the normal checks.
+ */
+export async function resolveFirstPartyOrRequest(
+  request: Request,
+  claimed: unknown,
+  scope: SiteKeyScope = "chat",
+): Promise<SiteResolution> {
+  const bearer = (request.headers.get("authorization") ?? "").toLowerCase().startsWith("bearer ");
+  if (!bearer && isSiteId(claimed) && SITES[claimed].firstParty) {
+    const origin = requestOrigin(request);
+    const appHost = new URL(request.url).host;
+    const sameHost = hostOf(origin) !== "" && hostOf(origin) === hostOf(appHost);
+    if (sameHost) {
+      const res = await resolveSiteForOrigin(claimed, origin, appHost);
+      if (res.ok) return res;
+    }
+  }
+  return resolveFromRequest(request, claimed, scope);
 }
 
 export async function preflightFor(request: Request) {

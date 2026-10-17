@@ -3,14 +3,16 @@ import { z } from "zod";
 import {
   preflightFor,
   requestOrigin,
-  resolveFromRequest,
+  resolveFirstPartyOrRequest,
 } from "@/assistant/sites/site-http.server";
 import { loadAssistantSettings } from "@/assistant/assistant.settings.server";
 import {
+  describeTtsFailure,
   enforceWebsiteTtsRateLimit,
   getVoiceTtsConfig,
   logWebsiteTtsRequest,
   streamWebsiteSpeech,
+  ttsResponseHeaders,
 } from "@/lib/voice-tts.server";
 import { cors } from "@/assistant/sites/site-http.server";
 
@@ -42,8 +44,10 @@ export const Route = createFileRoute("/api/public/assistant/tts")({
           );
         }
 
+        // Only an origin that passed site validation may read error bodies cross-origin.
+        let originAllowed = false;
         try {
-          const resolved = await resolveFromRequest(request, parsed.site, "voice");
+          const resolved = await resolveFirstPartyOrRequest(request, parsed.site, "voice");
           if (!resolved.ok) {
             return new Response(
               JSON.stringify({
@@ -56,6 +60,7 @@ export const Route = createFileRoute("/api/public/assistant/tts")({
               },
             );
           }
+          originAllowed = true;
           const settings = await loadAssistantSettings();
           if (
             !settings.enabled ||
@@ -69,7 +74,7 @@ export const Route = createFileRoute("/api/public/assistant/tts")({
               }),
               {
                 status: 503,
-                headers: { "Content-Type": "application/json", ...cors(origin, false) },
+                headers: { "Content-Type": "application/json", ...cors(origin, true) },
               },
             );
           }
@@ -98,7 +103,7 @@ export const Route = createFileRoute("/api/public/assistant/tts")({
                 headers: {
                   "Content-Type": "application/json",
                   "Retry-After": String(limit.retryAfter),
-                  ...cors(origin, false),
+                  ...cors(origin, true),
                 },
               },
             );
@@ -113,7 +118,7 @@ export const Route = createFileRoute("/api/public/assistant/tts")({
               }),
               {
                 status: 503,
-                headers: { "Content-Type": "application/json", ...cors(origin, false) },
+                headers: { "Content-Type": "application/json", ...cors(origin, true) },
               },
             );
           }
@@ -196,22 +201,7 @@ export const Route = createFileRoute("/api/public/assistant/tts")({
 
             return new Response(stream, {
               status: 200,
-              headers: {
-                "Content-Type": result.contentType || "audio/mpeg",
-                "Cache-Control": "no-store",
-                Vary: "Origin",
-                ...(origin
-                  ? {
-                      "Access-Control-Allow-Origin": origin,
-                      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                      "Access-Control-Allow-Headers": "Content-Type",
-                    }
-                  : {}),
-                "X-AP-TTS-Language": result.language.language,
-                "X-AP-TTS-Locale": result.language.locale,
-                "X-AP-TTS-Provider": result.provider,
-                "X-AP-TTS-Model": result.model,
-              },
+              headers: ttsResponseHeaders(result, origin),
             });
           } catch (e) {
             const aborted =
@@ -226,6 +216,7 @@ export const Route = createFileRoute("/api/public/assistant/tts")({
                 language: parsed.language || "auto",
                 model: config.model,
                 status: "failed",
+                httpStatus: describeTtsFailure(e).status,
                 latencyMs: Date.now() - started,
                 error: e instanceof Error ? e.message.slice(0, 500) : String(e).slice(0, 500),
               });
@@ -237,15 +228,21 @@ export const Route = createFileRoute("/api/public/assistant/tts")({
           if (request.signal.aborted) {
             return new Response(null, { status: 499 });
           }
-          console.error("[assistant tts]", e);
+          const failure = describeTtsFailure(e);
+          // Operator detail goes to the server log only; visitors get the safe message.
+          console.error("[assistant tts]", failure.code, failure.detail);
           return new Response(
             JSON.stringify({
               ok: false,
-              error: { code: "internal", message: "I couldn't generate speech right now." },
+              error: { code: failure.code, message: failure.message },
             }),
             {
-              status: 502,
-              headers: { "Content-Type": "application/json", ...cors(origin, false) },
+              status: failure.status,
+              headers: {
+                "Content-Type": "application/json",
+                ...(failure.retryAfter ? { "Retry-After": String(failure.retryAfter) } : {}),
+                ...cors(origin, originAllowed),
+              },
             },
           );
         }

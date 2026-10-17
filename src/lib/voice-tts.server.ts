@@ -1,7 +1,7 @@
 /** Server-only multilingual TTS router. Secrets never reach the browser. */
 import { createHash } from "node:crypto";
 import { db1Admin, db3Admin } from "@/server/db/clients.server";
-import { INWORLD_DEFAULT_MODEL, INWORLD_DEFAULT_VOICE } from "./inworld-pool";
+import { INWORLD_DEFAULT_MODEL, INWORLD_DEFAULT_VOICE, InworldTtsError } from "./inworld-pool";
 import { languageMetadataFrom, type SupportedVoiceLanguage } from "@/voice/language";
 
 export const VOICE_TTS_LABEL = "Homepage Voice Agent TTS";
@@ -45,6 +45,7 @@ const inworldProvider: TTSProvider = {
       text: input.text,
       voiceId: input.voiceId,
       model: input.model,
+      ...(input.signal ? { signal: input.signal } : {}),
     });
     return new Response(audio, { headers: { "content-type": "audio/mpeg" } });
   },
@@ -66,15 +67,22 @@ async function storedVoiceAgentSettings() {
   return rec(row.data?.value);
 }
 
+/** Provider/model/voice exactly as the admin saved them (platform_settings "voice_agent"). */
+export function ttsSelectionFromSettings(settings: Record<string, unknown>) {
+  return {
+    model: String(settings["ttsModel"] ?? INWORLD_DEFAULT_MODEL).trim() || INWORLD_DEFAULT_MODEL,
+    voiceId:
+      String(settings["ttsVoiceId"] ?? INWORLD_DEFAULT_VOICE).trim() || INWORLD_DEFAULT_VOICE,
+  };
+}
+
 export async function getVoiceTtsConfig(): Promise<TtsConfig | null> {
   const settings = await storedVoiceAgentSettings();
   const { inworldKeyCount } = await import("./inworld-tts.server");
   if ((await inworldKeyCount("website_assistant")) === 0) return null;
   return {
     provider: inworldProvider,
-    model: String(settings["ttsModel"] ?? INWORLD_DEFAULT_MODEL).trim() || INWORLD_DEFAULT_MODEL,
-    voiceId:
-      String(settings["ttsVoiceId"] ?? INWORLD_DEFAULT_VOICE).trim() || INWORLD_DEFAULT_VOICE,
+    ...ttsSelectionFromSettings(settings),
     key: "pool",
     keyId: null,
   };
@@ -212,7 +220,7 @@ export async function logWebsiteTtsRequest(args: {
       provider_key: "inworld",
       model: args.model,
       status: args.status,
-      http_status: args.httpStatus ?? 200,
+      http_status: args.httpStatus ?? (args.status === "success" ? 200 : 502),
       latency_ms: args.latencyMs,
       tokens_in: 0,
       tokens_out: 0,
@@ -290,5 +298,50 @@ export async function testWebsiteTts(args: { text: string; signal?: AbortSignal 
     language: result.language.language,
     provider: result.provider,
     model: result.model,
+  };
+}
+
+/** HTTP shape for a failed synthesis. Visitors only ever see `message`; `detail` is for logs. */
+export function describeTtsFailure(error: unknown) {
+  if (error instanceof InworldTtsError) {
+    return {
+      status: error.status,
+      code: error.clientCode,
+      message: error.publicMessage,
+      detail: error.message,
+      retryAfter: error.retryAfterSeconds,
+    };
+  }
+  return {
+    status: 502,
+    code: "internal",
+    message: "I couldn't generate speech right now.",
+    detail: error instanceof Error ? error.message : String(error),
+    retryAfter: undefined as number | undefined,
+  };
+}
+
+/** Success headers for the audio response, including the provider the audio really came from. */
+export function ttsResponseHeaders(
+  result: TtsStream,
+  origin: string | null,
+): Record<string, string> {
+  const exposed = "X-AP-TTS-Language, X-AP-TTS-Locale, X-AP-TTS-Provider, X-AP-TTS-Model";
+  return {
+    "Content-Type": result.contentType || "audio/mpeg",
+    "Cache-Control": "no-store",
+    Vary: "Origin",
+    ...(origin
+      ? {
+          "Access-Control-Allow-Origin": origin,
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Expose-Headers": exposed,
+        }
+      : {}),
+    "X-AP-TTS-Language": result.language.language,
+    "X-AP-TTS-Locale": result.language.locale,
+    "X-AP-TTS-Provider": result.provider,
+    "X-AP-TTS-Model": result.model,
   };
 }

@@ -1,4 +1,10 @@
-/** Browser text-to-speech with multilingual language selection and chunked playback. */
+/**
+ * Browser text-to-speech (speechSynthesis) with multilingual language selection and chunked playback.
+ *
+ * NOT used for assistant replies any more: the voice agent speaks through the server TTS route
+ * (see server-speech.ts) so it uses the Inworld voice configured in the admin panel. Nothing should
+ * call this as an automatic fallback when Inworld fails.
+ */
 
 export type SpeakOptions = {
   onStart?: () => void;
