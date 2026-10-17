@@ -15,9 +15,9 @@ import { transcribeUtterance } from "./transcribe-client";
 import {
   isServerSpeechSupported,
   primeServerSpeech,
-  speakServer,
   stopServerSpeech,
 } from "./server-speech";
+import { speakServerChunks, stopServerSpeechChunks } from "./server-speech-queue";
 
 export type VoiceState = "idle" | "listening" | "processing" | "speaking" | "error";
 
@@ -89,6 +89,7 @@ export function useVoiceLoop(
       mic.current?.close();
       mic.current = null;
       stopServerSpeech();
+      stopServerSpeechChunks();
     };
   }, []);
 
@@ -107,7 +108,7 @@ export function useVoiceLoop(
     (reply: string, myTurn: number, lang?: string | null) => {
       if (!isServerSpeechSupported()) return listenNow();
       setVoiceState("speaking");
-      speakServer(reply, {
+      speakServerChunks(reply, {
         ...(lang ? { lang } : {}),
         onStart: () => {
           if (myTurn !== turn.current) return;
@@ -180,6 +181,7 @@ export function useVoiceLoop(
     if (stateRef.current !== "speaking" && stateRef.current !== "processing") return;
     turn.current++;
     stopServerSpeech();
+      stopServerSpeechChunks();
     transcribeAbort.current?.abort();
     if (active.current) listenNow();
     else setVoiceState("idle");
@@ -224,6 +226,7 @@ export function useVoiceLoop(
           if (stateRef.current !== "speaking") return;
           turn.current++; // the reply being spoken is now stale
           stopServerSpeech();
+      stopServerSpeechChunks();
           setUserSpeaking(true);
           setInterim("Listening…");
           setVoiceState("listening");
@@ -232,6 +235,7 @@ export function useVoiceLoop(
           active.current = false;
           turn.current++;
           stopServerSpeech();
+      stopServerSpeechChunks();
           mic.current?.close();
           mic.current = null;
           setError(ERROR_TEXT[err]);
@@ -281,6 +285,7 @@ export function useVoiceLoop(
     mic.current?.close();
     mic.current = null;
     stopServerSpeech();
+      stopServerSpeechChunks();
     setInterim("");
     setUserSpeaking(false);
     audioLevelRef.current = -1;
@@ -308,7 +313,7 @@ export function useVoiceLoop(
       if (!isServerSpeechSupported() || mutedRef.current) return;
       const myTurn = ++turn.current;
       setVoiceState("speaking");
-      speakServer(text, {
+      speakServerChunks(text, {
         onStart: () => {
           if (myTurn === turn.current && active.current && handsFreeRef.current)
             mic.current?.watchForBargeIn();
