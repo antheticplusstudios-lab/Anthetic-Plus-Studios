@@ -4,7 +4,7 @@
  * The first short chunk is synthesized and played while the next chunk is fetched.
  * Cancelling a turn aborts every outstanding request and stops the active player.
  * This improves time-to-first-audio for long replies; the assistant's LLM response
- * itself is still currently returned as a complete response by the server function.
+ * final-answer text can also be fed into createStreamingSpeechQueue as model deltas arrive.
  */
 import type { ServerSpeakOptions, ServerSpeechInfo } from "./server-speech";
 import { SERVER_SPEECH_ENDPOINT, SERVER_SPEECH_SITE } from "./server-speech";
@@ -269,12 +269,17 @@ export function createStreamingSpeechQueue(opts: ServerSpeakOptions): StreamingS
     const text = sentenceGroup.join(" ").trim();
     sentenceGroup = [];
     sentenceGroupLength = 0;
-    if (text) texts.push(text);
+    if (text) {
+      texts.push(text);
+      if (activePlayback) prepare(nextIndex + 1);
+    }
   }
 
   const prepare = (index: number) => {
     if (index >= texts.length || pending.has(index) || !isCurrent()) return;
-    pending.set(index, fetchChunk(texts[index]!, opts.lang, mine));
+    const request = fetchChunk(texts[index]!, opts.lang, mine);
+    void request.catch(() => undefined);
+    pending.set(index, request);
   };
 
   const pump = () => {
