@@ -70,7 +70,7 @@ export function AssistantConsole({ variant = "compact" }: { variant?: "compact" 
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [session.entries.length, session.busy, voice.interim]);
+  }, [session.entries, session.busy, voice.interim]);
 
   const submit = async () => {
     const text = input.trim();
