@@ -163,7 +163,7 @@ export function useVoiceLoop(
       setError(null);
       let reply: string | null;
       let streamedText = "";
-      let speechStream: StreamingSpeechController | null = null;
+      const speechStream = { current: null as StreamingSpeechController | null };
       try {
         // The server emits deltas only after its structured tool decision is validated as tool:null.
         reply = await send(
@@ -172,9 +172,9 @@ export function useVoiceLoop(
           (delta) => {
             if (myTurn !== turn.current) return;
             streamedText += delta;
-            if (!speechStream && isServerSpeechSupported()) {
+            if (!speechStream.current && isServerSpeechSupported()) {
               setVoiceState("speaking");
-              speechStream = createStreamingSpeechQueue({
+              speechStream.current = createStreamingSpeechQueue({
                 ...(result.language ? { lang: result.language } : {}),
                 onStart: () => {
                   if (myTurn === turn.current && handsFreeRef.current && !mutedRef.current)
@@ -195,11 +195,11 @@ export function useVoiceLoop(
                 },
               });
             }
-            speechStream?.push(delta);
+            speechStream.current?.push(delta);
           },
         );
       } catch {
-        speechStream?.cancel();
+        speechStream.current?.cancel();
         if (myTurn !== turn.current) return;
         setError("I couldn't reach the assistant. Please try again or type your message.");
         return listenNow();
@@ -212,8 +212,8 @@ export function useVoiceLoop(
         speechStream?.cancel();
         return listenNow();
       }
-      if (speechStream && streamedText.trim() === reply.trim()) {
-        speechStream.finish();
+      if (speechStream.current && streamedText.trim() === reply.trim()) {
+        speechStream.current.finish();
         return;
       }
       // If the request ended with a tool confirmation, a server error, or a cancelled stream,
