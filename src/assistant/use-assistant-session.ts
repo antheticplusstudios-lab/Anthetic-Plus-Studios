@@ -18,6 +18,8 @@ export type ChatEntry = {
   actions?: ToolOutcome[];
   pending?: PendingAction | null;
   isError?: boolean;
+  /** True only while streamed deltas are provisional and should not enter chat history. */
+  isStreaming?: boolean;
 };
 
 const YES =
@@ -140,13 +142,15 @@ export function useAssistantSession() {
       }
 
       activeRequest.current?.abort();
+      entriesRef.current = entriesRef.current.filter((entry) => !entry.isStreaming);
+      setEntries(entriesRef.current);
       const ctrl = new AbortController();
       activeRequest.current = ctrl;
       const gen = ++generation.current;
       setPending(null);
       setBusy(true);
       const history: ChatTurn[] = entriesRef.current
-        .filter((entry) => !entry.isError)
+        .filter((entry) => !entry.isError && !entry.isStreaming)
         .slice(-MAX_HISTORY_TURNS)
         .map((entry) => ({ role: entry.role, content: entry.content }));
       push({ id: uid(), role: "user", content: text });
@@ -160,11 +164,11 @@ export function useAssistantSession() {
         if (gen !== generation.current || ctrl.signal.aborted || !delta) return;
         if (!partialEntry) {
           partialEntry = true;
-          push({ id: assistantId, role: "assistant", content: delta });
+          push({ id: assistantId, role: "assistant", content: delta, isStreaming: true });
           partialText = delta;
         } else {
           partialText += delta;
-          patch(assistantId, { content: partialText });
+          patch(assistantId, { content: partialText, isStreaming: true });
         }
         onDelta?.(delta);
       };
@@ -273,6 +277,7 @@ export function useAssistantSession() {
             patch(assistantId, {
               content: finalResult.error.message,
               isError: true,
+              isStreaming: false,
               pending: null,
             });
           } else {
@@ -292,6 +297,7 @@ export function useAssistantSession() {
             actions: finalResult.actions,
             pending: finalResult.pending,
             isError: false,
+            isStreaming: false,
           });
         } else {
           push({
@@ -307,7 +313,7 @@ export function useAssistantSession() {
         if (gen !== generation.current || ctrl.signal.aborted) return null;
         const message = errorFromThrown(error);
         if (partialEntry) {
-          patch(assistantId, { content: message, isError: true, pending: null });
+          patch(assistantId, { content: message, isError: true, isStreaming: false, pending: null });
         } else {
           push({ id: assistantId, role: "assistant", content: message, isError: true });
         }
@@ -324,6 +330,8 @@ export function useAssistantSession() {
     generation.current++;
     activeRequest.current?.abort();
     activeRequest.current = null;
+    entriesRef.current = entriesRef.current.filter((entry) => !entry.isStreaming);
+    setEntries(entriesRef.current);
     setBusy(false);
   }, []);
 
