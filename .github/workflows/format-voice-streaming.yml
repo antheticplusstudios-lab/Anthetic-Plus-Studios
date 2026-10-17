@@ -1,0 +1,39 @@
+name: Temporary source formatting
+on:
+  push:
+    branches:
+      - feat/voice-send-before-show
+permissions:
+  contents: write
+concurrency:
+  group: format-voice-send-before-show
+  cancel-in-progress: true
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: feat/voice-send-before-show
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Format files reported by lint
+        run: npx prettier --write src/assistant/assistant.service.server.ts src/assistant/use-assistant-session.ts src/components/admin-shell.tsx src/components/admin-ui.tsx src/components/assistant/pulse-orb.tsx src/components/assistant/thought-line.tsx src/components/motion.tsx src/components/ui/badge.tsx src/components/ui/button.tsx src/components/ui/form.tsx src/components/ui/navigation-menu.tsx src/components/ui/sidebar.tsx src/components/ui/toggle.tsx src/lib/llm-router.server.ts src/routes/api/public/assistant/stream.ts src/server/auth/request-context.server.ts src/test/llm-router-stream.test.ts src/test/server-speech-queue.test.ts src/voice/server-speech-queue.ts src/voice/use-voice-loop.ts
+      - name: Commit formatting-only fixes
+        run: |
+          if git diff --quiet; then
+            echo 'No formatting changes needed.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/assistant/assistant.service.server.ts src/assistant/use-assistant-session.ts src/components/admin-shell.tsx src/components/admin-ui.tsx src/components/assistant/pulse-orb.tsx src/components/assistant/thought-line.tsx src/components/motion.tsx src/components/ui/badge.tsx src/components/ui/button.tsx src/components/ui/form.tsx src/components/ui/navigation-menu.tsx src/components/ui/sidebar.tsx src/components/ui/toggle.tsx src/lib/llm-router.server.ts src/routes/api/public/assistant/stream.ts src/server/auth/request-context.server.ts src/test/llm-router-stream.test.ts src/test/server-speech-queue.test.ts src/voice/server-speech-queue.ts src/voice/use-voice-loop.ts
+          git commit -m 'style: format voice streaming and linted files'
+          git push origin HEAD:feat/voice-send-before-show
