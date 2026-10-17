@@ -89,7 +89,7 @@ export function useVoiceLoop(
       mic.current?.close();
       mic.current = null;
       stopServerSpeech();
-      stopServerSpeechChunks();
+    stopServerSpeechChunks();
     };
   }, []);
 
@@ -181,7 +181,7 @@ export function useVoiceLoop(
     if (stateRef.current !== "speaking" && stateRef.current !== "processing") return;
     turn.current++;
     stopServerSpeech();
-      stopServerSpeechChunks();
+    stopServerSpeechChunks();
     transcribeAbort.current?.abort();
     if (active.current) listenNow();
     else setVoiceState("idle");
@@ -226,7 +226,7 @@ export function useVoiceLoop(
           if (stateRef.current !== "speaking") return;
           turn.current++; // the reply being spoken is now stale
           stopServerSpeech();
-      stopServerSpeechChunks();
+    stopServerSpeechChunks();
           setUserSpeaking(true);
           setInterim("Listening…");
           setVoiceState("listening");
@@ -235,7 +235,7 @@ export function useVoiceLoop(
           active.current = false;
           turn.current++;
           stopServerSpeech();
-      stopServerSpeechChunks();
+    stopServerSpeechChunks();
           mic.current?.close();
           mic.current = null;
           setError(ERROR_TEXT[err]);
@@ -285,7 +285,7 @@ export function useVoiceLoop(
     mic.current?.close();
     mic.current = null;
     stopServerSpeech();
-      stopServerSpeechChunks();
+    stopServerSpeechChunks();
     setInterim("");
     setUserSpeaking(false);
     audioLevelRef.current = -1;
