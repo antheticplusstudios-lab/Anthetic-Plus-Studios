@@ -403,7 +403,6 @@ export async function routeChatStream(
                 max_tokens: o.maxTokens ?? 1200,
                 temperature: o.temperature ?? 0.2,
                 stream: true,
-                stream_options: { include_usage: true },
               },
         ),
         signal: requestSignal(o.signal),
