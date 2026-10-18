@@ -1,6 +1,9 @@
 /** Server-only multilingual speech-to-text implementation for the website assistant. */
 import { db1Admin, db3Admin } from "@/server/db/clients.server";
-import { normalizeMultilingualVoiceConfig } from "@/voice/multilingual-voice-config";
+import {
+  buildVoiceLanguageGuidance,
+  normalizeMultilingualVoiceConfig,
+} from "@/voice/multilingual-voice-config";
 import { decryptSecret } from "@/server/security/envelope.server";
 import { audioFileName, cleanTranscript, type WhisperSegment } from "@/voice/transcript-filter";
 
@@ -141,10 +144,7 @@ export async function transcribeVoiceAudioData(
     .filter(Boolean)
     .slice(0, 30)
     .join(", ");
-  const languageGuidance =
-    voiceConfig?.allowCodeSwitching === false
-      ? "Recognize the primary language spoken in this utterance."
-      : "Preserve natural code-switching and product names across languages.";
+  const languageGuidance = buildVoiceLanguageGuidance(voiceConfig);
   form.append("prompt", `${languageGuidance} Vocabulary: ${vocabulary}`.slice(0, 900));
 
   const response = await fetch(GROQ_URL, {
