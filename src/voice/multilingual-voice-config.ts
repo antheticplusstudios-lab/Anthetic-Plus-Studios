@@ -52,8 +52,9 @@ export function normalizeMultilingualVoiceConfig(value: unknown): MultilingualVo
 
   for (const raw of rawLanguages) {
     if (!isRecord(raw)) continue;
+    if (enabledLanguages.length >= 100) break;
     const tag = cleanText(raw["tag"], 35);
-    const label = cleanText(raw["label"], 80);
+    const label = cleanText(raw["label"], 80).replace(/[\r\n]/g, " ");
     if (!tag || !/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/.test(tag) || seen.has(tag.toLowerCase())) {
       continue;
     }
@@ -94,4 +95,27 @@ export function getEnabledLanguageTags(config: MultilingualVoiceConfig): string[
 /** Apply terminology hints conservatively after transcription; never replace a transcript wholesale. */
 export function buildVoiceVocabularyHint(config: MultilingualVoiceConfig): string {
   return config.vocabulary.join(", ");
+}
+
+
+/** Prompt guidance for providers that support natural-language transcription hints. */
+export function buildVoiceLanguageGuidance(config: MultilingualVoiceConfig): string {
+  const languages = config.enabledLanguages
+    .filter((language) => language.enabled)
+    .slice(0, 100)
+    .map((language) => {
+      const label = language.label.replace(/[\\r\\n]/g, " ").trim().slice(0, 80);
+      return label && label.toLowerCase() !== language.tag.toLowerCase()
+        ? `${label} (${language.tag})`
+        : language.tag;
+    });
+  const languageList = languages.length ? languages.join(", ") : "provider auto-detection";
+  const mode =
+    config.detectionMode === "preferred"
+      ? "Prefer these languages when the audio is ambiguous, but follow the audio evidence."
+      : "Detect the language from the audio; this list is guidance, not a restriction.";
+  const mixing = config.allowCodeSwitching
+    ? "Preserve natural code-switching within the same utterance."
+    : "Prefer the dominant language and do not translate or rewrite code-switched words.";
+  return `${mode} Possible languages: ${languageList}. ${mixing}`;
 }
