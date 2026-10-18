@@ -382,7 +382,8 @@ function VoiceAgentAdminPage() {
                 <div>
                   <p className="text-sm font-medium">Allow mixed-language speech</p>
                   <p className="text-xs text-muted-foreground">
-                    Supports utterances that mix languages, such as Bangla and English product names.
+                    Supports utterances that mix languages, such as Bangla and English product
+                    names.
                   </p>
                 </div>
                 <Switch
