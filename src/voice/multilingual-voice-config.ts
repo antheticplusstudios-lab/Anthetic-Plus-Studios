@@ -101,9 +101,9 @@ export function buildVoiceVocabularyHint(config: MultilingualVoiceConfig): strin
 export function buildVoiceLanguageGuidance(config: MultilingualVoiceConfig): string {
   const languages = config.enabledLanguages
     .filter((language) => language.enabled)
-    .slice(0, 100)
+    .slice(0, 12)
     .map((language) => {
-      const label = language.label.replace(/[\r\n]/g, " ").trim().slice(0, 80);
+      const label = language.label.replace(/[\r\n]/g, " ").trim().slice(0, 40);
       return label && label.toLowerCase() !== language.tag.toLowerCase()
         ? `${label} (${language.tag})`
         : language.tag;
@@ -118,5 +118,5 @@ export function buildVoiceLanguageGuidance(config: MultilingualVoiceConfig): str
   const mixing = config.allowCodeSwitching
     ? "Preserve natural code-switching within the same utterance."
     : "Prefer the dominant language and do not translate or rewrite code-switched words.";
-  return `${mode} Possible languages: ${languageList}. ${mixing}`;
+  return `${mode} Possible languages: ${languageList}. ${mixing}`.slice(0, 600);
 }
