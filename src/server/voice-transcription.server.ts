@@ -33,8 +33,10 @@ async function loadVoiceConfigForTranscription() {
     cachedVoiceConfig = { config, expiresAt: Date.now() + 30_000 };
     return config;
   } catch {
-    // Fail open to safe defaults; the optional settings lookup must not block transcription.
-    return normalizeMultilingualVoiceConfig(null);
+    // Fail open to safe defaults; briefly cache them so DB trouble cannot add latency to every turn.
+    const config = normalizeMultilingualVoiceConfig(null);
+    cachedVoiceConfig = { config, expiresAt: Date.now() + 5_000 };
+    return config;
   }
 }
 
@@ -96,7 +98,10 @@ export async function transcribeVoiceAudioData(
     throw new Error("Voice audio is too large.");
   }
 
-  const secret = await getDedicatedGroqKey();
+  const [secret, voiceConfig] = await Promise.all([
+    getDedicatedGroqKey(),
+    loadVoiceConfigForTranscription(),
+  ]);
 
   if (!secret) {
     throw new Error("Voice transcription is not configured.");
@@ -119,7 +124,6 @@ export async function transcribeVoiceAudioData(
   form.append("temperature", "0");
   // Use admin-managed domain vocabulary without forcing one language: a previous turn's
   // language can bias Whisper away from the user's current language or code-switch.
-  const voiceConfig = await loadVoiceConfigForTranscription();
   const vocabulary = [
     "AntheticPlus Studios",
     "AI receptionist",
