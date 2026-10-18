@@ -103,7 +103,10 @@ export function buildVoiceLanguageGuidance(config: MultilingualVoiceConfig): str
     .filter((language) => language.enabled)
     .slice(0, 12)
     .map((language) => {
-      const label = language.label.replace(/[\r\n]/g, " ").trim().slice(0, 40);
+      const label = language.label
+        .replace(/[\r\n]/g, " ")
+        .trim()
+        .slice(0, 40);
       return label && label.toLowerCase() !== language.tag.toLowerCase()
         ? `${label} (${language.tag})`
         : language.tag;
