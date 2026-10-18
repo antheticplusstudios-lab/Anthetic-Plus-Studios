@@ -9,6 +9,35 @@ const GROQ_URL = "https://api.groq.com/openai/v1/audio/transcriptions";
 const GROQ_MODEL = "whisper-large-v3-turbo";
 const VOICE_AGENT_LABEL = "Homepage Voice Agent";
 
+type CachedVoiceConfig = {
+  expiresAt: number;
+  config: ReturnType<typeof normalizeMultilingualVoiceConfig>;
+};
+let cachedVoiceConfig: CachedVoiceConfig | null = null;
+
+async function loadVoiceConfigForTranscription() {
+  if (cachedVoiceConfig && cachedVoiceConfig.expiresAt > Date.now()) {
+    return cachedVoiceConfig.config;
+  }
+  try {
+    const { data: stored } = await db1Admin
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "voice_agent")
+      .maybeSingle();
+    const value =
+      stored?.value && typeof stored.value === "object"
+        ? (stored.value as Record<string, unknown>)["multilingualVoiceConfig"]
+        : null;
+    const config = normalizeMultilingualVoiceConfig(value);
+    cachedVoiceConfig = { config, expiresAt: Date.now() + 30_000 };
+    return config;
+  } catch {
+    // Fail open to safe defaults; the optional settings lookup must not block transcription.
+    return normalizeMultilingualVoiceConfig(null);
+  }
+}
+
 const parseDataUrl = (value: string) => {
   const match = /^data:([^;,]+)?(?:;[^,]+)?,([A-Za-z0-9+/=]+)$/.exec(value);
 
@@ -90,21 +119,7 @@ export async function transcribeVoiceAudioData(
   form.append("temperature", "0");
   // Use admin-managed domain vocabulary without forcing one language: a previous turn's
   // language can bias Whisper away from the user's current language or code-switch.
-  let voiceConfig: ReturnType<typeof normalizeMultilingualVoiceConfig> | null = null;
-  try {
-    const { data: stored } = await db1Admin
-      .from("platform_settings")
-      .select("value")
-      .eq("key", "voice_agent")
-      .maybeSingle();
-    const value =
-      stored?.value && typeof stored.value === "object"
-        ? (stored.value as Record<string, unknown>)["multilingualVoiceConfig"]
-        : null;
-    voiceConfig = normalizeMultilingualVoiceConfig(value);
-  } catch {
-    // Transcription should remain available if the optional settings lookup fails.
-  }
+  const voiceConfig = await loadVoiceConfigForTranscription();
   const vocabulary = [
     "AntheticPlus Studios",
     "AI receptionist",
