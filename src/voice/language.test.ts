@@ -20,6 +20,12 @@ describe("voice language metadata", () => {
     expect(result.locale).toBe("hi-IN");
   });
 
+  it("normalizes Whisper language names instead of treating them as locale tags", () => {
+    expect(languageMetadataFrom("hello there", "english", 0.9).language).toBe("en");
+    expect(languageMetadataFrom("আমি ভালো আছি", "Bengali", 0.9).language).toBe("bn");
+    expect(localeForLanguage("Hindi")).toBe("hi-IN");
+  });
+
   it("preserves a confident transcription language hint", () => {
     const result = languageMetadataFrom("hello, can you help?", "bn-BD", 0.9);
     expect(result.language).toBe("bn");
