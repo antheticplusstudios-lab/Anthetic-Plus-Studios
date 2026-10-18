@@ -30,12 +30,9 @@ export async function transcribeUtterance(
   const text = result.text.trim();
   if (!text) return { text: "", language: null };
 
-  // Prefer the transcription provider's detected language. When it omits one,
-  // infer a conservative language hint from recognized text and the prior turn.
+  // Prefer provider detection; otherwise infer from this utterance, not a stale prior turn.
   const detected = result.language
     ? languageMetadataFrom(text, result.language, 0.9)
-    // Never let a previous turn override this turn's words: users commonly switch
-    // between English, Bangla and Hindi in the same conversation.
     : languageMetadataFrom(text);
   return { text, language: detected.language };
 }
