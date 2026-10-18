@@ -1,5 +1,6 @@
 /** Server-only multilingual speech-to-text implementation for the website assistant. */
-import { db3Admin } from "@/server/db/clients.server";
+import { db1Admin, db3Admin } from "@/server/db/clients.server";
+import { normalizeMultilingualVoiceConfig } from "@/voice/multilingual-voice-config";
 import { decryptSecret } from "@/server/security/envelope.server";
 import { audioFileName, cleanTranscript, type WhisperSegment } from "@/voice/transcript-filter";
 
@@ -87,9 +88,39 @@ export async function transcribeVoiceAudioData(
   form.append("model", GROQ_MODEL);
   form.append("response_format", "verbose_json");
   form.append("temperature", "0");
-  // Keep this vocabulary-only: carrying the previous turn's detected language into the prompt
-  // can bias Whisper away from a new language or a Bangla-English code-switch.
-  form.append("prompt", "AntheticPlus Studios, AI receptionist, automation, booking, appointment.");
+  // Use admin-managed domain vocabulary without forcing one language: a previous turn's
+  // language can bias Whisper away from the user's current language or code-switch.
+  let voiceConfig: ReturnType<typeof normalizeMultilingualVoiceConfig> | null = null;
+  try {
+    const { data: stored } = await db1Admin
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "voice_agent")
+      .maybeSingle();
+    const value =
+      stored?.value && typeof stored.value === "object"
+        ? (stored.value as Record<string, unknown>)["multilingualVoiceConfig"]
+        : null;
+    voiceConfig = normalizeMultilingualVoiceConfig(value);
+  } catch {
+    // Transcription should remain available if the optional settings lookup fails.
+  }
+  const vocabulary = [
+    "AntheticPlus Studios",
+    "AI receptionist",
+    "automation",
+    "booking",
+    "appointment",
+    ...(voiceConfig?.vocabulary ?? []),
+  ]
+    .map((term) => term.replace(/[\r\n]/g, " ").trim().slice(0, 80))
+    .filter(Boolean)
+    .slice(0, 30)
+    .join(", ");
+  const languageGuidance = voiceConfig?.allowCodeSwitching === false
+    ? "Recognize the primary language spoken in this utterance."
+    : "Preserve natural code-switching and product names across languages.";
+  form.append("prompt", `${languageGuidance} Vocabulary: ${vocabulary}`.slice(0, 900));
 
   const response = await fetch(GROQ_URL, {
     method: "POST",
