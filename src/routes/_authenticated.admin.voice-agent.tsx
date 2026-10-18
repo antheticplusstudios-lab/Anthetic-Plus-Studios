@@ -71,6 +71,7 @@ function VoiceAgentAdminPage() {
   });
 
   const [settings, setSettings] = useState<VoiceAgentSettings | null>(null);
+  const [languageTagsDraft, setLanguageTagsDraft] = useState("");
   const [groqKey, setGroqKey] = useState("");
   const [ttsKey, setTtsKey] = useState("");
   const [ttsTestText, setTtsTestText] = useState("Hello from AntheticPlus.");
@@ -83,6 +84,7 @@ function VoiceAgentAdminPage() {
   useEffect(() => {
     if (!data) return;
     setSettings(data.settings);
+    setLanguageTagsDraft(data.settings.multilingualVoiceConfig.enabledLanguages.map((language) => language.tag).join("\n"));
   }, [data]);
 
   const emailTemplate = useMemo(
@@ -130,6 +132,7 @@ function VoiceAgentAdminPage() {
     },
     onSuccess: (next) => {
       setSettings(next.settings);
+      setLanguageTagsDraft(next.settings.multilingualVoiceConfig.enabledLanguages.map((language) => language.tag).join("\n"));
       toast.success("AI Voice Agent settings saved");
       void qc.invalidateQueries({ queryKey: ["voice-agent-settings"] });
     },
@@ -351,8 +354,9 @@ function VoiceAgentAdminPage() {
               >
                 <AreaField
                   rows={5}
-                  value={settings.multilingualVoiceConfig.enabledLanguages.map((language) => language.tag).join("\n")}
-                  onChange={(e) => updateLanguageTags(e.target.value)}
+                  value={languageTagsDraft}
+                  onChange={(e) => setLanguageTagsDraft(e.target.value)}
+                  onBlur={(e) => updateLanguageTags(e.target.value)}
                 />
               </Field>
               <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-3">
