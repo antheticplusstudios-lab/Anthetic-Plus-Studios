@@ -45,15 +45,17 @@ function failure(
 }
 
 /**
- * First-party assistant stream. The server performs the structured tool-selection
- * phase first; only after it reaches tool:null does it stream plain-text final answer
- * deltas. Guest/authenticated policy and action-confirmation remain server-owned.
+ * First-party assistant stream. The server validates the structured tool decision before
+ * emitting the user-facing reply. Ordinary no-tool voice turns reuse that validated reply
+ * to avoid a second model round-trip. Guest/authenticated policy and action-confirmation
+ * remain server-owned.
  */
 export const Route = createFileRoute("/api/public/assistant/stream")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const requestId = randomUUID();
+        const handlerStartedAt = Date.now();
         let parsed: z.infer<typeof bodySchema>;
         try {
           parsed = bodySchema.parse(await request.json());
@@ -105,6 +107,8 @@ export const Route = createFileRoute("/api/public/assistant/stream")({
           );
         }
 
+        const assistantStartedAt = Date.now();
+        let firstDeltaAt: number | null = null;
         const abort = new AbortController();
         const onRequestAbort = () => abort.abort();
         request.signal.addEventListener("abort", onRequestAbort, { once: true });
@@ -128,6 +132,7 @@ export const Route = createFileRoute("/api/public/assistant/stream")({
                   signal: abort.signal,
                   onReplyDelta: (delta) => {
                     if (!abort.signal.aborted) {
+                      firstDeltaAt ??= Date.now();
                       controller.enqueue(
                         encoder.encode(
                           `event: delta\ndata: ${JSON.stringify({ text: delta })}\n\n`,
@@ -137,11 +142,33 @@ export const Route = createFileRoute("/api/public/assistant/stream")({
                   },
                 });
                 if (!abort.signal.aborted) {
+                  console.info(
+                    "[assistant stream timing]",
+                    JSON.stringify({
+                      requestId,
+                      authAndRoutingMs: assistantStartedAt - handlerStartedAt,
+                      timeToFirstDeltaMs:
+                        firstDeltaAt === null ? null : firstDeltaAt - assistantStartedAt,
+                      totalMs: Date.now() - handlerStartedAt,
+                      outcome: result.ok ? "success" : "failure",
+                    }),
+                  );
                   event(controller, "complete", result);
                   controller.close();
                 }
               } catch (error) {
                 if (!abort.signal.aborted) {
+                  console.error(
+                    "[assistant stream timing]",
+                    JSON.stringify({
+                      requestId,
+                      authAndRoutingMs: assistantStartedAt - handlerStartedAt,
+                      timeToFirstDeltaMs:
+                        firstDeltaAt === null ? null : firstDeltaAt - assistantStartedAt,
+                      totalMs: Date.now() - handlerStartedAt,
+                      outcome: "error",
+                    }),
+                  );
                   console.error(`[assistant stream ${requestId}]`, error);
                   event(
                     controller,

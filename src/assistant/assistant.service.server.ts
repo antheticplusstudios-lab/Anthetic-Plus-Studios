@@ -120,7 +120,7 @@ export async function runAssistant(args: {
   providerKeyLabel?: string;
   language?: string | null;
   languageConfidence?: number;
-  /** Streams plain-text answer deltas only after the server validates tool:null. */
+  /** Emits the validated final reply only after the server confirms tool:null. */
   onReplyDelta?: (delta: string) => void;
   signal?: AbortSignal;
 }): Promise<AssistantResponse> {
@@ -151,7 +151,7 @@ export async function runAssistant(args: {
   );
   const baseSystemPrompt = buildSystemPrompt(ctx, tools);
   const decisionSystemPrompt = args.onReplyDelta
-    ? `${baseSystemPrompt}\n\nSTREAMING DECISION MODE: This call chooses tools only. Always set the reply field to an empty string. Select a tool only if it is needed and permitted; otherwise return tool:null. Do not draft or reveal a user-facing answer in this phase. Action tools still require confirmation.`
+    ? `${baseSystemPrompt}\n\nLOW-LATENCY VOICE MODE: Decide whether a permitted tool is needed. If tool:null, put the concise, complete user-facing answer in reply. If a tool is needed, select it and keep reply empty except for a short action-confirmation question when required. Never claim tool results before a TOOL_RESULT exists. Action tools still require confirmation.`
     : baseSystemPrompt;
   const messages: ProviderMessage[] = [
     { role: "system", content: decisionSystemPrompt },
@@ -211,51 +211,17 @@ export async function runAssistant(args: {
       let reply = decision.reply || "Sorry, I didn't catch that. Could you rephrase?";
       if (args.onReplyDelta) {
         if (args.signal?.aborted) throw new DOMException("Aborted", "AbortError");
-        // The decision-mode system prompt deliberately requires JSON, so do not reuse it verbatim
-        // for the final stream. Keep trusted site/persona context and language instructions, but
-        // remove the JSON-only protocol that would conflict with the plain-text stream.
-        const finalContextPrompt =
-          baseSystemPrompt.split("\n\nOUTPUT PROTOCOL")[0] ?? baseSystemPrompt;
-        const additionalSystemMessages = messages
-          .filter(
-            (message) => message.role === "system" && message.content !== decisionSystemPrompt,
-          )
-          .map((message) => message.content);
-        const conversationMessages = messages.filter((message) => message.role !== "system");
-        const finalSystem = [
-          finalContextPrompt,
-          ...additionalSystemMessages,
-          "FINAL ANSWER MODE: Tool selection and any permitted read-only tool calls for this turn have completed. Do not call or propose tools, and do not output JSON. Respond with concise plain text only. Use only the user's request, trusted system context, and verified TOOL_RESULT messages. Do not invent facts, and do not claim a side effect occurred unless a TOOL_RESULT confirms it.",
-        ].join("\n\n");
-        const finalMessages: ProviderMessage[] = [
-          { role: "system", content: finalSystem },
-          ...conversationMessages,
-          { role: "assistant", content: JSON.stringify({ reply: "", tool: null }) },
-          { role: "user", content: "Now provide the final user-facing response in plain text." },
-        ];
-        let streamed = "";
-        const completion = await provider.streamText?.(
-          finalMessages,
-          {
-            clientId: auth?.tenant.clientId ?? null,
-            maxTokens: settings.maxTokens,
-            temperature: settings.temperature,
-            ...(args.providerKeyLabel ? { keyLabel: args.providerKeyLabel } : {}),
-            ...(args.signal ? { signal: args.signal } : {}),
-          },
-          (delta) => {
-            streamed += delta;
-            args.onReplyDelta?.(delta);
-          },
-        );
-        if (completion?.text.trim()) reply = completion.text.trim();
-        else if (streamed.trim()) reply = streamed.trim();
-        else
+        // The validated tool:null decision already contains the final reply. Reuse it rather
+        // than paying for a second model request on every ordinary voice turn. Tool results are
+        // still handled by the loop above before a final decision is requested.
+        if (!decision.reply.trim())
           return fail(
             requestId,
             "ai_unavailable",
             "I'm having trouble finishing that response right now. Please try again.",
           );
+        args.onReplyDelta(decision.reply);
+        reply = decision.reply.trim();
       }
       const uncertain =
         /\b(i (?:don't|do not) know|not sure|i can(?:not|'t) (?:verify|confirm)|i don't have (?:that )?information|i'm not certain|cannot verify)\b/i.test(
