@@ -54,12 +54,7 @@ export function normalizeMultilingualVoiceConfig(value: unknown): MultilingualVo
     if (!isRecord(raw)) continue;
     const tag = cleanText(raw["tag"], 35);
     const label = cleanText(raw["label"], 80);
-    if (
-      !tag ||
-      !/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/.test(tag) ||
-      seen.has(tag.toLowerCase())
-    )
-      continue;
+    if (!tag || !/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/.test(tag) || seen.has(tag.toLowerCase())) continue;
     seen.add(tag.toLowerCase());
     enabledLanguages.push({
       tag,
@@ -73,9 +68,10 @@ export function normalizeMultilingualVoiceConfig(value: unknown): MultilingualVo
   }
 
   const vocabulary = Array.isArray(value["vocabulary"])
-    ? [
-        ...new Set(value["vocabulary"].map((item) => cleanText(item, 80)).filter(Boolean)),
-      ].slice(0, 100)
+    ? [...new Set(value["vocabulary"].map((item) => cleanText(item, 80)).filter(Boolean))].slice(
+        0,
+        100,
+      )
     : DEFAULT_MULTILINGUAL_VOICE_CONFIG.vocabulary;
 
   return {
