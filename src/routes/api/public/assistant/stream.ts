@@ -45,9 +45,10 @@ function failure(
 }
 
 /**
- * First-party assistant stream. The server performs the structured tool-selection
- * phase first; only after it reaches tool:null does it stream plain-text final answer
- * deltas. Guest/authenticated policy and action-confirmation remain server-owned.
+ * First-party assistant stream. The server validates the structured tool decision before
+ * emitting the user-facing reply. Ordinary no-tool voice turns reuse that validated reply
+ * to avoid a second model round-trip. Guest/authenticated policy and action-confirmation
+ * remain server-owned.
  */
 export const Route = createFileRoute("/api/public/assistant/stream")({
   server: {
