@@ -1,5 +1,9 @@
 /** Server-only multilingual speech-to-text implementation for the website assistant. */
-import { db3Admin } from "@/server/db/clients.server";
+import { db1Admin, db3Admin } from "@/server/db/clients.server";
+import {
+  buildVoiceLanguageGuidance,
+  normalizeMultilingualVoiceConfig,
+} from "@/voice/multilingual-voice-config";
 import { decryptSecret } from "@/server/security/envelope.server";
 import { audioFileName, cleanTranscript, type WhisperSegment } from "@/voice/transcript-filter";
 
@@ -7,6 +11,37 @@ const MAX_BASE64 = 4_000_000;
 const GROQ_URL = "https://api.groq.com/openai/v1/audio/transcriptions";
 const GROQ_MODEL = "whisper-large-v3-turbo";
 const VOICE_AGENT_LABEL = "Homepage Voice Agent";
+
+type CachedVoiceConfig = {
+  expiresAt: number;
+  config: ReturnType<typeof normalizeMultilingualVoiceConfig>;
+};
+let cachedVoiceConfig: CachedVoiceConfig | null = null;
+
+async function loadVoiceConfigForTranscription() {
+  if (cachedVoiceConfig && cachedVoiceConfig.expiresAt > Date.now()) {
+    return cachedVoiceConfig.config;
+  }
+  try {
+    const { data: stored } = await db1Admin
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "voice_agent")
+      .maybeSingle();
+    const value =
+      stored?.value && typeof stored.value === "object"
+        ? (stored.value as Record<string, unknown>)["multilingualVoiceConfig"]
+        : null;
+    const config = normalizeMultilingualVoiceConfig(value);
+    cachedVoiceConfig = { config, expiresAt: Date.now() + 30_000 };
+    return config;
+  } catch {
+    // Fail open to safe defaults; briefly cache them so DB trouble cannot add latency to every turn.
+    const config = normalizeMultilingualVoiceConfig(null);
+    cachedVoiceConfig = { config, expiresAt: Date.now() + 5_000 };
+    return config;
+  }
+}
 
 const parseDataUrl = (value: string) => {
   const match = /^data:([^;,]+)?(?:;[^,]+)?,([A-Za-z0-9+/=]+)$/.exec(value);
@@ -66,7 +101,10 @@ export async function transcribeVoiceAudioData(
     throw new Error("Voice audio is too large.");
   }
 
-  const secret = await getDedicatedGroqKey();
+  const [secret, voiceConfig] = await Promise.all([
+    getDedicatedGroqKey(),
+    loadVoiceConfigForTranscription(),
+  ]);
 
   if (!secret) {
     throw new Error("Voice transcription is not configured.");
@@ -87,9 +125,27 @@ export async function transcribeVoiceAudioData(
   form.append("model", GROQ_MODEL);
   form.append("response_format", "verbose_json");
   form.append("temperature", "0");
-  // Keep this vocabulary-only: carrying the previous turn's detected language into the prompt
-  // can bias Whisper away from a new language or a Bangla-English code-switch.
-  form.append("prompt", "AntheticPlus Studios, AI receptionist, automation, booking, appointment.");
+  // Use admin-managed domain vocabulary without forcing one language: a previous turn's
+  // language can bias Whisper away from the user's current language or code-switch.
+  const vocabulary = [
+    "AntheticPlus Studios",
+    "AI receptionist",
+    "automation",
+    "booking",
+    "appointment",
+    ...(voiceConfig?.vocabulary ?? []),
+  ]
+    .map((term) =>
+      term
+        .replace(/[\r\n]/g, " ")
+        .trim()
+        .slice(0, 80),
+    )
+    .filter(Boolean)
+    .slice(0, 30)
+    .join(", ");
+  const languageGuidance = buildVoiceLanguageGuidance(voiceConfig);
+  form.append("prompt", `${languageGuidance} Vocabulary: ${vocabulary}`.slice(0, 900));
 
   const response = await fetch(GROQ_URL, {
     method: "POST",

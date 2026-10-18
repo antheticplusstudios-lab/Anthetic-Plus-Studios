@@ -1,6 +1,7 @@
 /** Browser side of speech-to-text: one request per utterance, cancellable. */
 import { transcribeVoiceAudio } from "@/lib/voice-transcription.functions";
 import type { Utterance } from "./mic-session";
+import { languageMetadataFrom } from "./language";
 
 function toDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -26,5 +27,12 @@ export async function transcribeUtterance(
     },
     signal: opts.signal,
   });
-  return { text: result.text.trim(), language: result.language ?? null };
+  const text = result.text.trim();
+  if (!text) return { text: "", language: null };
+
+  // Prefer provider detection; otherwise infer from this utterance, not a stale prior turn.
+  const detected = result.language
+    ? languageMetadataFrom(text, result.language, 0.9)
+    : languageMetadataFrom(text);
+  return { text, language: detected.language };
 }

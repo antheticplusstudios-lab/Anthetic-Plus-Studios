@@ -18,6 +18,7 @@ import { AdminPage, AreaField, Field, Loading, Panel, TextField } from "@/compon
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useRole } from "@/hooks/use-portal";
+import { normalizeMultilingualVoiceConfig } from "@/voice/multilingual-voice-config";
 import {
   clearVoiceAgentGroqKey,
   clearVoiceAgentTtsKey,
@@ -70,6 +71,7 @@ function VoiceAgentAdminPage() {
   });
 
   const [settings, setSettings] = useState<VoiceAgentSettings | null>(null);
+  const [languageTagsDraft, setLanguageTagsDraft] = useState("");
   const [groqKey, setGroqKey] = useState("");
   const [ttsKey, setTtsKey] = useState("");
   const [ttsTestText, setTtsTestText] = useState("Hello from AntheticPlus.");
@@ -82,6 +84,11 @@ function VoiceAgentAdminPage() {
   useEffect(() => {
     if (!data) return;
     setSettings(data.settings);
+    setLanguageTagsDraft(
+      data.settings.multilingualVoiceConfig.enabledLanguages
+        .map((language) => language.tag)
+        .join("\n"),
+    );
   }, [data]);
 
   const emailTemplate = useMemo(
@@ -93,6 +100,46 @@ function VoiceAgentAdminPage() {
     setSettings((current) => (current ? { ...current, [key]: value } : current));
   };
 
+  const updateLanguageTags = (raw: string) => {
+    if (!settings) return;
+    const current = settings.multilingualVoiceConfig;
+    const byTag = new Map(
+      current.enabledLanguages.map((language) => [language.tag.toLowerCase(), language]),
+    );
+    const enabledLanguages = raw
+      .split(/[\n,;]/)
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .slice(0, 100)
+      .map((tag, index) => {
+        const previous = byTag.get(tag.toLowerCase());
+        return previous
+          ? { ...previous, tag }
+          : { tag, label: tag, enabled: true, priority: Math.max(0, 100 - index) };
+      });
+    update(
+      "multilingualVoiceConfig",
+      normalizeMultilingualVoiceConfig({
+        ...current,
+        enabledLanguages,
+      }),
+    );
+  };
+
+  const updateVocabulary = (raw: string) => {
+    if (!settings) return;
+    update(
+      "multilingualVoiceConfig",
+      normalizeMultilingualVoiceConfig({
+        ...settings.multilingualVoiceConfig,
+        vocabulary: raw
+          .split(/[\n,;]/)
+          .map((term) => term.trim())
+          .filter(Boolean),
+      }),
+    );
+  };
+
   const settingsMutation = useMutation({
     mutationFn: () => {
       if (!settings) throw new Error("Settings are not loaded.");
@@ -100,6 +147,11 @@ function VoiceAgentAdminPage() {
     },
     onSuccess: (next) => {
       setSettings(next.settings);
+      setLanguageTagsDraft(
+        next.settings.multilingualVoiceConfig.enabledLanguages
+          .map((language) => language.tag)
+          .join("\n"),
+      );
       toast.success("AI Voice Agent settings saved");
       void qc.invalidateQueries({ queryKey: ["voice-agent-settings"] });
     },
@@ -305,6 +357,53 @@ function VoiceAgentAdminPage() {
                   rows={3}
                   value={settings.welcomeMessage}
                   onChange={(e) => update("welcomeMessage", e.target.value)}
+                />
+              </Field>
+            </div>
+          </Panel>
+
+          <Panel
+            title="Multilingual voice recognition"
+            description="Configure language preferences and product vocabulary for speech recognition. Language tags use BCP-47; leave multiple languages enabled to support code-switching."
+          >
+            <div className="space-y-4">
+              <Field
+                label="Languages (one BCP-47 tag per line)"
+                hint="Examples: en-US, bn-BD, hi-IN, es-ES, fr-FR. Add any provider-supported language; blank lines are ignored."
+              >
+                <AreaField
+                  rows={5}
+                  value={languageTagsDraft}
+                  onChange={(e) => setLanguageTagsDraft(e.target.value)}
+                  onBlur={(e) => updateLanguageTags(e.target.value)}
+                />
+              </Field>
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-3">
+                <div>
+                  <p className="text-sm font-medium">Allow mixed-language speech</p>
+                  <p className="text-xs text-muted-foreground">
+                    Supports utterances that mix languages, such as Bangla and English product
+                    names.
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.multilingualVoiceConfig.allowCodeSwitching}
+                  onCheckedChange={(value) =>
+                    update("multilingualVoiceConfig", {
+                      ...settings.multilingualVoiceConfig,
+                      allowCodeSwitching: value,
+                    })
+                  }
+                />
+              </div>
+              <Field
+                label="Vocabulary hints"
+                hint="Product names and domain terms help the transcription provider. One term per line."
+              >
+                <AreaField
+                  rows={3}
+                  value={settings.multilingualVoiceConfig.vocabulary.join("\n")}
+                  onChange={(e) => updateVocabulary(e.target.value)}
                 />
               </Field>
             </div>
