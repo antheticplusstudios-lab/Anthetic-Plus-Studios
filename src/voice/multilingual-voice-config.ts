@@ -46,34 +46,34 @@ const cleanText = (value: unknown, max = 120): string =>
 export function normalizeMultilingualVoiceConfig(value: unknown): MultilingualVoiceConfig {
   if (!isRecord(value)) return structuredClone(DEFAULT_MULTILINGUAL_VOICE_CONFIG);
 
-  const rawLanguages = Array.isArray(value.enabledLanguages) ? value.enabledLanguages : [];
+  const rawLanguages = Array.isArray(value["enabledLanguages"]) ? value["enabledLanguages"] : [];
   const seen = new Set<string>();
   const enabledLanguages: VoiceLanguage[] = [];
 
   for (const raw of rawLanguages) {
     if (!isRecord(raw)) continue;
-    const tag = cleanText(raw.tag, 35);
-    const label = cleanText(raw.label, 80);
+    const tag = cleanText(raw["tag"], 35);
+    const label = cleanText(raw["label"], 80);
     if (!tag || !/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/.test(tag) || seen.has(tag.toLowerCase())) continue;
     seen.add(tag.toLowerCase());
     enabledLanguages.push({
       tag,
       label: label || tag,
-      enabled: raw.enabled !== false,
-      priority: typeof raw.priority === "number" && Number.isFinite(raw.priority)
-        ? Math.max(0, Math.min(1000, Math.round(raw.priority)))
+      enabled: raw["enabled"] !== false,
+      priority: typeof raw["priority"] === "number" && Number.isFinite(raw["priority"])
+        ? Math.max(0, Math.min(1000, Math.round(raw["priority"])))
         : 0,
     });
   }
 
-  const vocabulary = Array.isArray(value.vocabulary)
-    ? [...new Set(value.vocabulary.map((item) => cleanText(item, 80)).filter(Boolean))].slice(0, 100)
+  const vocabulary = Array.isArray(value["vocabulary"])
+    ? [...new Set(value["vocabulary"].map((item) => cleanText(item, 80)).filter(Boolean))].slice(0, 100)
     : DEFAULT_MULTILINGUAL_VOICE_CONFIG.vocabulary;
 
   return {
-    detectionMode: value.detectionMode === "preferred" ? "preferred" : "auto",
+    detectionMode: value["detectionMode"] === "preferred" ? "preferred" : "auto",
     enabledLanguages: enabledLanguages.sort((a, b) => b.priority - a.priority),
-    allowCodeSwitching: value.allowCodeSwitching !== false,
+    allowCodeSwitching: value["allowCodeSwitching"] !== false,
     vocabulary,
   };
 }
