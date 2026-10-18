@@ -128,13 +128,19 @@ export async function transcribeVoiceAudioData(
     "appointment",
     ...(voiceConfig?.vocabulary ?? []),
   ]
-    .map((term) => term.replace(/[\r\n]/g, " ").trim().slice(0, 80))
+    .map((term) =>
+      term
+        .replace(/[\r\n]/g, " ")
+        .trim()
+        .slice(0, 80),
+    )
     .filter(Boolean)
     .slice(0, 30)
     .join(", ");
-  const languageGuidance = voiceConfig?.allowCodeSwitching === false
-    ? "Recognize the primary language spoken in this utterance."
-    : "Preserve natural code-switching and product names across languages.";
+  const languageGuidance =
+    voiceConfig?.allowCodeSwitching === false
+      ? "Recognize the primary language spoken in this utterance."
+      : "Preserve natural code-switching and product names across languages.";
   form.append("prompt", `${languageGuidance} Vocabulary: ${vocabulary}`.slice(0, 900));
 
   const response = await fetch(GROQ_URL, {
