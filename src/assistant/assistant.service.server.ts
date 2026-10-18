@@ -120,7 +120,7 @@ export async function runAssistant(args: {
   providerKeyLabel?: string;
   language?: string | null;
   languageConfidence?: number;
-  /** Streams plain-text answer deltas only after the server validates tool:null. */
+  /** Emits the validated final reply only after the server confirms tool:null. */
   onReplyDelta?: (delta: string) => void;
   signal?: AbortSignal;
 }): Promise<AssistantResponse> {
