@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { MultilingualVoiceConfig } from "@/voice/multilingual-voice-config";
 
 export const VOICE_AGENT_LABEL = "Homepage Voice Agent";
 const emailTypes = [
@@ -36,6 +37,7 @@ export type VoiceAgentSettings = {
   ttsProvider: "inworld";
   ttsModel: string;
   ttsVoiceId: string;
+  multilingualVoiceConfig: MultilingualVoiceConfig;
 };
 
 export const getPublicVoiceAgentConfig = createServerFn({ method: "GET" }).handler(async () => {
@@ -76,6 +78,7 @@ const settingsInput = z.object({
   ttsProvider: z.literal("inworld"),
   ttsModel: z.string().trim().min(1).max(80),
   ttsVoiceId: z.string().trim().max(120),
+  multilingualVoiceConfig: z.unknown(),
 });
 
 export const saveVoiceAgentSettings = createServerFn({ method: "POST" })
