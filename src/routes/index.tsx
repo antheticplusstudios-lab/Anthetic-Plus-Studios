@@ -24,8 +24,7 @@ import {
 } from "@/components/ui/accordion";
 import { livePricingQueryOptions, storefrontItems } from "@/lib/pricing";
 import { money } from "@/components/admin-ui";
-import { AssistantConsole } from "@/components/assistant/assistant-console";
-import { BlockDrift } from "@/components/block-drift";
+import { SignalDesk } from "@/components/home/signal-desk";
 import { DepthFloat, HeroDepth, Scroll3D, ScrollProgress } from "@/components/scroll-3d";
 import { MovingGradientButton } from "@/components/moving-gradient-button";
 import { RollingLetters } from "@/components/rolling-letters";
@@ -144,28 +143,24 @@ function Index() {
       <main className="page-enter -mt-20">
         {/* Hero */}
         <section className="relative isolate overflow-hidden px-4 pb-20 pt-32 sm:px-6 sm:pb-28 sm:pt-40">
-          <BlockDrift />
-          <div
-            className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/75 via-black/55 to-background/90"
-            aria-hidden="true"
-          />
-          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_70%_-10%,rgba(96,120,255,0.12),transparent_45%)]" />
-          <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[1.05fr_.95fr]">
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_12%,rgba(105,78,255,0.26),transparent_32%),radial-gradient(circle_at_20%_12%,rgba(44,210,255,0.08),transparent_28%)]" />
+          <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[.9fr_1.1fr]">
             <HeroDepth>
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
-                <Sparkles className="h-3.5 w-3.5" /> The Autonomous Front Office
+              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/25 bg-cyan-200/5 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-cyan-100">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-200" /> The autonomous front
+                office
               </span>
               <RollingLetters
                 tag="h1"
-                text="Not a chatbot."
-                className="mt-6 max-w-4xl text-5xl font-extrabold leading-[1.03] tracking-tight sm:text-6xl lg:text-[4.4rem]"
+                text="Make every customer moment count."
+                className="mt-6 max-w-3xl text-5xl font-extrabold leading-[1.03] tracking-tight sm:text-6xl lg:text-[4.65rem]"
                 delay={0.12}
                 stagger={0.025}
               />
               <RollingLetters
                 tag="div"
-                text="A front office that runs itself."
-                className="mt-1 max-w-4xl text-5xl font-extrabold leading-[1.03] tracking-tight text-primary sm:text-6xl lg:text-[4.4rem]"
+                text="Your AI team is already listening."
+                className="mt-2 max-w-3xl text-5xl font-extrabold leading-[1.03] tracking-tight text-cyan-200 sm:text-6xl lg:text-[4.65rem]"
                 delay={0.22}
                 stagger={0.022}
               />
@@ -175,9 +170,9 @@ function Index() {
                 handing off to your team when a person is needed.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
-                <MovingGradientButton href="#automations">Explore automations</MovingGradientButton>
+                <MovingGradientButton href="#automations">Explore the systems</MovingGradientButton>
                 <Button size="lg" variant="outline" asChild>
-                  <Link to="/auth">Open a client account</Link>
+                  <Link to="/contact">Talk to the team</Link>
                 </Button>
               </div>
               <dl className="mt-12 grid max-w-2xl grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-4">
@@ -195,7 +190,7 @@ function Index() {
             {/* Interactive AI receptionist */}
             <DepthFloat className="relative mx-auto w-full max-w-xl">
               <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-primary/5 blur-2xl" />
-              <AssistantConsole />
+              <SignalDesk />
             </DepthFloat>
           </div>
         </section>

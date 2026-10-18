@@ -78,6 +78,7 @@ import { Route as AuthenticatedDashboardAutomationsIdRouteImport } from './route
 import { Route as AuthenticatedDashboardPortalIdRouteImport } from './routes/_authenticated.dashboard.portal.$id'
 import { Route as ApiPublicAssistantChatRouteImport } from './routes/api/public/assistant/chat'
 import { Route as ApiPublicAssistantConfigRouteImport } from './routes/api/public/assistant/config'
+import { Route as ApiPublicAssistantStreamRouteImport } from './routes/api/public/assistant/stream'
 import { Route as ApiPublicAssistantTranscribeRouteImport } from './routes/api/public/assistant/transcribe'
 import { Route as ApiPublicAssistantTtsRouteImport } from './routes/api/public/assistant/tts'
 import { Route as ApiPublicAutomationsWebhookRouteImport } from './routes/api/public/automations/webhook'
@@ -485,6 +486,12 @@ const ApiPublicAssistantConfigRoute =
     path: '/api/public/assistant/config',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicAssistantStreamRoute =
+  ApiPublicAssistantStreamRouteImport.update({
+    id: '/api/public/assistant/stream',
+    path: '/api/public/assistant/stream',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicAssistantTranscribeRoute =
   ApiPublicAssistantTranscribeRouteImport.update({
     id: '/api/public/assistant/transcribe',
@@ -622,6 +629,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/portal/$id': typeof AuthenticatedDashboardPortalIdRoute
   '/api/public/assistant/chat': typeof ApiPublicAssistantChatRoute
   '/api/public/assistant/config': typeof ApiPublicAssistantConfigRoute
+  '/api/public/assistant/stream': typeof ApiPublicAssistantStreamRoute
   '/api/public/assistant/transcribe': typeof ApiPublicAssistantTranscribeRoute
   '/api/public/assistant/tts': typeof ApiPublicAssistantTtsRoute
   '/api/public/automations/webhook': typeof ApiPublicAutomationsWebhookRoute
@@ -703,6 +711,7 @@ export interface FileRoutesByTo {
   '/dashboard/portal/$id': typeof AuthenticatedDashboardPortalIdRoute
   '/api/public/assistant/chat': typeof ApiPublicAssistantChatRoute
   '/api/public/assistant/config': typeof ApiPublicAssistantConfigRoute
+  '/api/public/assistant/stream': typeof ApiPublicAssistantStreamRoute
   '/api/public/assistant/transcribe': typeof ApiPublicAssistantTranscribeRoute
   '/api/public/assistant/tts': typeof ApiPublicAssistantTtsRoute
   '/api/public/automations/webhook': typeof ApiPublicAutomationsWebhookRoute
@@ -788,6 +797,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/portal/$id': typeof AuthenticatedDashboardPortalIdRoute
   '/api/public/assistant/chat': typeof ApiPublicAssistantChatRoute
   '/api/public/assistant/config': typeof ApiPublicAssistantConfigRoute
+  '/api/public/assistant/stream': typeof ApiPublicAssistantStreamRoute
   '/api/public/assistant/transcribe': typeof ApiPublicAssistantTranscribeRoute
   '/api/public/assistant/tts': typeof ApiPublicAssistantTtsRoute
   '/api/public/automations/webhook': typeof ApiPublicAutomationsWebhookRoute
@@ -873,6 +883,7 @@ export interface FileRouteTypes {
     | '/dashboard/portal/$id'
     | '/api/public/assistant/chat'
     | '/api/public/assistant/config'
+    | '/api/public/assistant/stream'
     | '/api/public/assistant/transcribe'
     | '/api/public/assistant/tts'
     | '/api/public/automations/webhook'
@@ -954,6 +965,7 @@ export interface FileRouteTypes {
     | '/dashboard/portal/$id'
     | '/api/public/assistant/chat'
     | '/api/public/assistant/config'
+    | '/api/public/assistant/stream'
     | '/api/public/assistant/transcribe'
     | '/api/public/assistant/tts'
     | '/api/public/automations/webhook'
@@ -1038,6 +1050,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/portal/$id'
     | '/api/public/assistant/chat'
     | '/api/public/assistant/config'
+    | '/api/public/assistant/stream'
     | '/api/public/assistant/transcribe'
     | '/api/public/assistant/tts'
     | '/api/public/automations/webhook'
@@ -1073,6 +1086,7 @@ export interface RootRouteChildren {
   CheckoutIndexRoute: typeof CheckoutIndexRoute
   ApiPublicAssistantChatRoute: typeof ApiPublicAssistantChatRoute
   ApiPublicAssistantConfigRoute: typeof ApiPublicAssistantConfigRoute
+  ApiPublicAssistantStreamRoute: typeof ApiPublicAssistantStreamRoute
   ApiPublicAssistantTranscribeRoute: typeof ApiPublicAssistantTranscribeRoute
   ApiPublicAssistantTtsRoute: typeof ApiPublicAssistantTtsRoute
   ApiPublicAutomationsWebhookRoute: typeof ApiPublicAutomationsWebhookRoute
@@ -1573,6 +1587,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAssistantConfigRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/assistant/stream': {
+      id: '/api/public/assistant/stream'
+      path: '/api/public/assistant/stream'
+      fullPath: '/api/public/assistant/stream'
+      preLoaderRoute: typeof ApiPublicAssistantStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/assistant/transcribe': {
       id: '/api/public/assistant/transcribe'
       path: '/api/public/assistant/transcribe'
@@ -1843,6 +1864,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutIndexRoute: CheckoutIndexRoute,
   ApiPublicAssistantChatRoute: ApiPublicAssistantChatRoute,
   ApiPublicAssistantConfigRoute: ApiPublicAssistantConfigRoute,
+  ApiPublicAssistantStreamRoute: ApiPublicAssistantStreamRoute,
   ApiPublicAssistantTranscribeRoute: ApiPublicAssistantTranscribeRoute,
   ApiPublicAssistantTtsRoute: ApiPublicAssistantTtsRoute,
   ApiPublicAutomationsWebhookRoute: ApiPublicAutomationsWebhookRoute,
