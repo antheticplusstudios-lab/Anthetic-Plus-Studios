@@ -78,7 +78,7 @@ const settingsInput = z.object({
   ttsProvider: z.literal("inworld"),
   ttsModel: z.string().trim().min(1).max(80),
   ttsVoiceId: z.string().trim().max(120),
-  multilingualVoiceConfig: z.unknown(),
+  multilingualVoiceConfig: z.unknown().optional(),
 });
 
 export const saveVoiceAgentSettings = createServerFn({ method: "POST" })
