@@ -56,12 +56,52 @@ const GERMAN =
 const HINDI_LATIN =
   /\b(aap|apka|aapka|mera|meri|hamara|kya|kaise|kitna|chahiye|hai|hain|karna|karenge|mujhe|mujhse|dhanyavaad|namaste)\b/gi;
 
+const LANGUAGE_ALIASES: Record<string, string> = {
+  english: "en",
+  bengali: "bn",
+  bangla: "bn",
+  hindi: "hi",
+  spanish: "es",
+  french: "fr",
+  german: "de",
+  italian: "it",
+  portuguese: "pt",
+  arabic: "ar",
+  urdu: "ur",
+  punjabi: "pa",
+  tamil: "ta",
+  telugu: "te",
+  malayalam: "ml",
+  marathi: "mr",
+  gujarati: "gu",
+  kannada: "kn",
+  chinese: "zh",
+  japanese: "ja",
+  korean: "ko",
+  russian: "ru",
+  ukrainian: "uk",
+  turkish: "tr",
+  indonesian: "id",
+  vietnamese: "vi",
+  dutch: "nl",
+  swedish: "sv",
+  danish: "da",
+  norwegian: "no",
+  polish: "pl",
+  romanian: "ro",
+  greek: "el",
+  hebrew: "he",
+  thai: "th",
+};
+
 function baseLanguage(code: string | null | undefined) {
   const c = String(code ?? "")
     .trim()
     .toLowerCase();
   if (!c) return null;
-  return c.split(/[-_]/)[0];
+  if (LANGUAGE_ALIASES[c]) return LANGUAGE_ALIASES[c];
+  const base = c.split(/[-_]/)[0];
+  return LANGUAGE_ALIASES[base] ?? base;
 }
 
 function scriptFor(language: string, text: string): SupportedVoiceLanguage["script"] {
