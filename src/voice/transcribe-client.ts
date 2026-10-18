@@ -34,6 +34,8 @@ export async function transcribeUtterance(
   // infer a conservative language hint from recognized text and the prior turn.
   const detected = result.language
     ? languageMetadataFrom(text, result.language, 0.9)
-    : languageMetadataFrom(text, opts.languageHint, opts.languageHint ? 0.65 : 0);
+    // Never let a previous turn override this turn's words: users commonly switch
+    // between English, Bangla and Hindi in the same conversation.
+    : languageMetadataFrom(text);
   return { text, language: detected.language };
 }
