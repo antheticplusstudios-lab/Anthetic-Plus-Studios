@@ -54,20 +54,28 @@ export function normalizeMultilingualVoiceConfig(value: unknown): MultilingualVo
     if (!isRecord(raw)) continue;
     const tag = cleanText(raw["tag"], 35);
     const label = cleanText(raw["label"], 80);
-    if (!tag || !/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/.test(tag) || seen.has(tag.toLowerCase())) continue;
+    if (
+      !tag ||
+      !/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/.test(tag) ||
+      seen.has(tag.toLowerCase())
+    )
+      continue;
     seen.add(tag.toLowerCase());
     enabledLanguages.push({
       tag,
       label: label || tag,
       enabled: raw["enabled"] !== false,
-      priority: typeof raw["priority"] === "number" && Number.isFinite(raw["priority"])
-        ? Math.max(0, Math.min(1000, Math.round(raw["priority"])))
-        : 0,
+      priority:
+        typeof raw["priority"] === "number" && Number.isFinite(raw["priority"])
+          ? Math.max(0, Math.min(1000, Math.round(raw["priority"])))
+          : 0,
     });
   }
 
   const vocabulary = Array.isArray(value["vocabulary"])
-    ? [...new Set(value["vocabulary"].map((item) => cleanText(item, 80)).filter(Boolean))].slice(0, 100)
+    ? [
+        ...new Set(value["vocabulary"].map((item) => cleanText(item, 80)).filter(Boolean)),
+      ].slice(0, 100)
     : DEFAULT_MULTILINGUAL_VOICE_CONFIG.vocabulary;
 
   return {
@@ -80,7 +88,9 @@ export function normalizeMultilingualVoiceConfig(value: unknown): MultilingualVo
 
 /** Short, stable list for provider requests; disabled languages never leak through. */
 export function getEnabledLanguageTags(config: MultilingualVoiceConfig): string[] {
-  return config.enabledLanguages.filter((language) => language.enabled).map((language) => language.tag);
+  return config.enabledLanguages
+    .filter((language) => language.enabled)
+    .map((language) => language.tag);
 }
 
 /** Apply terminology hints conservatively after transcription; never replace a transcript wholesale. */
