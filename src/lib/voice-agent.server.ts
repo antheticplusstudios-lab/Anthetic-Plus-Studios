@@ -6,6 +6,11 @@ import { auditMutation } from "@/lib/platform-access.server";
 import { routeChat } from "@/lib/llm-router.server";
 import { z } from "zod";
 import { ORDER_SELECT } from "@/lib/orders-schema";
+import {
+  DEFAULT_MULTILINGUAL_VOICE_CONFIG,
+  normalizeMultilingualVoiceConfig,
+  type MultilingualVoiceConfig,
+} from "@/voice/multilingual-voice-config";
 
 export const VOICE_AGENT_LABEL = "Homepage Voice Agent";
 const DEFAULT_MODEL = "openai/gpt-oss-120b";
@@ -47,6 +52,7 @@ export type VoiceAgentSettings = {
   ttsProvider: "inworld";
   ttsModel: string;
   ttsVoiceId: string;
+  multilingualVoiceConfig: MultilingualVoiceConfig;
 };
 
 const defaultTemplates: VoiceAgentSettings["emailTemplates"] = {
@@ -156,6 +162,7 @@ const defaultSettings: VoiceAgentSettings = {
   ttsProvider: "inworld",
   ttsModel: "inworld-tts-1",
   ttsVoiceId: "",
+  multilingualVoiceConfig: DEFAULT_MULTILINGUAL_VOICE_CONFIG,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -221,6 +228,7 @@ function asSettings(value: unknown): VoiceAgentSettings {
     ttsVoiceId: String(value["ttsVoiceId"] ?? "Ashley")
       .trim()
       .slice(0, 120),
+    multilingualVoiceConfig: normalizeMultilingualVoiceConfig(value["multilingualVoiceConfig"]),
   };
 }
 
