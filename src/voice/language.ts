@@ -100,7 +100,7 @@ function baseLanguage(code: string | null | undefined) {
     .toLowerCase();
   if (!c) return null;
   if (LANGUAGE_ALIASES[c]) return LANGUAGE_ALIASES[c];
-  const base = c.split(/[-_]/)[0];
+  const base = c.split(/[-_]/)[0] ?? c;
   return LANGUAGE_ALIASES[base] ?? base;
 }
 
