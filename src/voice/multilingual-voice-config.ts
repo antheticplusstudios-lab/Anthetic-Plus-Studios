@@ -111,9 +111,7 @@ export function buildVoiceLanguageGuidance(config: MultilingualVoiceConfig): str
         ? `${label} (${language.tag})`
         : language.tag;
     });
-  const languageList = languages.length
-    ? languages.join(", ")
-    : "provider auto-detection";
+  const languageList = languages.length ? languages.join(", ") : "provider auto-detection";
   const mode =
     config.detectionMode === "preferred"
       ? "Prefer these languages when the audio is ambiguous, but follow the audio evidence."
