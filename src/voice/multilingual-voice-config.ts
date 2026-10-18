@@ -97,19 +97,20 @@ export function buildVoiceVocabularyHint(config: MultilingualVoiceConfig): strin
   return config.vocabulary.join(", ");
 }
 
-
 /** Prompt guidance for providers that support natural-language transcription hints. */
 export function buildVoiceLanguageGuidance(config: MultilingualVoiceConfig): string {
   const languages = config.enabledLanguages
     .filter((language) => language.enabled)
     .slice(0, 100)
     .map((language) => {
-      const label = language.label.replace(/[\\r\\n]/g, " ").trim().slice(0, 80);
+      const label = language.label.replace(/[\r\n]/g, " ").trim().slice(0, 80);
       return label && label.toLowerCase() !== language.tag.toLowerCase()
         ? `${label} (${language.tag})`
         : language.tag;
     });
-  const languageList = languages.length ? languages.join(", ") : "provider auto-detection";
+  const languageList = languages.length
+    ? languages.join(", ")
+    : "provider auto-detection";
   const mode =
     config.detectionMode === "preferred"
       ? "Prefer these languages when the audio is ambiguous, but follow the audio evidence."
