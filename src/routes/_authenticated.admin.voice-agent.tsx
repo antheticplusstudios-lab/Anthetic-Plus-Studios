@@ -84,7 +84,11 @@ function VoiceAgentAdminPage() {
   useEffect(() => {
     if (!data) return;
     setSettings(data.settings);
-    setLanguageTagsDraft(data.settings.multilingualVoiceConfig.enabledLanguages.map((language) => language.tag).join("\n"));
+    setLanguageTagsDraft(
+      data.settings.multilingualVoiceConfig.enabledLanguages
+        .map((language) => language.tag)
+        .join("\n"),
+    );
   }, [data]);
 
   const emailTemplate = useMemo(
@@ -99,7 +103,9 @@ function VoiceAgentAdminPage() {
   const updateLanguageTags = (raw: string) => {
     if (!settings) return;
     const current = settings.multilingualVoiceConfig;
-    const byTag = new Map(current.enabledLanguages.map((language) => [language.tag.toLowerCase(), language]));
+    const byTag = new Map(
+      current.enabledLanguages.map((language) => [language.tag.toLowerCase(), language]),
+    );
     const enabledLanguages = raw
       .split(/[\n,;]/)
       .map((tag) => tag.trim())
@@ -111,18 +117,27 @@ function VoiceAgentAdminPage() {
           ? { ...previous, tag }
           : { tag, label: tag, enabled: true, priority: Math.max(0, 100 - index) };
       });
-    update("multilingualVoiceConfig", normalizeMultilingualVoiceConfig({
-      ...current,
-      enabledLanguages,
-    }));
+    update(
+      "multilingualVoiceConfig",
+      normalizeMultilingualVoiceConfig({
+        ...current,
+        enabledLanguages,
+      }),
+    );
   };
 
   const updateVocabulary = (raw: string) => {
     if (!settings) return;
-    update("multilingualVoiceConfig", normalizeMultilingualVoiceConfig({
-      ...settings.multilingualVoiceConfig,
-      vocabulary: raw.split(/[\n,;]/).map((term) => term.trim()).filter(Boolean),
-    }));
+    update(
+      "multilingualVoiceConfig",
+      normalizeMultilingualVoiceConfig({
+        ...settings.multilingualVoiceConfig,
+        vocabulary: raw
+          .split(/[\n,;]/)
+          .map((term) => term.trim())
+          .filter(Boolean),
+      }),
+    );
   };
 
   const settingsMutation = useMutation({
@@ -132,7 +147,11 @@ function VoiceAgentAdminPage() {
     },
     onSuccess: (next) => {
       setSettings(next.settings);
-      setLanguageTagsDraft(next.settings.multilingualVoiceConfig.enabledLanguages.map((language) => language.tag).join("\n"));
+      setLanguageTagsDraft(
+        next.settings.multilingualVoiceConfig.enabledLanguages
+          .map((language) => language.tag)
+          .join("\n"),
+      );
       toast.success("AI Voice Agent settings saved");
       void qc.invalidateQueries({ queryKey: ["voice-agent-settings"] });
     },
@@ -362,14 +381,18 @@ function VoiceAgentAdminPage() {
               <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-3">
                 <div>
                   <p className="text-sm font-medium">Allow mixed-language speech</p>
-                  <p className="text-xs text-muted-foreground">Supports utterances that mix languages, such as Bangla and English product names.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Supports utterances that mix languages, such as Bangla and English product names.
+                  </p>
                 </div>
                 <Switch
                   checked={settings.multilingualVoiceConfig.allowCodeSwitching}
-                  onCheckedChange={(value) => update("multilingualVoiceConfig", {
-                    ...settings.multilingualVoiceConfig,
-                    allowCodeSwitching: value,
-                  })}
+                  onCheckedChange={(value) =>
+                    update("multilingualVoiceConfig", {
+                      ...settings.multilingualVoiceConfig,
+                      allowCodeSwitching: value,
+                    })
+                  }
                 />
               </div>
               <Field
