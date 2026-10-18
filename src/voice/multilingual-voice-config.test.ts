@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_MULTILINGUAL_VOICE_CONFIG,
+  buildVoiceLanguageGuidance,
   buildVoiceVocabularyHint,
   getEnabledLanguageTags,
   normalizeMultilingualVoiceConfig,
@@ -36,6 +37,24 @@ describe("multilingual voice configuration", () => {
     ]);
     expect(config.allowCodeSwitching).toBe(false);
     expect(config.vocabulary).toEqual(["AntheticPlus"]);
+  });
+
+  it("uses enabled languages as non-restrictive provider guidance", () => {
+    const config = normalizeMultilingualVoiceConfig({
+      detectionMode: "preferred",
+      enabledLanguages: [
+        { tag: "en-US", label: "English", enabled: true, priority: 10 },
+        { tag: "bn-BD", label: "Bangla", enabled: true, priority: 9 },
+        { tag: "hi-IN", label: "Hindi", enabled: false, priority: 8 },
+      ],
+      allowCodeSwitching: true,
+    });
+    const guidance = buildVoiceLanguageGuidance(config);
+    expect(guidance).toContain("English (en-US)");
+    expect(guidance).toContain("Bangla (bn-BD)");
+    expect(guidance).not.toContain("Hindi");
+    expect(guidance).toContain("follow the audio evidence");
+    expect(guidance).toContain("Preserve natural code-switching");
   });
 
   it("excludes disabled languages and exposes vocabulary hints", () => {
