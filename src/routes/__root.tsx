@@ -13,7 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import { ErrorScene } from "@/components/error-scene";
 import { MaintenanceGate } from "@/components/maintenance-gate";
 import { SystemBanner } from "@/components/system-banner";
-import appCss from "../styles.css?url";
+import appCss from "../styles.css?inline";
 import { reportClientError } from "../lib/client-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
@@ -85,10 +85,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -113,6 +109,7 @@ function RootShell({ children }: { children: ReactNode }) {
             __html: `document.documentElement.classList.add("dark")`,
           }}
         />
+        <style dangerouslySetInnerHTML={{ __html: appCss }} />
         <HeadContent />
       </head>
       <body>
