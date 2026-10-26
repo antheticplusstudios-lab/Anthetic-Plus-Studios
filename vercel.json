@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build",
-  "installCommand": "npm install",
+  "installCommand": "bun install --frozen-lockfile",
   "env": {
     "NITRO_PRESET": "vercel"
   },
