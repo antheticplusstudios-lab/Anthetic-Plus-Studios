@@ -10,7 +10,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { adminListPaymentMethods, adminSavePaymentMethod } from "@/lib/admin-data.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/payment-methods")({
-  head: () => ({ meta: [{ title: "Payment Methods — AntheticPlus" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Admin Payment Methods in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Payment Methods — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Payment Methods in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Payment Methods — AntheticPlus" },
+    ],
+  }),
   component: PaymentMethodsPage,
 });
 

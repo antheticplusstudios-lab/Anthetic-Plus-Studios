@@ -1,6 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { automations, type Automation } from "@/lib/automations";
 import { getLivePricing, type LivePlan } from "@/lib/pricing.functions";
+import { isListedProduct } from "@/lib/storefront";
 
 export const livePricingQueryOptions = queryOptions({
   queryKey: ["live-pricing"],
@@ -42,8 +43,6 @@ export function priceOf(plan: LivePlan) {
   };
 }
 
-const STOREFRONT_DEFAULT = ["voice-sms-receptionist", "social-dm-assistant"];
-
 /** Merge the marketing catalog (copy, icons, features) with the live database prices. */
 export function withLivePricing(plans: LivePlan[] | undefined): PricedAutomation[] {
   const bySlug = new Map((plans ?? []).map((plan) => [plan.slug, plan]));
@@ -59,7 +58,7 @@ export function withLivePricing(plans: LivePlan[] | undefined): PricedAutomation
       yearlyDiscountPct,
       yearlyPrice: monthlyWhenYearly * 12,
       monthlyOf: (yearly: boolean) => (yearly ? monthlyWhenYearly : monthlyBase),
-      listed: plan ? plan.listed !== false && plan.active : STOREFRONT_DEFAULT.includes(item.slug),
+      listed: isListedProduct(item.slug, plans),
     };
   });
 }

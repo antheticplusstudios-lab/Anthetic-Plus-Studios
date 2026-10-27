@@ -15,7 +15,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
           role="img"
           aria-label={compact ? "AntheticPlus Studios" : undefined}
           aria-hidden={compact ? undefined : true}
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-accent-foreground text-sm font-extrabold tracking-tight text-primary-foreground shadow-sm"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-sm font-extrabold tracking-tight text-primary-foreground shadow-sm"
         >
           A+
         </span>

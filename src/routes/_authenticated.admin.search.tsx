@@ -9,7 +9,19 @@ import { Badge } from "@/components/ui/badge";
 import { globalAdminSearch } from "@/lib/admin-search.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/search")({
-  head: () => ({ meta: [{ title: "Global Search — AntheticPlus Control Center" }] }),
+  head: () => ({
+    meta: [
+      { name: "description", content: "Admin Search in the AntheticPlus AI automation platform." },
+      { property: "og:title", content: "Admin Search — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Search in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Global Search — AntheticPlus Control Center" },
+    ],
+  }),
   component: GlobalSearchPage,
 });
 

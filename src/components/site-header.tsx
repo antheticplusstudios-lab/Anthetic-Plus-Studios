@@ -1,30 +1,84 @@
 import { Link } from "@tanstack/react-router";
-import { LayoutDashboard, Menu, X } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Globe, LayoutDashboard, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AuthDialog } from "@/components/auth-dialog";
 import { HomeBrand } from "@/components/home-brand";
-import { AnimatePresence, motion } from "@/components/motion";
+import { AnimatePresence, motion, useReducedMotion, glide } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-portal";
 import { cn } from "@/lib/utils";
+import { useLang, useT, type Lang } from "@/lib/i18n";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
+/** Real routes only. "Products" = automations catalog, "Pricing" = checkout plans. */
 const NAV = [
-  { to: "/automations", label: "Automations" },
-  { to: "/checkout", label: "Pricing" },
-  { to: "/security", label: "Security" },
-  { to: "/status", label: "Status" },
-  { to: "/dashboard", label: "Dashboard" },
+  { to: "/", en: "Home", bn: "হোম", exact: true },
+  { to: "/automations", en: "Products", bn: "প্রোডাক্ট", exact: false },
+  { to: "/checkout", en: "Pricing", bn: "মূল্য", exact: false },
+  { to: "/docs", en: "Docs", bn: "ডকস", exact: false },
+  { to: "/about", en: "About", bn: "আমাদের কথা", exact: false },
 ] as const;
+
+const LANGS: { code: Lang; short: string; label: string }[] = [
+  { code: "en", short: "EN", label: "English" },
+  { code: "bn", short: "বাং", label: "বাংলা" },
+];
+
+export function LanguagePicker({ className }: { className?: string }) {
+  const { lang, setLang } = useLang();
+  const t = useT();
+  const current = LANGS.find((l) => l.code === lang) ?? {
+    code: "en",
+    short: "EN",
+    label: "English",
+  };
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={t("Change language", "ভাষা পরিবর্তন করুন")}
+        className={cn(
+          "inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-body transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          className,
+        )}
+      >
+        <Globe className="h-4 w-4" />
+        {current.short}
+        <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-36">
+        {LANGS.map((l) => (
+          <DropdownMenuItem
+            key={l.code}
+            onSelect={() => setLang(l.code)}
+            className="justify-between"
+          >
+            <span lang={l.code}>{l.label}</span>
+            {l.code === lang && <Check className="h-4 w-4 text-primary" />}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+const linkCls =
+  "relative rounded-lg px-3 py-2 text-sm font-semibold text-body transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[status=active]:text-primary";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [hovered, setHovered] = useState<string | null>(null);
   const { data: user, isLoading } = useCurrentUser();
+  const t = useT();
   const signedIn = !!user;
+  const reduced = useReducedMotion();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -32,98 +86,68 @@ export function SiteHeader() {
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
     };
   }, [open]);
 
   return (
     <>
-      <div aria-hidden className="h-20" />
+      <div aria-hidden="true" className="h-24" />
       <motion.header
-        initial={{ y: -80, opacity: 0 }}
+        initial={reduced ? false : { y: -12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.22, 0.9, 0.2, 1] }}
-        style={{ top: "var(--banner-h, 0px)" }}
-        className="fixed inset-x-0 z-50 px-3 pt-3 sm:px-5"
+        transition={{ duration: reduced ? 0 : 0.4, ease: glide }}
+        className="floating-navigation fixed inset-x-3 z-50 mx-auto max-w-7xl rounded-2xl glass-navigation border transition-[background-color,box-shadow,border-color] duration-300 ease-[var(--ease-m3-emphasized)] sm:inset-x-5"
+        data-scrolled={scrolled || open || undefined}
       >
-        <div
-          className={cn(
-            "relative mx-auto flex h-14 max-w-7xl items-center gap-3 rounded-2xl border px-3 transition-all duration-500 sm:px-4",
-            scrolled || open
-              ? "border-border/80 bg-background/75 shadow-[0_12px_40px_-12px_color-mix(in_oklab,var(--primary)_35%,transparent)] backdrop-blur-2xl"
-              : "border-transparent bg-background/30 backdrop-blur-md",
-          )}
-        >
-          <span
-            aria-hidden
-            className={cn(
-              "pointer-events-none absolute inset-x-8 -bottom-px h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent transition-opacity duration-500",
-              scrolled ? "opacity-100" : "opacity-0",
-            )}
-          />
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-3 sm:px-5">
           <HomeBrand className="mr-auto lg:mr-0" onNavigate={() => setOpen(false)} />
 
-          <nav
-            className="mx-auto hidden items-center gap-1 text-sm font-medium lg:flex"
-            onMouseLeave={() => setHovered(null)}
-          >
+          <nav aria-label="Main" className="mx-auto hidden items-center gap-0.5 lg:flex">
             {NAV.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
-                onMouseEnter={() => setHovered(item.to)}
-                className="relative rounded-full px-3.5 py-2 text-muted-foreground transition-colors hover:text-foreground data-[status=active]:text-foreground"
+                activeOptions={{ exact: item.exact }}
+                className={cn(linkCls, "group")}
               >
-                {hovered === item.to && (
-                  <motion.span
-                    layoutId="nav-hover"
-                    className="absolute inset-0 -z-10 rounded-full bg-accent"
-                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                  />
-                )}
-                {item.label}
+                {t(item.en, item.bn)}
+                <span
+                  aria-hidden
+                  className="absolute inset-x-4 -bottom-0.5 mx-auto h-0.5 w-0 rounded-full bg-primary transition-all duration-300 group-data-[status=active]:w-5"
+                />
               </Link>
             ))}
-            <Link
-              to="/contact"
-              onMouseEnter={() => setHovered("contact")}
-              className="relative rounded-full px-3.5 py-2 text-muted-foreground transition-colors hover:text-foreground data-[status=active]:text-foreground"
-            >
-              {hovered === "contact" && (
-                <motion.span
-                  layoutId="nav-hover"
-                  className="absolute inset-0 -z-10 rounded-full bg-accent"
-                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                />
-              )}
-              Contact
-            </Link>
           </nav>
 
-          <div className="flex shrink-0 items-center gap-1.5">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <LanguagePicker />
             {!isLoading &&
               (signedIn ? (
-                <Button asChild size="sm" className="hidden rounded-full sm:inline-flex">
+                <Button
+                  asChild
+                  variant="hero"
+                  size="sm"
+                  className="hidden h-10 px-5 sm:inline-flex"
+                >
                   <Link to="/dashboard">
-                    <LayoutDashboard className="h-4 w-4" />
-                    My dashboard
+                    <LayoutDashboard /> {t("Dashboard", "ড্যাশবোর্ড")}
                   </Link>
                 </Button>
               ) : (
                 <>
                   <AuthDialog mode="signin">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="hidden rounded-full sm:inline-flex"
-                    >
-                      Sign in
+                    <Button variant="pill" size="sm" className="hidden h-10 px-5 sm:inline-flex">
+                      {t("Sign In", "সাইন ইন")}
                     </Button>
                   </AuthDialog>
                   <AuthDialog mode="signup">
-                    <Button size="sm" className="hidden rounded-full sm:inline-flex">
-                      Get started
+                    <Button variant="hero" size="sm" className="hidden h-10 px-5 sm:inline-flex">
+                      {t("Get Started", "শুরু করুন")} <ArrowRight />
                     </Button>
                   </AuthDialog>
                 </>
@@ -133,20 +157,11 @@ export function SiteHeader() {
               size="icon"
               className="rounded-full lg:hidden"
               onClick={() => setOpen(!open)}
-              aria-label={open ? "Close menu" : "Open menu"}
+              aria-label={open ? t("Close menu", "মেনু বন্ধ করুন") : t("Open menu", "মেনু খুলুন")}
+              aria-expanded={open}
+              aria-controls="mobile-nav"
             >
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={open ? "x" : "m"}
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                  className="flex"
-                >
-                  {open ? <X /> : <Menu />}
-                </motion.span>
-              </AnimatePresence>
+              {open ? <X /> : <Menu />}
             </Button>
           </div>
         </div>
@@ -154,52 +169,43 @@ export function SiteHeader() {
         <AnimatePresence>
           {open && (
             <motion.nav
-              initial={{ opacity: 0, y: -12, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -12, scale: 0.98 }}
-              transition={{ duration: 0.25, ease: [0.22, 0.9, 0.2, 1] }}
-              className="mx-auto mt-2 grid max-w-7xl gap-1 rounded-2xl border border-border/80 bg-background/90 p-3 shadow-2xl backdrop-blur-2xl lg:hidden"
+              id="mobile-nav"
+              aria-label="Mobile"
+              initial={reduced ? false : { opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: reduced ? 0 : -8 }}
+              transition={{ duration: reduced ? 0 : 0.25, ease: glide }}
+              className="mx-3 mb-3 grid max-h-[calc(100dvh-8rem)] gap-1 overflow-y-auto rounded-xl border border-border bg-card p-3 shadow-elevated lg:hidden"
             >
-              {NAV.map((item, i) => (
-                <motion.div
+              {NAV.map((item) => (
+                <Link
                   key={item.to}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.04 * i + 0.05 }}
+                  to={item.to}
+                  activeOptions={{ exact: item.exact }}
+                  onClick={() => setOpen(false)}
+                  className="rounded-xl px-4 py-3 text-base font-semibold text-foreground transition-colors hover:bg-accent data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
                 >
-                  <Link
-                    to={item.to}
-                    onClick={() => setOpen(false)}
-                    className="block rounded-xl px-4 py-3 text-base font-semibold transition-colors hover:bg-accent data-[status=active]:bg-accent data-[status=active]:text-primary"
-                  >
-                    {item.label}
-                  </Link>
-                </motion.div>
+                  {t(item.en, item.bn)}
+                </Link>
               ))}
-              <Link
-                to="/contact"
-                onClick={() => setOpen(false)}
-                className="block rounded-xl px-4 py-3 text-base font-semibold hover:bg-accent data-[status=active]:bg-accent data-[status=active]:text-primary"
-              >
-                Contact
-              </Link>
               <div className="mt-2 grid gap-2 border-t border-border pt-3">
                 {signedIn ? (
-                  <Button asChild className="w-full rounded-full">
+                  <Button asChild variant="hero" className="h-11 w-full">
                     <Link to="/dashboard" onClick={() => setOpen(false)}>
-                      <LayoutDashboard className="h-4 w-4" />
-                      My dashboard
+                      <LayoutDashboard /> {t("Dashboard", "ড্যাশবোর্ড")}
                     </Link>
                   </Button>
                 ) : (
                   <>
                     <AuthDialog mode="signin">
-                      <Button variant="outline" className="w-full rounded-full">
-                        Sign in
+                      <Button variant="pill" className="h-11 w-full">
+                        {t("Sign In", "সাইন ইন")}
                       </Button>
                     </AuthDialog>
                     <AuthDialog mode="signup">
-                      <Button className="w-full rounded-full">Get started</Button>
+                      <Button variant="hero" className="h-11 w-full">
+                        {t("Get Started", "শুরু করুন")}
+                      </Button>
                     </AuthDialog>
                   </>
                 )}

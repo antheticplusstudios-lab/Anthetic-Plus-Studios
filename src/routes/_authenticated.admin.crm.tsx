@@ -10,7 +10,22 @@ import { useAllProfiles, useTags } from "@/hooks/use-admin";
 import { isLive } from "@/lib/portal";
 import { adminAddCrmTag, adminRemoveCrmTag, adminListCrm } from "@/lib/admin-data.functions";
 
-export const Route = createFileRoute("/_authenticated/admin/crm")({ component: CrmPage });
+export const Route = createFileRoute("/_authenticated/admin/crm")({
+  head: () => ({
+    meta: [
+      { title: "Admin Crm — AntheticPlus Studios" },
+      { name: "description", content: "Admin Crm in the AntheticPlus AI automation platform." },
+      { property: "og:title", content: "Admin Crm — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Crm in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: CrmPage,
+});
 
 const QUICK_TAGS = ["VIP", "Late-Payer", "Onboarding", "Renewal risk", "Enterprise"];
 

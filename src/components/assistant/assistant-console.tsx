@@ -65,7 +65,7 @@ export function AssistantConsole({ variant = "compact" }: { variant?: "compact" 
 
   const voiceActive =
     voice.state === "listening" || voice.state === "processing" || voice.state === "speaking";
-  const enabled = config?.enabled !== false;
+  const enabled = config?.enabled === true;
   const voiceAllowed = enabled && config?.voiceEnabled !== false && voice.supported.input;
 
   useEffect(() => {

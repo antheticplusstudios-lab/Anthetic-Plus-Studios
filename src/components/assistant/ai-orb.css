@@ -1,0 +1,404 @@
+/* AntheticPlus signature AI Orb. All motion is driven by data-state + --orb-level (0..1, live audio). */
+.ai-orb {
+  --size: var(--orb-responsive-size, 320px);
+  --orb-level: 0;
+  --orbit-angle: 0deg;
+  --orbit-angle-secondary: 120deg;
+  --orb-float: 0px;
+  max-width: 100%;
+  --core-a: oklch(0.62 0.22 285);
+  --core-b: oklch(0.42 0.24 275);
+  --core-c: oklch(0.2 0.12 275);
+  --halo: oklch(0.7 0.2 290 / 55%);
+  --eye: oklch(0.88 0.12 220);
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+.ai-orb[data-state="success"] {
+  --halo: oklch(0.75 0.16 165 / 55%);
+  --eye: oklch(0.9 0.14 165);
+}
+.ai-orb[data-state="error"] {
+  --halo: oklch(0.7 0.18 20 / 50%);
+  --eye: oklch(0.88 0.1 25);
+}
+
+.ai-orb__halo {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--halo) 0%, transparent 65%);
+  filter: blur(24px);
+  opacity: calc(0.7 + 0.3 * var(--orb-level));
+  transform: scale(calc(1 + 0.12 * var(--orb-level)));
+  transition: background 0.6s ease;
+}
+.ai-orb__floor {
+  position: absolute;
+  bottom: -2%;
+  left: 25%;
+  width: 50%;
+  height: 7%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, oklch(0.55 0.25 290 / 45%), transparent);
+  filter: blur(6px);
+  transform: scaleX(calc(1 + var(--orb-level) * 0.08));
+}
+
+.ai-orb__body {
+  position: absolute;
+  inset: 20%;
+  transform: translate3d(0, var(--orb-float), 0);
+  will-change: transform;
+}
+/* Orbits: flattened 3D rings. Back half sits behind the core, front half crosses over it. */
+.ai-orb__orbit {
+  position: absolute;
+  inset: -30%;
+  transform: rotate(var(--tilt, -16deg)) scaleY(0.276);
+  pointer-events: none;
+}
+.ai-orb__orbit--2 {
+  inset: -16%;
+  --tilt: 22deg;
+}
+.ai-orb__orbit--back {
+  clip-path: inset(0 0 50% 0);
+}
+.ai-orb__orbit--front {
+  clip-path: inset(50% 0 0 0);
+}
+.ai-orb__spin {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid oklch(0.72 0.17 290 / 70%);
+  box-shadow:
+    0 0 14px oklch(0.65 0.22 290 / 35%),
+    inset 0 0 14px oklch(0.65 0.22 290 / 25%);
+  transform: rotate(var(--orbit-angle));
+  will-change: transform;
+  transition: border-color 0.4s ease;
+}
+.ai-orb__orbit--2 .ai-orb__spin {
+  border-color: oklch(0.8 0.1 230 / 60%);
+  transform: rotate(var(--orbit-angle-secondary));
+}
+.ai-orb__sat {
+  position: absolute;
+  top: -7px;
+  left: calc(50% - 7px);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, oklch(0.88 0.12 290), oklch(0.48 0.25 285));
+  box-shadow: 0 0 14px oklch(0.6 0.25 290 / 70%);
+  transform: scaleY(3.4);
+}
+.ai-orb__orbit--2 .ai-orb__sat {
+  top: auto;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  left: calc(50% - 5px);
+  background: radial-gradient(circle at 35% 30%, oklch(0.95 0.06 200), oklch(0.6 0.12 210));
+}
+.ai-orb[data-state="success"] .ai-orb__spin {
+  border-color: oklch(0.72 0.14 165 / 70%);
+}
+.ai-orb[data-state="error"] .ai-orb__spin {
+  border-color: oklch(0.7 0.16 25 / 60%);
+}
+
+/* Voice bars: hearing (listening) and talking (speaking) */
+.ai-orb__bars {
+  position: absolute;
+  bottom: 2%;
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 40px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.ai-orb:is([data-state="listening"], [data-state="speaking"]) .ai-orb__bars {
+  opacity: 1;
+}
+.ai-orb__bars i {
+  width: 5px;
+  border-radius: 99px;
+  background: var(--primary);
+  height: calc(6px + 34px * var(--orb-level) * var(--k));
+  animation: ai-orb-bar 0.9s ease-in-out infinite;
+  animation-delay: calc(var(--k) * -0.4s);
+}
+.ai-orb[data-state="listening"] .ai-orb__bars i {
+  background: oklch(0.65 0.15 200);
+}
+@keyframes ai-orb-bar {
+  0%,
+  100% {
+    scale: 1 0.7;
+  }
+  50% {
+    scale: 1 1.15;
+  }
+}
+
+.ai-orb__core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(60% 60% at 30% 25%, oklch(0.85 0.1 290 / 70%), transparent 60%),
+    radial-gradient(120% 120% at 35% 30%, var(--core-a) 0%, var(--core-b) 45%, var(--core-c) 100%);
+  box-shadow:
+    inset -14px -22px 40px oklch(0.15 0.1 275 / 70%),
+    inset 10px 14px 30px oklch(1 0 0 / 22%),
+    0 30px 60px -20px oklch(0.4 0.25 285 / 55%),
+    0 0 0 6px oklch(1 0 0 / 55%),
+    0 0 0 7px oklch(0.8 0.08 285 / 50%);
+  transform: scale(calc(1 + 0.05 * var(--orb-level)));
+  will-change: transform;
+}
+.ai-orb__core::before {
+  content: "";
+  position: absolute;
+  top: 9%;
+  left: 18%;
+  width: 38%;
+  height: 22%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, oklch(1 0 0 / 75%), transparent);
+  transform: rotate(-24deg);
+}
+
+.ai-orb__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ai-orb__eyes {
+  display: flex;
+  gap: 18%;
+  width: 100%;
+  justify-content: center;
+  transform: translateY(-6%);
+}
+.ai-orb__eye {
+  width: 9%;
+  aspect-ratio: 0.55;
+  min-width: 10px;
+  border-radius: 999px;
+  background: var(--eye);
+  box-shadow:
+    0 0 14px var(--eye),
+    0 0 2px oklch(1 0 0);
+  animation: ai-orb-blink 5.5s infinite;
+  transform-origin: center;
+  transition:
+    background 0.4s ease,
+    height 0.3s ease,
+    border-radius 0.3s ease;
+}
+.ai-orb__mouth {
+  position: absolute;
+  top: 61%;
+  left: 50%;
+  width: 16%;
+  height: calc(5% + 9% * var(--mouth, 0));
+  translate: -50% 0;
+  border: 3px solid var(--eye);
+  border-top: 0;
+  border-radius: 0 0 999px 999px;
+  filter: drop-shadow(0 0 5px var(--eye));
+}
+
+/* Listening: wider eyes, face leans in, ripple ring */
+.ai-orb[data-state="listening"] .ai-orb__eye {
+  transform: scale(1.12);
+}
+.ai-orb[data-state="listening"] .ai-orb__face {
+  transform: translateY(-2%) scale(1.03);
+}
+.ai-orb__ripple {
+  position: absolute;
+  inset: 20%;
+  border-radius: 50%;
+  border: 2px solid oklch(0.65 0.2 290 / 50%);
+  opacity: 0;
+}
+.ai-orb:is([data-state="listening"], [data-state="speaking"]) .ai-orb__ripple {
+  animation: ai-orb-ripple 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+.ai-orb[data-state="listening"] .ai-orb__ripple--2,
+.ai-orb[data-state="speaking"] .ai-orb__ripple--2 {
+  animation-delay: 1s;
+}
+
+/* Processing: eyes look around, rings speed up */
+.ai-orb[data-state="processing"] .ai-orb__eyes {
+  animation: ai-orb-look 1.8s ease-in-out infinite;
+}
+.ai-orb[data-state="processing"] .ai-orb__mouth {
+  width: 8%;
+  height: 3%;
+  border-radius: 999px;
+  border: 3px solid var(--eye);
+}
+
+/* Speaking: mouth follows --mouth (set from audio level) */
+.ai-orb[data-state="speaking"] .ai-orb__mouth {
+  border-radius: 40% 40% 999px 999px / 30% 30% 999px 999px;
+  border-top: 3px solid var(--eye);
+  background: oklch(0.2 0.1 275 / 60%);
+}
+
+/* Success: happy ^ ^ eyes */
+.ai-orb[data-state="success"] .ai-orb__eye {
+  aspect-ratio: 1.6;
+  background: transparent;
+  border: 3px solid var(--eye);
+  border-bottom: 0;
+  border-radius: 999px 999px 0 0;
+  box-shadow: none;
+  filter: drop-shadow(0 0 6px var(--eye));
+  animation: none;
+}
+
+/* Error: flattened eyes, worried mouth, one small shake */
+.ai-orb[data-state="error"] .ai-orb__eye {
+  aspect-ratio: 2.4;
+  animation: none;
+}
+.ai-orb[data-state="error"] .ai-orb__mouth {
+  border: 3px solid var(--eye);
+  border-bottom: 0;
+  border-radius: 999px 999px 0 0;
+  top: 64%;
+}
+.ai-orb[data-state="error"] .ai-orb__face {
+  animation: ai-orb-shake 0.5s ease-in-out 1;
+}
+
+@keyframes ai-orb-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes ai-orb-shadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleX(0.85);
+    opacity: 0.7;
+  }
+}
+@keyframes ai-orb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ai-orb-blink {
+  0%,
+  93%,
+  100% {
+    scale: 1 1;
+  }
+  95% {
+    scale: 1 0.1;
+  }
+}
+@keyframes ai-orb-look {
+  0%,
+  100% {
+    transform: translate(0, -6%);
+  }
+  30% {
+    transform: translate(-10%, -10%);
+  }
+  65% {
+    transform: translate(10%, -10%);
+  }
+}
+@keyframes ai-orb-ripple {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+@keyframes ai-orb-hop {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-18px) scale(1.04);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes ai-orb-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-orb *,
+  .ai-orb *::before,
+  .ai-orb *::after {
+    animation: none !important;
+  }
+}
+
+.ai-orb[data-motion="paused"] *,
+.ai-orb[data-motion="paused"] *::before {
+  animation-play-state: paused;
+}
+
+.ai-orb[data-state="speaking"] .ai-orb__face {
+  animation: ai-orb-talk 0.6s ease-in-out infinite;
+}
+@keyframes ai-orb-talk {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.5%);
+  }
+}
+
+.ai-orb[data-unavailable="true"] {
+  --halo: color-mix(in oklab, var(--muted-foreground) 16%, transparent);
+}
+.ai-orb[data-unavailable="true"] .ai-orb__ripple {
+  animation: none;
+}

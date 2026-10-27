@@ -19,7 +19,22 @@ import { Button } from "@/components/ui/button";
 import { getAnalytics } from "@/lib/admin-center.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/analytics")({
-  head: () => ({ meta: [{ title: "Analytics — AntheticPlus Control Center" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Admin Analytics in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Analytics — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Analytics in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Analytics — AntheticPlus Control Center" },
+    ],
+  }),
   component: AnalyticsPage,
 });
 

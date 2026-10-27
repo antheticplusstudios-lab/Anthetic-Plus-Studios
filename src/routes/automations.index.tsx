@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -5,6 +6,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { AutomationCard } from "@/components/automation-card";
+import { Hero3D } from "@/components/hero-3d";
+import { SolutionsSection } from "@/components/solutions-section";
 import { livePricingQueryOptions, storefrontItems } from "@/lib/pricing";
 
 export const Route = createFileRoute("/automations/")({
@@ -29,6 +32,7 @@ export const Route = createFileRoute("/automations/")({
 });
 
 function AutomationsPage() {
+  const t = useT();
   const { data } = useSuspenseQuery(livePricingQueryOptions);
   const items = storefrontItems(data);
   const [yearly, setYearly] = useState(false);
@@ -37,35 +41,43 @@ function AutomationsPage() {
       <SiteHeader />
       <main className="px-4 py-16 sm:px-6 sm:py-24">
         <div className="mx-auto max-w-7xl">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <div className="max-w-2xl">
-              <p className="text-sm font-bold uppercase tracking-wide text-primary">Automations</p>
+          <div className="relative flex flex-wrap items-end justify-between gap-6">
+            <Hero3D />
+            <div className="relative max-w-2xl">
+              <p className="text-sm font-bold uppercase tracking-wide text-primary">
+                {t("Automations", "অটোমেশন")}
+              </p>
               <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
-                Public systems, one clear price.
+                {t("Public systems, one clear price.", "সবার জন্য সিস্টেম, এক স্বচ্ছ মূল্য।")}
               </h1>
               <p className="mt-4 text-lg text-muted-foreground">
-                Each automation is its own subscription, billed on a fixed UTC schedule.
+                {t(
+                  "Each automation is its own subscription, billed on a fixed UTC schedule.",
+                  "প্রতিটি অটোমেশনের আলাদা সাবস্ক্রিপশন রয়েছে, নির্দিষ্ট UTC সময়সূচি অনুযায়ী বিল করা হয়।",
+                )}
               </p>
             </div>
-            <div className="grid grid-cols-2 rounded-full border border-border bg-card p-1">
+            <div className="relative grid grid-cols-2 rounded-full border border-border bg-card p-1">
               <Button
                 variant={!yearly ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setYearly(false)}
               >
-                Monthly
+                {t("Monthly", "মাসিক")}
               </Button>
               <Button
                 variant={yearly ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setYearly(true)}
               >
-                Yearly
+                {t("Yearly", "বার্ষিক")}
               </Button>
             </div>
           </div>
           {items.length === 0 ? (
-            <p className="mt-12 text-muted-foreground">No automations are available right now.</p>
+            <p className="mt-12 text-muted-foreground">
+              {t("No automations are available right now.", "এই মুহূর্তে কোনো অটোমেশন উপলব্ধ নেই।")}
+            </p>
           ) : (
             <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {items.map((item) => (
@@ -73,6 +85,7 @@ function AutomationsPage() {
               ))}
             </div>
           )}
+          <SolutionsSection />
         </div>
       </main>
       <SiteFooter />

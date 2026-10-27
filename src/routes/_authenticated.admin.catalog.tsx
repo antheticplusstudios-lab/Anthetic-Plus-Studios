@@ -10,7 +10,19 @@ import { useAllInstances, usePricing } from "@/hooks/use-admin";
 import { bulkKill, saveCatalogItem } from "@/lib/admin-center.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/catalog")({
-  head: () => ({ meta: [{ title: "All Automations — AntheticPlus Control Center" }] }),
+  head: () => ({
+    meta: [
+      { name: "description", content: "Admin Catalog in the AntheticPlus AI automation platform." },
+      { property: "og:title", content: "Admin Catalog — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Catalog in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "All Automations — AntheticPlus Control Center" },
+    ],
+  }),
   component: CatalogPage,
 });
 

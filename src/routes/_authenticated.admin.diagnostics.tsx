@@ -14,7 +14,22 @@ import {
 } from "@/lib/diagnostics.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/diagnostics")({
-  head: () => ({ meta: [{ title: "Conversation Diagnostics — AntheticPlus" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Admin Diagnostics in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Diagnostics — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Diagnostics in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Conversation Diagnostics — AntheticPlus" },
+    ],
+  }),
   component: DiagnosticsPage,
 });
 

@@ -38,3 +38,4 @@ dist-ssr
 
 # Vercel generated output
 .vercel/
+.originkit/

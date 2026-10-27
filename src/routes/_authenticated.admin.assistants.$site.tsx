@@ -49,7 +49,22 @@ export const Route = createFileRoute("/_authenticated/admin/assistants/$site")({
   beforeLoad: ({ params }) => {
     if (!isSiteId(params.site)) throw notFound();
   },
-  head: () => ({ meta: [{ title: "Site Assistant — AntheticPlus Control Center" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Admin Assistants Site in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Assistants Site — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Assistants Site in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Site Assistant — AntheticPlus Control Center" },
+    ],
+  }),
   component: SiteAssistantPage,
 });
 

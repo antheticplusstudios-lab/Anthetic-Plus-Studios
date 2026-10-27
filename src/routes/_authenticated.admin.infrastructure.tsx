@@ -29,7 +29,22 @@ import {
 import { useAssistantStatus, useSaveAssistantSettings } from "@/hooks/use-assistant";
 
 export const Route = createFileRoute("/_authenticated/admin/infrastructure")({
-  head: () => ({ meta: [{ title: "AI Infrastructure — AntheticPlus" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Admin Infrastructure in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Infrastructure — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Infrastructure in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "AI Infrastructure — AntheticPlus" },
+    ],
+  }),
   component: InfrastructurePage,
 });
 

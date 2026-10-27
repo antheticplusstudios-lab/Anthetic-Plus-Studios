@@ -9,6 +9,22 @@ import {
 } from "@/hooks/use-admin";
 
 export const Route = createFileRoute("/_authenticated/admin/lifecycle")({
+  head: () => ({
+    meta: [
+      { title: "Admin Lifecycle — AntheticPlus Studios" },
+      {
+        name: "description",
+        content: "Admin Lifecycle in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Lifecycle — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Lifecycle in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: LifecyclePage,
 });
 

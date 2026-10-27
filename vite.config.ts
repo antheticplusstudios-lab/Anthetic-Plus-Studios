@@ -20,10 +20,7 @@ export default defineConfig(({ mode }) => {
   // configure DB1_URL/DB1_ANON_KEY today, so safely map those PUBLIC values to the
   // browser aliases unless explicit VITE_* values were configured.
   const fileEnv = loadEnv(mode, process.cwd(), "");
-  const { url: publicDb1Url, key: publicDb1Key } = resolvePublicDb1Config(
-    process.env,
-    fileEnv,
-  );
+  const { url: publicDb1Url, key: publicDb1Key } = resolvePublicDb1Config(process.env, fileEnv);
 
   return {
     define: {

@@ -1,4 +1,4 @@
-# Work continued without Lovable credits — 2026-10-13
+# Work continuation notes — 2026-10-13
 
 ## Source checkpoint
 

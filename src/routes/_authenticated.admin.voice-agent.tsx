@@ -35,7 +35,22 @@ import {
 } from "@/lib/voice-agent.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/voice-agent")({
-  head: () => ({ meta: [{ title: "Voice Channel & Email — AntheticPlus Control Center" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Admin Voice Agent in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Voice Agent — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Voice Agent in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Voice Channel & Email — AntheticPlus Control Center" },
+    ],
+  }),
   component: VoiceAgentAdminPage,
 });
 

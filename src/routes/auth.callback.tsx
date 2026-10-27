@@ -3,6 +3,19 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth/callback")({
+  head: () => ({
+    meta: [
+      { title: "Auth Callback — AntheticPlus Studios" },
+      { name: "description", content: "Auth Callback in the AntheticPlus AI automation platform." },
+      { property: "og:title", content: "Auth Callback — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Auth Callback in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AuthCallbackPage,
 });
 

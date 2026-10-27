@@ -11,7 +11,22 @@ import { STALE_AFTER_HOURS } from "@/assistant/sites/site-config.types";
 import { adminGetSiteConfig } from "@/lib/web-assistant-admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/assistants/")({
-  head: () => ({ meta: [{ title: "AI Assistants — AntheticPlus Control Center" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Admin Assistants in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Assistants — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Assistants in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "AI Assistants — AntheticPlus Control Center" },
+    ],
+  }),
   component: AssistantsOverview,
 });
 

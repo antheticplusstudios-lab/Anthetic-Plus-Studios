@@ -17,6 +17,14 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/capability-requests")({
   head: () => ({
     meta: [
+      { property: "og:title", content: "Admin Capability Requests — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Capability Requests in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+
       { title: "Capability Requests — AntheticPlus Control Center" },
       {
         name: "description",

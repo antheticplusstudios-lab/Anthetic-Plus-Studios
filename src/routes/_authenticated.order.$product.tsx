@@ -12,6 +12,19 @@ const LEGACY_TO_CANONICAL: Record<string, string> = {
  * The canonical four-product checkout is /checkout/$slug.
  */
 export const Route = createFileRoute("/_authenticated/order/$product")({
+  head: () => ({
+    meta: [
+      { title: "Order Product — AntheticPlus Studios" },
+      { name: "description", content: "Order Product in the AntheticPlus AI automation platform." },
+      { property: "og:title", content: "Order Product — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Order Product in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   beforeLoad: ({ params }) => {
     const slug = LEGACY_TO_CANONICAL[params.product];
     if (!slug) throw redirect({ to: "/dashboard" });

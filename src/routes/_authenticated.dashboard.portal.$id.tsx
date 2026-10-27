@@ -22,7 +22,22 @@ import {
 } from "@/lib/client-platform.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/portal/$id")({
-  head: () => ({ meta: [{ title: "Automation Portal — AntheticPlus" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Dashboard Portal Id in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Dashboard Portal Id — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Dashboard Portal Id in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Automation Portal — AntheticPlus" },
+    ],
+  }),
   component: PortalPage,
 });
 

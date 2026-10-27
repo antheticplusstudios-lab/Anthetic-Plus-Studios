@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleCheckBig, Eye, EyeOff, Loader2 } from "lucide-react";
@@ -24,6 +25,7 @@ export function AuthPanel({
   initialMode?: "signin" | "signup";
   onDone?: () => void;
 }) {
+  const t = useT();
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -81,10 +83,16 @@ export function AuthPanel({
         >
           <CircleCheckBig className="h-7 w-7 text-primary" />
         </motion.div>
-        <h2 className="mt-5 text-xl font-extrabold">Confirm your email</h2>
+        <h2 className="mt-5 text-xl font-extrabold">
+          {t("Confirm your email", "আপনার ইমেইল নিশ্চিত করুন")}
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          We sent a confirmation link to <strong>{email}</strong>. Open it, then sign in right here
-          — you never have to leave this page.
+          {t("We sent a confirmation link to", "আমরা একটি নিশ্চিতকরণ লিংক পাঠিয়েছি এই ঠিকানায়:")}{" "}
+          <strong>{email}</strong>
+          {t(
+            ". Open it, then sign in right here — you never have to leave this page.",
+            "। লিংকটি খুলে এখানেই সাইন ইন করুন—এই পৃষ্ঠা ছাড়তে হবে না।",
+          )}
         </p>
         <Button
           variant="outline"
@@ -94,7 +102,7 @@ export function AuthPanel({
             setMode("signin");
           }}
         >
-          Back to sign in
+          {t("Back to sign in", "সাইন ইনে ফিরে যান")}
         </Button>
       </div>
     );
@@ -103,12 +111,17 @@ export function AuthPanel({
   return (
     <div>
       <h2 className="text-2xl font-extrabold tracking-tight">
-        {mode === "signin" ? "Welcome back" : "Create your account"}
+        {mode === "signin"
+          ? t("Welcome back", "আবার স্বাগতম")
+          : t("Create your account", "আপনার অ্যাকাউন্ট তৈরি করুন")}
       </h2>
       <p className="mt-1.5 text-sm text-muted-foreground">
         {mode === "signin"
-          ? "Pick up right where you left off."
-          : "Takes a few seconds — you stay on this page the whole time."}
+          ? t("Pick up right where you left off.", "যেখানে থেমেছিলেন, সেখান থেকেই শুরু করুন।")
+          : t(
+              "Takes a few seconds — you stay on this page the whole time.",
+              "মাত্র কয়েক সেকেন্ড লাগবে—পুরো সময় এই পৃষ্ঠাতেই থাকবেন।",
+            )}
       </p>
 
       <div className="relative mt-5 grid grid-cols-2 rounded-full bg-muted p-1 text-sm font-bold">
@@ -127,7 +140,7 @@ export function AuthPanel({
               />
             )}
             <span className={mode === m ? "text-foreground" : "text-muted-foreground"}>
-              {m === "signin" ? "Sign in" : "Sign up"}
+              {m === "signin" ? t("Sign in", "সাইন ইন") : t("Sign up", "নিবন্ধন")}
             </span>
           </button>
         ))}
@@ -145,13 +158,13 @@ export function AuthPanel({
 
       <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
-        or email
+        {t("or email", "অথবা ইমেইল দিয়ে")}
         <span className="h-px flex-1 bg-border" />
       </div>
 
       <form onSubmit={submit} className="space-y-4">
         <div>
-          <Label htmlFor="auth-email">Email address</Label>
+          <Label htmlFor="auth-email">{t("Email address", "ইমেইল ঠিকানা")}</Label>
           <Input
             id="auth-email"
             type="email"
@@ -163,7 +176,7 @@ export function AuthPanel({
           />
         </div>
         <div>
-          <Label htmlFor="auth-password">Password</Label>
+          <Label htmlFor="auth-password">{t("Password", "পাসওয়ার্ড")}</Label>
           <div className="relative mt-2">
             <Input
               id="auth-password"
@@ -181,7 +194,11 @@ export function AuthPanel({
               size="icon"
               className="absolute right-1 top-1"
               onClick={() => setShow(!show)}
-              aria-label={show ? "Hide password" : "Show password"}
+              aria-label={
+                show
+                  ? t("Hide password", "পাসওয়ার্ড লুকান")
+                  : t("Show password", "পাসওয়ার্ড দেখান")
+              }
             >
               {show ? <EyeOff /> : <Eye />}
             </Button>
@@ -201,7 +218,11 @@ export function AuthPanel({
         </AnimatePresence>
         <Button type="submit" size="lg" disabled={busy} className="w-full">
           {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-          {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+          {busy
+            ? t("Please wait…", "অনুগ্রহ করে অপেক্ষা করুন…")
+            : mode === "signin"
+              ? t("Sign in", "সাইন ইন")
+              : t("Create account", "অ্যাকাউন্ট তৈরি করুন")}
         </Button>
       </form>
     </div>

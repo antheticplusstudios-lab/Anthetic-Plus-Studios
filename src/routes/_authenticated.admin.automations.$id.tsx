@@ -34,6 +34,9 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/automations/$id")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+
       { title: "Automation Control Center — AntheticPlus" },
       {
         name: "description",
