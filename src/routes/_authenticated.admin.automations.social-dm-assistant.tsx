@@ -4,6 +4,18 @@ import { AutomationControlRoom } from "@/components/automation-control-room";
 export const Route = createFileRoute("/_authenticated/admin/automations/social-dm-assistant")({
   head: () => ({
     meta: [
+      {
+        property: "og:title",
+        content: "Admin Automations Social Dm Assistant — AntheticPlus Studios",
+      },
+      {
+        property: "og:description",
+        content:
+          "Admin Automations Social Dm Assistant in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+
       { title: "social-dm-assistant control room — AntheticPlus" },
       {
         name: "description",

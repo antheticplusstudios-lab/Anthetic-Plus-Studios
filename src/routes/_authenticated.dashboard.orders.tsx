@@ -6,7 +6,22 @@ import { useMyPayments, useInstances } from "@/hooks/use-portal";
 import { AUTOMATION_LABEL } from "@/lib/catalog-v2";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
-  head: () => ({ meta: [{ title: "My Orders — AntheticPlus" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Dashboard Orders in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Dashboard Orders — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Dashboard Orders in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "My Orders — AntheticPlus" },
+    ],
+  }),
   component: OrdersPage,
 });
 

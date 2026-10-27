@@ -11,11 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as AssistantDotjsRouteImport } from './routes/assistant[.]js'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as SecurityRouteImport } from './routes/security'
+import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as WidgetDotjsRouteImport } from './routes/widget[.]js'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
@@ -46,6 +49,7 @@ import { Route as AuthenticatedAdminReceptionistRouteImport } from './routes/_au
 import { Route as AuthenticatedAdminSearchRouteImport } from './routes/_authenticated.admin.search'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
 import { Route as AuthenticatedAdminSiteKeysRouteImport } from './routes/_authenticated.admin.site-keys'
+import { Route as AuthenticatedAdminSolutionsRouteImport } from './routes/_authenticated.admin.solutions'
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated.admin.team'
 import { Route as AuthenticatedAdminTrainingRouteImport } from './routes/_authenticated.admin.training'
 import { Route as AuthenticatedAdminTranscriptsRouteImport } from './routes/_authenticated.admin.transcripts'
@@ -78,6 +82,7 @@ import { Route as AuthenticatedDashboardAutomationsIdRouteImport } from './route
 import { Route as AuthenticatedDashboardPortalIdRouteImport } from './routes/_authenticated.dashboard.portal.$id'
 import { Route as ApiPublicAssistantChatRouteImport } from './routes/api/public/assistant/chat'
 import { Route as ApiPublicAssistantConfigRouteImport } from './routes/api/public/assistant/config'
+import { Route as ApiPublicAssistantStreamRouteImport } from './routes/api/public/assistant/stream'
 import { Route as ApiPublicAssistantTranscribeRouteImport } from './routes/api/public/assistant/transcribe'
 import { Route as ApiPublicAssistantTtsRouteImport } from './routes/api/public/assistant/tts'
 import { Route as ApiPublicAutomationsWebhookRouteImport } from './routes/api/public/automations/webhook'
@@ -101,6 +106,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AssistantRoute = AssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -121,9 +131,19 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SecurityRoute = SecurityRouteImport.update({
   id: '/security',
   path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsRoute = SolutionsRouteImport.update({
+  id: '/solutions',
+  path: '/solutions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StatusRoute = StatusRouteImport.update({
@@ -294,6 +314,12 @@ const AuthenticatedAdminSiteKeysRoute =
   AuthenticatedAdminSiteKeysRouteImport.update({
     id: '/site-keys',
     path: '/site-keys',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminSolutionsRoute =
+  AuthenticatedAdminSolutionsRouteImport.update({
+    id: '/solutions',
+    path: '/solutions',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminTeamRoute = AuthenticatedAdminTeamRouteImport.update({
@@ -485,6 +511,12 @@ const ApiPublicAssistantConfigRoute =
     path: '/api/public/assistant/config',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicAssistantStreamRoute =
+  ApiPublicAssistantStreamRouteImport.update({
+    id: '/api/public/assistant/stream',
+    path: '/api/public/assistant/stream',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicAssistantTranscribeRoute =
   ApiPublicAssistantTranscribeRouteImport.update({
     id: '/api/public/assistant/transcribe',
@@ -560,11 +592,14 @@ const ApiPublicIntegrationsTwilioVoiceRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/assistant': typeof AssistantRoute
   '/assistant.js': typeof AssistantDotjsRoute
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
+  '/docs': typeof DocsRoute
   '/security': typeof SecurityRoute
+  '/solutions': typeof SolutionsRoute
   '/status': typeof StatusRoute
   '/widget.js': typeof WidgetDotjsRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -594,6 +629,7 @@ export interface FileRoutesByFullPath {
   '/admin/search': typeof AuthenticatedAdminSearchRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/site-keys': typeof AuthenticatedAdminSiteKeysRoute
+  '/admin/solutions': typeof AuthenticatedAdminSolutionsRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/admin/training': typeof AuthenticatedAdminTrainingRoute
   '/admin/transcripts': typeof AuthenticatedAdminTranscriptsRoute
@@ -622,6 +658,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/portal/$id': typeof AuthenticatedDashboardPortalIdRoute
   '/api/public/assistant/chat': typeof ApiPublicAssistantChatRoute
   '/api/public/assistant/config': typeof ApiPublicAssistantConfigRoute
+  '/api/public/assistant/stream': typeof ApiPublicAssistantStreamRoute
   '/api/public/assistant/transcribe': typeof ApiPublicAssistantTranscribeRoute
   '/api/public/assistant/tts': typeof ApiPublicAssistantTtsRoute
   '/api/public/automations/webhook': typeof ApiPublicAutomationsWebhookRoute
@@ -643,11 +680,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/assistant': typeof AssistantRoute
   '/assistant.js': typeof AssistantDotjsRoute
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
+  '/docs': typeof DocsRoute
   '/security': typeof SecurityRoute
+  '/solutions': typeof SolutionsRoute
   '/status': typeof StatusRoute
   '/widget.js': typeof WidgetDotjsRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -675,6 +715,7 @@ export interface FileRoutesByTo {
   '/admin/search': typeof AuthenticatedAdminSearchRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/site-keys': typeof AuthenticatedAdminSiteKeysRoute
+  '/admin/solutions': typeof AuthenticatedAdminSolutionsRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/admin/training': typeof AuthenticatedAdminTrainingRoute
   '/admin/transcripts': typeof AuthenticatedAdminTranscriptsRoute
@@ -703,6 +744,7 @@ export interface FileRoutesByTo {
   '/dashboard/portal/$id': typeof AuthenticatedDashboardPortalIdRoute
   '/api/public/assistant/chat': typeof ApiPublicAssistantChatRoute
   '/api/public/assistant/config': typeof ApiPublicAssistantConfigRoute
+  '/api/public/assistant/stream': typeof ApiPublicAssistantStreamRoute
   '/api/public/assistant/transcribe': typeof ApiPublicAssistantTranscribeRoute
   '/api/public/assistant/tts': typeof ApiPublicAssistantTtsRoute
   '/api/public/automations/webhook': typeof ApiPublicAutomationsWebhookRoute
@@ -726,11 +768,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/assistant': typeof AssistantRoute
   '/assistant.js': typeof AssistantDotjsRoute
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
+  '/docs': typeof DocsRoute
   '/security': typeof SecurityRoute
+  '/solutions': typeof SolutionsRoute
   '/status': typeof StatusRoute
   '/widget.js': typeof WidgetDotjsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -760,6 +805,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/search': typeof AuthenticatedAdminSearchRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/site-keys': typeof AuthenticatedAdminSiteKeysRoute
+  '/_authenticated/admin/solutions': typeof AuthenticatedAdminSolutionsRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/admin/training': typeof AuthenticatedAdminTrainingRoute
   '/_authenticated/admin/transcripts': typeof AuthenticatedAdminTranscriptsRoute
@@ -788,6 +834,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/portal/$id': typeof AuthenticatedDashboardPortalIdRoute
   '/api/public/assistant/chat': typeof ApiPublicAssistantChatRoute
   '/api/public/assistant/config': typeof ApiPublicAssistantConfigRoute
+  '/api/public/assistant/stream': typeof ApiPublicAssistantStreamRoute
   '/api/public/assistant/transcribe': typeof ApiPublicAssistantTranscribeRoute
   '/api/public/assistant/tts': typeof ApiPublicAssistantTtsRoute
   '/api/public/automations/webhook': typeof ApiPublicAutomationsWebhookRoute
@@ -811,11 +858,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/assistant'
     | '/assistant.js'
     | '/auth'
     | '/contact'
+    | '/docs'
     | '/security'
+    | '/solutions'
     | '/status'
     | '/widget.js'
     | '/admin'
@@ -845,6 +895,7 @@ export interface FileRouteTypes {
     | '/admin/search'
     | '/admin/settings'
     | '/admin/site-keys'
+    | '/admin/solutions'
     | '/admin/team'
     | '/admin/training'
     | '/admin/transcripts'
@@ -873,6 +924,7 @@ export interface FileRouteTypes {
     | '/dashboard/portal/$id'
     | '/api/public/assistant/chat'
     | '/api/public/assistant/config'
+    | '/api/public/assistant/stream'
     | '/api/public/assistant/transcribe'
     | '/api/public/assistant/tts'
     | '/api/public/automations/webhook'
@@ -894,11 +946,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/assistant'
     | '/assistant.js'
     | '/auth'
     | '/contact'
+    | '/docs'
     | '/security'
+    | '/solutions'
     | '/status'
     | '/widget.js'
     | '/auth/callback'
@@ -926,6 +981,7 @@ export interface FileRouteTypes {
     | '/admin/search'
     | '/admin/settings'
     | '/admin/site-keys'
+    | '/admin/solutions'
     | '/admin/team'
     | '/admin/training'
     | '/admin/transcripts'
@@ -954,6 +1010,7 @@ export interface FileRouteTypes {
     | '/dashboard/portal/$id'
     | '/api/public/assistant/chat'
     | '/api/public/assistant/config'
+    | '/api/public/assistant/stream'
     | '/api/public/assistant/transcribe'
     | '/api/public/assistant/tts'
     | '/api/public/automations/webhook'
@@ -976,11 +1033,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/about'
     | '/assistant'
     | '/assistant.js'
     | '/auth'
     | '/contact'
+    | '/docs'
     | '/security'
+    | '/solutions'
     | '/status'
     | '/widget.js'
     | '/_authenticated/admin'
@@ -1010,6 +1070,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/search'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/site-keys'
+    | '/_authenticated/admin/solutions'
     | '/_authenticated/admin/team'
     | '/_authenticated/admin/training'
     | '/_authenticated/admin/transcripts'
@@ -1038,6 +1099,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/portal/$id'
     | '/api/public/assistant/chat'
     | '/api/public/assistant/config'
+    | '/api/public/assistant/stream'
     | '/api/public/assistant/transcribe'
     | '/api/public/assistant/tts'
     | '/api/public/automations/webhook'
@@ -1061,11 +1123,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
   AssistantRoute: typeof AssistantRoute
   AssistantDotjsRoute: typeof AssistantDotjsRoute
   AuthRoute: typeof AuthRouteWithChildren
   ContactRoute: typeof ContactRoute
+  DocsRoute: typeof DocsRoute
   SecurityRoute: typeof SecurityRoute
+  SolutionsRoute: typeof SolutionsRoute
   StatusRoute: typeof StatusRoute
   WidgetDotjsRoute: typeof WidgetDotjsRoute
   AutomationsSlugRoute: typeof AutomationsSlugRoute
@@ -1073,6 +1138,7 @@ export interface RootRouteChildren {
   CheckoutIndexRoute: typeof CheckoutIndexRoute
   ApiPublicAssistantChatRoute: typeof ApiPublicAssistantChatRoute
   ApiPublicAssistantConfigRoute: typeof ApiPublicAssistantConfigRoute
+  ApiPublicAssistantStreamRoute: typeof ApiPublicAssistantStreamRoute
   ApiPublicAssistantTranscribeRoute: typeof ApiPublicAssistantTranscribeRoute
   ApiPublicAssistantTtsRoute: typeof ApiPublicAssistantTtsRoute
   ApiPublicAutomationsWebhookRoute: typeof ApiPublicAutomationsWebhookRoute
@@ -1104,6 +1170,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/assistant': {
       id: '/assistant'
       path: '/assistant'
@@ -1132,11 +1205,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/security': {
       id: '/security'
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions': {
+      id: '/solutions'
+      path: '/solutions'
+      fullPath: '/solutions'
+      preLoaderRoute: typeof SolutionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/status': {
@@ -1347,6 +1434,13 @@ declare module '@tanstack/react-router' {
       path: '/site-keys'
       fullPath: '/admin/site-keys'
       preLoaderRoute: typeof AuthenticatedAdminSiteKeysRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/solutions': {
+      id: '/_authenticated/admin/solutions'
+      path: '/solutions'
+      fullPath: '/admin/solutions'
+      preLoaderRoute: typeof AuthenticatedAdminSolutionsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/team': {
@@ -1573,6 +1667,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAssistantConfigRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/assistant/stream': {
+      id: '/api/public/assistant/stream'
+      path: '/api/public/assistant/stream'
+      fullPath: '/api/public/assistant/stream'
+      preLoaderRoute: typeof ApiPublicAssistantStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/assistant/transcribe': {
       id: '/api/public/assistant/transcribe'
       path: '/api/public/assistant/transcribe'
@@ -1689,6 +1790,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminSearchRoute: typeof AuthenticatedAdminSearchRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminSiteKeysRoute: typeof AuthenticatedAdminSiteKeysRoute
+  AuthenticatedAdminSolutionsRoute: typeof AuthenticatedAdminSolutionsRoute
   AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRoute
   AuthenticatedAdminTrainingRoute: typeof AuthenticatedAdminTrainingRoute
   AuthenticatedAdminTranscriptsRoute: typeof AuthenticatedAdminTranscriptsRoute
@@ -1737,6 +1839,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminSearchRoute: AuthenticatedAdminSearchRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminSiteKeysRoute: AuthenticatedAdminSiteKeysRoute,
+  AuthenticatedAdminSolutionsRoute: AuthenticatedAdminSolutionsRoute,
   AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRoute,
   AuthenticatedAdminTrainingRoute: AuthenticatedAdminTrainingRoute,
   AuthenticatedAdminTranscriptsRoute: AuthenticatedAdminTranscriptsRoute,
@@ -1831,11 +1934,14 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
   AssistantRoute: AssistantRoute,
   AssistantDotjsRoute: AssistantDotjsRoute,
   AuthRoute: AuthRouteWithChildren,
   ContactRoute: ContactRoute,
+  DocsRoute: DocsRoute,
   SecurityRoute: SecurityRoute,
+  SolutionsRoute: SolutionsRoute,
   StatusRoute: StatusRoute,
   WidgetDotjsRoute: WidgetDotjsRoute,
   AutomationsSlugRoute: AutomationsSlugRoute,
@@ -1843,6 +1949,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutIndexRoute: CheckoutIndexRoute,
   ApiPublicAssistantChatRoute: ApiPublicAssistantChatRoute,
   ApiPublicAssistantConfigRoute: ApiPublicAssistantConfigRoute,
+  ApiPublicAssistantStreamRoute: ApiPublicAssistantStreamRoute,
   ApiPublicAssistantTranscribeRoute: ApiPublicAssistantTranscribeRoute,
   ApiPublicAssistantTtsRoute: ApiPublicAssistantTtsRoute,
   ApiPublicAutomationsWebhookRoute: ApiPublicAutomationsWebhookRoute,

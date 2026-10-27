@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { AuthPanel } from "@/components/auth-dialog";
 import { motion } from "@/components/motion";
+import { Hero3D } from "@/components/hero-3d";
 
 export const Route = createFileRoute("/auth")({
   // Both params are optional so plain <Link to="/auth"> works from anywhere on the site.
@@ -31,12 +32,13 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-muted/30">
       <SiteHeader />
-      <main className="grid place-items-center px-4 py-12">
+      <main className="relative grid place-items-center px-4 py-12">
+        <Hero3D />
         <motion.section
           initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ duration: 0.55, ease: [0.22, 0.9, 0.2, 1] }}
-          className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-xl sm:p-8"
+          className="relative w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-xl sm:p-8"
         >
           <AuthPanel
             initialMode={mode ?? "signin"}

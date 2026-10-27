@@ -1,9 +1,51 @@
 import { motion, useReducedMotion, AnimatePresence, type Variants } from "motion/react";
 import type { ReactNode } from "react";
+import { useRouterState } from "@tanstack/react-router";
+import { useScrollReveal } from "@/components/scroll-reveal";
 
-/** Custom easing — a slightly overshooting, confident glide. */
-export const glide = [0.22, 0.9, 0.2, 1] as const;
-export const soft = [0.4, 0.14, 0.2, 1] as const;
+/** Material 3 emphasized and standard easing, paired with the CSS tokens. */
+export const glide = [0.05, 0.7, 0.1, 1] as const;
+export const soft = [0.2, 0, 0, 1] as const;
+
+/** Path-only key: fresh entrances without remounting on query/auth updates. */
+export function PageTransition({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const reduced = useReducedMotion();
+  useScrollReveal(pathname);
+  return (
+    <motion.div
+      key={pathname}
+      className="route-entrance"
+      initial={reduced ? false : { opacity: 0.92 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: reduced ? 0 : 0.35, ease: glide }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function Entrance({
+  children,
+  className,
+  delay = 0,
+}: {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+}) {
+  const reduced = useReducedMotion();
+  return (
+    <motion.div
+      className={className}
+      initial={reduced ? false : { opacity: 1, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.65, delay, ease: glide }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export function Reveal({
   children,
@@ -23,10 +65,10 @@ export function Reveal({
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y, filter: "blur(6px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      initial={{ opacity: 1, y }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once, margin: "-80px" }}
-      transition={{ duration: 0.62, delay, ease: glide }}
+      transition={{ duration: 0.7, delay, ease: glide }}
     >
       {children}
     </motion.div>
@@ -39,8 +81,8 @@ export const stagger: Variants = {
 };
 
 export const riseItem: Variants = {
-  hidden: { opacity: 0, y: 18, filter: "blur(5px)" },
-  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.55, ease: glide } },
+  hidden: { opacity: 1, y: 18 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: glide } },
 };
 
 export function StaggerGroup({ children, className }: { children: ReactNode; className?: string }) {
@@ -102,9 +144,9 @@ export function StepSlide({
       <motion.div
         key={stepKey}
         custom={direction}
-        initial={{ opacity: 0, x: direction * 34, filter: "blur(4px)" }}
-        animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-        exit={{ opacity: 0, x: direction * -28, filter: "blur(4px)" }}
+        initial={{ opacity: 0, x: direction * 34 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: direction * -28 }}
         transition={{ duration: 0.34, ease: soft }}
       >
         {children}

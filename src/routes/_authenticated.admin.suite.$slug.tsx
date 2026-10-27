@@ -32,6 +32,14 @@ export const Route = createFileRoute("/_authenticated/admin/suite/$slug")({
   },
   head: ({ loaderData }) => ({
     meta: [
+      { property: "og:title", content: "Admin Suite Slug — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Suite Slug in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+
       { title: `${loaderData?.title ?? "Automation"} — Manage | AntheticPlus` },
       { name: "description", content: "Services, key rotation and setup for this automation." },
     ],

@@ -11,7 +11,22 @@ import { adminListAutomations, adminUpdateAutomation } from "@/lib/admin-data.fu
 import { AUTOMATION_LABEL } from "@/lib/catalog-v2";
 
 export const Route = createFileRoute("/_authenticated/admin/receptionist")({
-  head: () => ({ meta: [{ title: "Live Automations — AntheticPlus" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Admin Receptionist in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Receptionist — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Receptionist in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Live Automations — AntheticPlus" },
+    ],
+  }),
   component: ReceptionistAdmin,
 });
 

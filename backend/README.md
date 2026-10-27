@@ -4,8 +4,6 @@ This service is the server-side gateway/runtime for the four-database architectu
 
 ## Local runtime
 
-Copy the root `.env.example` to `backend/.env` and replace every placeholder with credentials for your own projects. Keep service-role keys server-side and never use the example values in production. The test suite supplies fake values automatically and does not require live Supabase credentials.
-
 ```bash
 cd backend
 python -m venv .venv
@@ -49,7 +47,7 @@ The signature covers `<timestamp>.<raw request body>`. Requests older than five 
 - Vercel: TanStack Start web application
 - FastAPI: `api.antheticplus.com` gateway/runtime/webhooks/WebSocket
 - Redis: rate limiting, schedule locks and transient runtime state
-- Workers: DB outbox processing and durable workflow execution
+- Workers: DB outbox processing and durable durable execution execution
 - DB1: auth/identity
 - DB2: billing + automation runtime
 - DB3: AI + RAG

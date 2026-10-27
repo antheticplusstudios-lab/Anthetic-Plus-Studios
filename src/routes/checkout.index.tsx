@@ -1,7 +1,9 @@
+import { useT } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { Hero3D } from "@/components/hero-3d";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { SubscriptionSchedule } from "@/components/subscription-schedule";
@@ -32,6 +34,7 @@ export const Route = createFileRoute("/checkout/")({
 });
 
 function CheckoutPage() {
+  const t = useT();
   const { data } = useSuspenseQuery(livePricingQueryOptions);
   const storefrontOpen = useFeatureFlag("public_storefront");
   const items = storefrontItems(data);
@@ -44,11 +47,17 @@ function CheckoutPage() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <main className="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_380px]">
-        <section>
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Checkout</h1>
+      <main className="relative mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_380px]">
+        <Hero3D />
+        <section className="relative">
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+            {t("Checkout", "চেকআউট")}
+          </h1>
           <p className="mt-2 text-muted-foreground">
-            Pick an automation and how often you want to be billed.
+            {t(
+              "Pick an automation and how often you want to be billed.",
+              "একটি অটোমেশন এবং বিল দেওয়ার সময়সূচি বেছে নিন।",
+            )}
           </p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             {items.map((item) => (
@@ -63,7 +72,10 @@ function CheckoutPage() {
                 }`}
               >
                 <p className="font-bold">{item.name}</p>
-                <p className="text-sm text-muted-foreground tabular-nums">{money(item.price)}/mo</p>
+                <p className="text-sm text-muted-foreground tabular-nums">
+                  {money(item.price)}
+                  {t("/mo", "/মাস")}
+                </p>
               </button>
             ))}
           </div>
@@ -73,38 +85,41 @@ function CheckoutPage() {
               size="sm"
               onClick={() => setCycle("monthly")}
             >
-              Monthly · 30 days
+              {t("Monthly · 30 days", "মাসিক · ৩০ দিন")}
             </Button>
             <Button
               variant={cycle === "yearly" ? "default" : "ghost"}
               size="sm"
               onClick={() => setCycle("yearly")}
             >
-              Yearly · 365 days
+              {t("Yearly · 365 days", "বার্ষিক · ৩৬৫ দিন")}
             </Button>
           </div>
         </section>
-        <aside className="space-y-4">
+        <aside className="relative space-y-4">
           <div className="rounded-2xl border border-border bg-card p-5">
-            <p className="text-sm text-muted-foreground">Due today</p>
+            <p className="text-sm text-muted-foreground">{t("Due today", "আজ পরিশোধযোগ্য")}</p>
             <p className="text-3xl font-extrabold tabular-nums">{money(total)}</p>
             {selected && cycle === "yearly" && selected.yearlyDiscountPct > 0 && (
               <p className="text-sm text-primary">
-                Includes {selected.yearlyDiscountPct}% yearly saving
+                {t("Includes", "অন্তর্ভুক্ত রয়েছে")} {selected.yearlyDiscountPct}%{" "}
+                {t("yearly saving", "বার্ষিক সাশ্রয়")}
               </p>
             )}
           </div>
           <SubscriptionSchedule cycle={cycle} start={start} />
           {!storefrontOpen && (
             <p className="rounded-2xl border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-              New orders are paused while we finish onboarding our current clients. Email
-              antheticplusstudios@gmail.com and we'll reserve your spot.
+              {t(
+                "New orders are paused while we finish onboarding our current clients. Email antheticplusstudios@gmail.com and we'll reserve your spot.",
+                "বর্তমান ক্লায়েন্টদের অনবোর্ডিং শেষ না হওয়া পর্যন্ত নতুন অর্ডার বন্ধ রয়েছে। আপনার স্থান সংরক্ষণ করতে antheticplusstudios@gmail.com ঠিকানায় ইমেইল করুন।",
+              )}
             </p>
           )}
           {selected && storefrontOpen && (
             <Button className="w-full" size="lg" asChild>
               <Link to="/checkout/$slug" params={{ slug: selected.slug }} search={{ plan: cycle }}>
-                Continue to payment
+                {t("Continue to payment", "পেমেন্টে এগিয়ে যান")}
               </Link>
             </Button>
           )}

@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -7,6 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { getSystemStatus } from "@/lib/status.functions";
+import { Hero3D } from "@/components/hero-3d";
 
 export const Route = createFileRoute("/status")({
   head: () => ({
@@ -44,6 +46,7 @@ function Dot({ ok }: { ok: boolean }) {
 }
 
 function StatusPage() {
+  const t = useT();
   const fetchStatus = useServerFn(getSystemStatus);
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["system-status"],
@@ -53,22 +56,42 @@ function StatusPage() {
 
   const rows = [
     {
-      name: "Application & dashboards",
+      name: t("Application & dashboards", "অ্যাপ্লিকেশন ও ড্যাশবোর্ড"),
       ok: data?.api.ok ?? true,
-      detail: data ? `${data.api.latencyMs} ms response` : "Checking…",
+      detail: data
+        ? t(`${data.api.latencyMs} ms response`, `${data.api.latencyMs} মিলিসেকেন্ডে সাড়া`)
+        : t("Checking…", "যাচাই করা হচ্ছে…"),
     },
     {
-      name: "Database & tenant isolation",
+      name: t("Database & tenant isolation", "ডেটাবেস ও ক্লায়েন্টের ডেটা পৃথকীকরণ"),
       ok: data?.database.ok ?? true,
-      detail: data ? `${data.database.latencyMs} ms query` : "Checking…",
+      detail: data
+        ? t(
+            `${data.database.latencyMs} ms query`,
+            `${data.database.latencyMs} মিলিসেকেন্ডে কুয়েরি`,
+          )
+        : t("Checking…", "যাচাই করা হচ্ছে…"),
     },
     {
-      name: "AI inference",
+      name: t("AI inference", "AI ইনফারেন্স"),
       ok: data?.inference.ok ?? true,
-      detail: data?.inference.ok ? "Model gateway reachable" : "Awaiting provider key",
+      detail: data?.inference.ok
+        ? t("Model gateway reachable", "মডেল গেটওয়ের সঙ্গে সংযোগ রয়েছে")
+        : t("Awaiting provider key", "প্রদানকারীর কী-এর অপেক্ষায়"),
     },
-    { name: "Public widget API", ok: true, detail: "Origin-verified edge endpoints" },
-    { name: "Scheduled billing jobs", ok: true, detail: "Daily lifecycle run at 06:00 UTC" },
+    {
+      name: t("Public widget API", "পাবলিক উইজেট API"),
+      ok: true,
+      detail: t("Origin-verified edge endpoints", "উৎস যাচাইকৃত এজ এন্ডপয়েন্ট"),
+    },
+    {
+      name: t("Scheduled billing jobs", "নির্ধারিত বিলিং কার্যক্রম"),
+      ok: true,
+      detail: t(
+        "Daily lifecycle run at 06:00 UTC",
+        "প্রতিদিন 06:00 UTC-তে লাইফসাইকেল কার্যক্রম চলে",
+      ),
+    },
   ];
 
   const allOk = rows.every((r) => r.ok);
@@ -76,28 +99,37 @@ function StatusPage() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <main className="px-4 py-16 sm:px-6">
-        <Reveal className="mx-auto max-w-4xl">
+      <main className="relative px-4 py-16 sm:px-6">
+        <Hero3D />
+        <Reveal className="relative mx-auto max-w-4xl">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="flex items-center gap-2 text-3xl font-black tracking-tight">
-                <Activity className="h-6 w-6 text-primary" /> System status
+                <Activity className="h-6 w-6 text-primary" />{" "}
+                {t("System status", "সিস্টেমের অবস্থা")}
               </h1>
               <p className="mt-2 text-muted-foreground">
-                {allOk ? "All systems operational." : "Some systems need attention."} Refreshed
-                automatically every 30 seconds.
+                {allOk
+                  ? t("All systems operational.", "সব সিস্টেম সচল রয়েছে।")
+                  : t("Some systems need attention.", "কিছু সিস্টেমে নজর দেওয়া প্রয়োজন।")}{" "}
+                {t(
+                  "Refreshed automatically every 30 seconds.",
+                  "প্রতি ৩০ সেকেন্ডে স্বয়ংক্রিয়ভাবে হালনাগাদ হয়।",
+                )}
               </p>
             </div>
             <Button variant="outline" onClick={() => void refetch()} disabled={isFetching}>
               <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-              Refresh
+              {t("Refresh", "রিফ্রেশ করুন")}
             </Button>
           </div>
 
           <div className="mt-6 rounded-2xl border border-success/30 bg-success/10 px-5 py-4">
             <p className="flex items-center gap-2 font-bold text-success">
               {allOk ? <CheckCircle2 className="h-5 w-5" /> : <CircleAlert className="h-5 w-5" />}
-              {allOk ? "99.98% uptime over the last 90 days" : "Degraded performance detected"}
+              {allOk
+                ? t("All checks passing right now", "এই মুহূর্তে সব যাচাই সফল")
+                : t("Degraded performance detected", "কর্মক্ষমতার অবনতি শনাক্ত হয়েছে")}
             </p>
           </div>
 
@@ -116,7 +148,8 @@ function StatusPage() {
           </StaggerGroup>
 
           <p className="mt-6 text-xs text-muted-foreground">
-            Last checked: {data ? new Date(data.checkedAt).toUTCString() : "…"}
+            {t("Last checked:", "সর্বশেষ যাচাই:")}{" "}
+            {data ? new Date(data.checkedAt).toUTCString() : "…"}
           </p>
         </Reveal>
       </main>

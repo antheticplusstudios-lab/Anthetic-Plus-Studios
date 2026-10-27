@@ -13,6 +13,22 @@ import {
 } from "@/lib/round-robin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/automations/round-robin")({
+  head: () => ({
+    meta: [
+      { title: "Admin Automations Round Robin — AntheticPlus Studios" },
+      {
+        name: "description",
+        content: "Admin Automations Round Robin in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Automations Round Robin — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Automations Round Robin in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: RoundRobinPage,
 });
 

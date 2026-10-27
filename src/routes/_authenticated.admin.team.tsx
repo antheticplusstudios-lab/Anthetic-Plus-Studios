@@ -32,6 +32,19 @@ import {
 import { useCurrentUser, useRole } from "@/hooks/use-portal";
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
+  head: () => ({
+    meta: [
+      { title: "Admin Team — AntheticPlus Studios" },
+      { name: "description", content: "Admin Team in the AntheticPlus AI automation platform." },
+      { property: "og:title", content: "Admin Team — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Team in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: TeamManagement,
 });
 

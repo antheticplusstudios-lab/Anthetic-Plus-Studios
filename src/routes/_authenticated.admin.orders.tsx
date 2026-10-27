@@ -14,7 +14,22 @@ import {
 } from "@/components/admin-ui";
 import { useAllPayments } from "@/hooks/use-admin";
 
-export const Route = createFileRoute("/_authenticated/admin/orders")({ component: OrdersPage });
+export const Route = createFileRoute("/_authenticated/admin/orders")({
+  head: () => ({
+    meta: [
+      { title: "Admin Orders — AntheticPlus Studios" },
+      { name: "description", content: "Admin Orders in the AntheticPlus AI automation platform." },
+      { property: "og:title", content: "Admin Orders — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Orders in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: OrdersPage,
+});
 
 type Payment = {
   id: string;

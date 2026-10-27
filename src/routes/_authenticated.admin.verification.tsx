@@ -17,7 +17,22 @@ import { AUTOMATION_LABEL, FIELD_LABEL, embedSnippet } from "@/lib/catalog-v2";
 import { adminListOrders, adminReviewOrder } from "@/lib/admin-data.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/verification")({
-  head: () => ({ meta: [{ title: "Verification Queue — AntheticPlus" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Admin Verification in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Verification — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Verification in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Verification Queue — AntheticPlus" },
+    ],
+  }),
   component: VerificationPage,
 });
 

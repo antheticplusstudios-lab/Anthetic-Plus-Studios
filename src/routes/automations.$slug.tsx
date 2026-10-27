@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, Clock3, GlobeLock, ShieldCheck, Zap } from "lucide-react";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { livePricingQueryOptions, withLivePricing } from "@/lib/pricing";
 import { money } from "@/components/admin-ui";
+import { Hero3D } from "@/components/hero-3d";
 
 export const Route = createFileRoute("/automations/$slug")({
   loader: async ({ context: { queryClient }, params: { slug } }) => {
@@ -37,6 +39,7 @@ export const Route = createFileRoute("/automations/$slug")({
 });
 
 function AutomationDetail() {
+  const t = useT();
   const { slug } = Route.useLoaderData();
   const { data: plans } = useSuspenseQuery(livePricingQueryOptions);
   const item = withLivePricing(plans).find((entry) => entry.slug === slug)!;
@@ -49,7 +52,8 @@ function AutomationDetail() {
       <main className="page-enter">
         <section className="relative border-b border-border px-4 pb-16 pt-12 sm:px-6 sm:pb-20">
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_80%_0%,color-mix(in_oklab,var(--primary)_18%,transparent),transparent_45%)]" />
-          <div className="mx-auto max-w-7xl">
+          <Hero3D />
+          <div className="relative mx-auto max-w-7xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
               {item.badge}
             </span>
@@ -67,14 +71,20 @@ function AutomationDetail() {
             <div className="space-y-10">
               <div>
                 <p className="text-sm font-bold uppercase tracking-wide text-primary">
-                  What it handles
+                  {t("What it handles", "যেসব কাজ সামলায়")}
                 </p>
                 <h2 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
-                  One system, one job, done properly.
+                  {t(
+                    "One system, one job, done properly.",
+                    "একটি সিস্টেম, একটি কাজ—নির্ভুলভাবে সম্পন্ন।",
+                  )}
                 </h2>
                 <p className="mt-4 text-muted-foreground">
-                  {item.shortName} ships configured, tested and monitored from day one — you never
-                  touch a model, a prompt or a server.
+                  {item.shortName}{" "}
+                  {t(
+                    "ships configured, tested and monitored from day one — you never touch a model, a prompt or a server.",
+                    "প্রথম দিন থেকেই কনফিগার, পরীক্ষিত ও পর্যবেক্ষিত অবস্থায় চালু হয়—আপনাকে মডেল, প্রম্পট বা সার্ভার নিয়ে কাজ করতে হবে না।",
+                  )}
                 </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   {item.features.map((feature) => (
@@ -91,10 +101,10 @@ function AutomationDetail() {
 
               <div>
                 <p className="text-sm font-bold uppercase tracking-wide text-primary">
-                  Where it earns its keep
+                  {t("Where it earns its keep", "যেখানে এটি কার্যকর")}
                 </p>
                 <h2 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
-                  Built for real operations.
+                  {t("Built for real operations.", "বাস্তব কাজের জন্য তৈরি।")}
                 </h2>
                 <div className="mt-6 space-y-4">
                   {item.useCases.map((useCase) => (
@@ -107,28 +117,40 @@ function AutomationDetail() {
 
               <div>
                 <p className="text-sm font-bold uppercase tracking-wide text-primary">
-                  Every order includes
+                  {t("Every order includes", "প্রতিটি অর্ডারের সঙ্গে রয়েছে")}
                 </p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <Include
                     icon={GlobeLock}
-                    title="Domain lock"
-                    body="One client ID bound to one domain — the script cannot run elsewhere."
+                    title={t("Domain lock", "ডোমেইন লক")}
+                    body={t(
+                      "One client ID bound to one domain — the script cannot run elsewhere.",
+                      "একটি ক্লায়েন্ট আইডি একটি ডোমেইনের সঙ্গে যুক্ত—স্ক্রিপ্টটি অন্য কোথাও চলবে না।",
+                    )}
                   />
                   <Include
                     icon={Clock3}
-                    title="Renewal calendar"
-                    body="Expiry, warning and grace dates are visible in your own dashboard."
+                    title={t("Renewal calendar", "নবায়নের সময়সূচি")}
+                    body={t(
+                      "Expiry, warning and grace dates are visible in your own dashboard.",
+                      "মেয়াদ শেষ, সতর্কতা ও অতিরিক্ত সময়সীমার তারিখ আপনার ড্যাশবোর্ডেই দেখা যাবে।",
+                    )}
                   />
                   <Include
                     icon={ShieldCheck}
-                    title="Business guardrail"
-                    body="Your services, hours and policies decide what the AI may claim."
+                    title={t("Business guardrail", "ব্যবসায়িক সুরক্ষানীতি")}
+                    body={t(
+                      "Your services, hours and policies decide what the AI may claim.",
+                      "আপনার সেবা, কর্মঘণ্টা ও নীতি অনুযায়ী AI কী বলতে পারবে তা নির্ধারিত হয়।",
+                    )}
                   />
                   <Include
                     icon={Zap}
-                    title="Failover pool"
-                    body="A rotating model pool keeps the system answering under rate limits."
+                    title={t("Failover pool", "বিকল্প মডেল পুল")}
+                    body={t(
+                      "A rotating model pool keeps the system answering under rate limits.",
+                      "অনুরোধের সীমা থাকলেও পর্যায়ক্রমে ব্যবহৃত মডেল পুল সিস্টেমের উত্তর দেওয়া সচল রাখে।",
+                    )}
                   />
                 </div>
               </div>
@@ -137,9 +159,11 @@ function AutomationDetail() {
             {/* Price card */}
             <aside className="lg:sticky lg:top-24 lg:self-start">
               <div className="rounded-3xl border border-primary/20 bg-card p-6 shadow-xl">
-                <p className="text-sm font-bold text-primary">Live pricing</p>
+                <p className="text-sm font-bold text-primary">
+                  {t("Live pricing", "বর্তমান মূল্য")}
+                </p>
                 <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-secondary px-4 py-3">
-                  <span className="text-sm font-bold">Yearly billing</span>
+                  <span className="text-sm font-bold">{t("Yearly billing", "বার্ষিক বিলিং")}</span>
                   <Switch
                     checked={yearly}
                     onCheckedChange={(checked) => setYearly(Boolean(checked))}
@@ -149,27 +173,43 @@ function AutomationDetail() {
                   <span className="text-5xl font-extrabold tabular-nums tracking-tight">
                     {money(priced.monthlyOf(yearly))}
                   </span>
-                  <span className="pb-1.5 text-sm font-semibold text-muted-foreground">/mo</span>
+                  <span className="pb-1.5 text-sm font-semibold text-muted-foreground">
+                    {t("/mo", "/মাস")}
+                  </span>
                 </p>
                 {yearly ? (
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {money(priced.yearlyPrice)} billed once a year after the one-time setup fee —{" "}
-                    {priced.yearlyDiscountPct}% off monthly.
+                    {money(priced.yearlyPrice)}{" "}
+                    {t(
+                      "billed once a year after the one-time setup fee —",
+                      "এককালীন সেটআপ ফি-এর পর বছরে একবার বিল করা হয়—",
+                    )}{" "}
+                    {priced.yearlyDiscountPct}%{" "}
+                    {t("off monthly.", "মাসিক মূল্যের তুলনায় সাশ্রয়।")}
                   </p>
                 ) : (
                   <p className="mt-2 text-sm text-muted-foreground">
-                    One-time setup fee today. Monthly billing begins after the setup period; switch
-                    to yearly any time and pay {priced.yearlyDiscountPct}% less per month.
+                    {t(
+                      "One-time setup fee today. Monthly billing begins after the setup period; switch to yearly any time and pay",
+                      "আজ এককালীন সেটআপ ফি। সেটআপ শেষে মাসিক বিলিং শুরু হবে; যেকোনো সময় বার্ষিক প্ল্যানে বদলে প্রতি মাসে",
+                    )}{" "}
+                    {priced.yearlyDiscountPct}% {t("less per month.", "কম পরিশোধ করুন।")}
                   </p>
                 )}
                 <div className="mt-5 rounded-2xl border border-border bg-secondary/60 p-4 text-sm">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-semibold">One-time setup fee today</span>
+                    <span className="font-semibold">
+                      {t("One-time setup fee today", "আজ এককালীন সেটআপ ফি")}
+                    </span>
                     <span className="font-extrabold">{money(priced.setupFee)}</span>
                   </div>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    Your selected {yearly ? "yearly" : "monthly"} plan starts after setup. The next
-                    recurring payment is due after the first billing period.
+                    {t("Your selected", "আপনার নির্বাচিত")}{" "}
+                    {yearly ? t("yearly", "বার্ষিক") : t("monthly", "মাসিক")}{" "}
+                    {t(
+                      "plan starts after setup. The next recurring payment is due after the first billing period.",
+                      "প্ল্যান সেটআপের পর শুরু হবে। প্রথম বিলিং সময়কাল শেষে পরবর্তী নিয়মিত পেমেন্ট দিতে হবে।",
+                    )}
                   </p>
                 </div>
                 <Button size="lg" className="mt-7 w-full" asChild>
@@ -178,13 +218,15 @@ function AutomationDetail() {
                     params={{ slug: item.slug }}
                     search={{ plan: yearly ? "yearly" : "monthly" }}
                   >
-                    Order this system <ArrowRight />
+                    {t("Order this system", "এই সিস্টেম অর্ডার করুন")} <ArrowRight />
                   </Link>
                 </Button>
                 <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-muted-foreground">
                   <Clock3 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                  Payment is verified by a person, usually within a few hours. Your automation is
-                  activated with a written expiry date the moment it is approved.
+                  {t(
+                    "Payment is verified by a person, usually within a few hours. Your automation is activated with a written expiry date the moment it is approved.",
+                    "পেমেন্ট সাধারণত কয়েক ঘণ্টার মধ্যে একজন কর্মী যাচাই করেন। অনুমোদনের সঙ্গে সঙ্গেই নির্দিষ্ট মেয়াদ শেষের তারিখসহ আপনার অটোমেশন সক্রিয় হয়।",
+                  )}
                 </p>
               </div>
             </aside>
@@ -195,15 +237,20 @@ function AutomationDetail() {
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
             <div>
               <h2 className="text-2xl font-extrabold tracking-tight">
-                Not sure which system to start with?
+                {t(
+                  "Not sure which system to start with?",
+                  "কোন সিস্টেম দিয়ে শুরু করবেন বুঝতে পারছেন না?",
+                )}
               </h2>
               <p className="mt-2 text-muted-foreground">
-                Tell us where enquiries are slipping and we will recommend the smallest stack that
-                fixes it.
+                {t(
+                  "Tell us where enquiries are slipping and we will recommend the smallest stack that fixes it.",
+                  "কোথায় গ্রাহকের অনুসন্ধান হারিয়ে যাচ্ছে জানান, আমরা সমাধানের জন্য ন্যূনতম প্রয়োজনীয় সিস্টেমের পরামর্শ দেব।",
+                )}
               </p>
             </div>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/contact">Talk to the team</Link>
+              <Link to="/contact">{t("Talk to the team", "আমাদের দলের সঙ্গে কথা বলুন")}</Link>
             </Button>
           </div>
         </section>

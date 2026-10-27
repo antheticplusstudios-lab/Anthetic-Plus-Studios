@@ -15,6 +15,22 @@ import {
 import { adminListAutomations } from "@/lib/admin-data.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/transcripts")({
+  head: () => ({
+    meta: [
+      { title: "Admin Transcripts — AntheticPlus Studios" },
+      {
+        name: "description",
+        content: "Admin Transcripts in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Transcripts — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Transcripts in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AutomationsAndTranscripts,
 });
 

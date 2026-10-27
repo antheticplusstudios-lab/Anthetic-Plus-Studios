@@ -11,7 +11,22 @@ import { getSystemSettings } from "@/lib/admin-data.functions";
 import { bulkKill, saveSetting } from "@/lib/admin-center.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/emergency")({
-  head: () => ({ meta: [{ title: "Emergency Controls — AntheticPlus Control Center" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Admin Emergency in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Emergency — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Emergency in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Emergency Controls — AntheticPlus Control Center" },
+    ],
+  }),
   component: EmergencyPage,
 });
 

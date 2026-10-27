@@ -30,6 +30,8 @@ import { SCOPE_GROUPS, type KeyPoolView } from "@/lib/integration-keys";
 export const Route = createFileRoute("/_authenticated/admin/integration-keys")({
   head: () => ({
     meta: [
+      { name: "twitter:card", content: "summary" },
+
       { title: "Integration Keys — AntheticPlus Control Center" },
       {
         name: "description",

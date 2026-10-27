@@ -178,6 +178,13 @@ export const adminNav = [
     roles: ["owner", "admin", "partner"],
   },
   {
+    label: "Solutions",
+    to: "/admin/solutions",
+    group: "Automations & Workflows",
+    icon: Tags,
+    roles: ["owner", "admin"],
+  },
+  {
     label: "Analytics",
     to: "/admin/analytics",
     group: "Clients & Operations",
@@ -392,8 +399,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
           {navigation}
         </SheetContent>
       </Sheet>
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/95 px-4 sm:px-8">
+      <div className="min-w-0 lg:pl-64">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border workspace-header px-4 sm:px-8">
           <Button
             variant="ghost"
             size="icon"
@@ -403,7 +410,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           >
             <Menu />
           </Button>
-          <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-xs">
+          <nav aria-label="Breadcrumb" className="flex min-w-0 flex-1 items-center gap-2 text-xs">
             <Link to="/admin" className="text-muted-foreground">
               Workspace
             </Link>
@@ -418,7 +425,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </>
             )}
           </nav>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-2">
             <Button asChild variant="ghost" size="icon" title="Global search">
               <Link to="/admin/search" aria-label="Global search">
                 <Search />

@@ -93,7 +93,7 @@ export function StatCard({
   return (
     <div className="card-premium group rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/20">
       <div className="flex items-start justify-between gap-3">
-        <p className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        <p className="min-w-0 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           {label}
         </p>
         {icon && (
@@ -224,7 +224,7 @@ export function Loading({ label = "Loading" }: { label?: string | undefined }) {
     <div className="space-y-6" aria-busy="true" aria-label={label}>
       <div className="space-y-3 border-b border-border pb-6">
         <div className="h-3 w-24 animate-pulse rounded bg-muted" />
-        <div className="h-7 w-64 animate-pulse rounded bg-muted" />
+        <div className="h-7 w-64 max-w-full animate-pulse rounded bg-muted" />
         <div className="h-3 w-96 max-w-full animate-pulse rounded bg-muted" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

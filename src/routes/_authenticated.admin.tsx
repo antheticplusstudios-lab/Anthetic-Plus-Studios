@@ -77,5 +77,15 @@ function AdminGate() {
 }
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  head: () => ({
+    meta: [
+      { title: "Admin — AntheticPlus Studios" },
+      { name: "description", content: "Admin in the AntheticPlus AI automation platform." },
+      { property: "og:title", content: "Admin — AntheticPlus Studios" },
+      { property: "og:description", content: "Admin in the AntheticPlus AI automation platform." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AdminGate,
 });

@@ -14,35 +14,57 @@ import {
 } from "lucide-react";
 import { getSystemStatus } from "@/lib/status.functions";
 import { livePricingQueryOptions, withLivePricing } from "@/lib/pricing";
+import { useT } from "@/lib/i18n";
 
 const SYSTEMS = [
   {
     slug: "voice-sms-receptionist",
     icon: PhoneCall,
     name: "Voice & SMS Receptionist",
-    flow: ["Answers calls", "Texts back", "Books", "Escalates"],
+    flow: [
+      ["Answers calls", "কল ধরে"],
+      ["Texts back", "এসএমএস পাঠায়"],
+      ["Books", "বুক করে"],
+      ["Escalates", "হস্তান্তর করে"],
+    ],
   },
   {
     slug: "lead-capture-qualifier",
     icon: Target,
     name: "Lead Capture & Qualifier",
-    flow: ["Captures", "Qualifies", "Scores", "Routes"],
+    flow: [
+      ["Captures", "তথ্য নেয়"],
+      ["Qualifies", "যাচাই করে"],
+      ["Scores", "স্কোর দেয়"],
+      ["Routes", "রাউট করে"],
+    ],
   },
   {
     slug: "knowledge-base-support",
     icon: BookOpen,
     name: "Knowledge Base Support",
-    flow: ["Learns your docs", "Answers", "Cites", "Hands off"],
+    flow: [
+      ["Learns your docs", "ডকস শেখে"],
+      ["Answers", "উত্তর দেয়"],
+      ["Cites", "সূত্র দেয়"],
+      ["Hands off", "হস্তান্তর করে"],
+    ],
   },
   {
     slug: "social-dm-assistant",
     icon: MessagesSquare,
     name: "Social DM Assistant",
-    flow: ["Handles DMs", "Answers", "Qualifies", "Routes"],
+    flow: [
+      ["Handles DMs", "ডিএম সামলায়"],
+      ["Answers", "উত্তর দেয়"],
+      ["Qualifies", "যাচাই করে"],
+      ["Routes", "রাউট করে"],
+    ],
   },
 ] as const;
 
 export function FourSystems() {
+  const t = useT();
   const { data: plans } = useSuspenseQuery(livePricingQueryOptions);
   const visible = new Set(
     withLivePricing(plans)
@@ -51,15 +73,20 @@ export function FourSystems() {
   );
   const systems = SYSTEMS.filter((s) => visible.has(s.slug));
   return (
-    <section className="border-b border-border px-4 py-20 sm:px-6 sm:py-28">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm font-bold text-primary">The Autonomous Front Office</p>
-        <h2 className="mt-2 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">
-          Focused systems. Each runs on its own. Together they cover your front desk.
+    <section className="py-16 sm:py-20">
+      <div className="container-page">
+        <span className="eyebrow">{t("Products", "প্রোডাক্ট")}</span>
+        <h2 className="h-section mt-4 max-w-3xl">
+          {t(
+            "Focused systems. Each runs on its own. Together they cover your front desk.",
+            "নির্দিষ্ট সিস্টেম। প্রতিটি নিজে চলে। একসাথে পুরো ফ্রন্ট ডেস্ক সামলায়।",
+          )}
         </h2>
-        <p className="mt-4 max-w-2xl text-muted-foreground">
-          We don't sell a generic chatbot. Each system is configured for one job, monitored while it
-          runs, and hands off to your team when a person is needed. Buy one, or connect all four.
+        <p className="lead mt-4 max-w-2xl">
+          {t(
+            "We don't sell a generic chatbot. Each system is configured for one job, monitored while it runs, and hands off to your team when a person is needed.",
+            "আমরা সাধারণ চ্যাটবট বিক্রি করি না। প্রতিটি সিস্টেম একটি কাজের জন্য কনফিগার করা, চলার সময় মনিটর করা, এবং প্রয়োজনে আপনার টিমে হস্তান্তর করে।",
+          )}
         </p>
         <div className="mt-12 grid gap-4 md:grid-cols-2">
           {systems.map((s) => (
@@ -67,19 +94,19 @@ export function FourSystems() {
               key={s.slug}
               to="/automations/$slug"
               params={{ slug: s.slug }}
-              className="group rounded-3xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
+              className="group surface-card lift p-6"
             >
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-primary/10 text-primary">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-accent text-primary">
                   <s.icon className="h-5 w-5" />
                 </span>
                 <h3 className="text-lg font-extrabold">{s.name}</h3>
               </div>
               <ol className="mt-5 flex flex-wrap items-center gap-2 text-sm">
-                {s.flow.map((f, i) => (
-                  <li key={f} className="flex items-center gap-2">
-                    <span className="rounded-full border border-border bg-background px-3 py-1 font-medium">
-                      {f}
+                {s.flow.map(([fe, fb], i) => (
+                  <li key={fe} className="flex items-center gap-2">
+                    <span className="rounded-full border border-border bg-surface px-3 py-1 font-medium text-body">
+                      {t(fe, fb)}
                     </span>
                     {i < s.flow.length - 1 && (
                       <span aria-hidden className="text-primary">
@@ -98,39 +125,44 @@ export function FourSystems() {
 }
 
 const JOURNEY = [
-  "Discover",
-  "Choose automation",
-  "Configure",
-  "Verify payment",
-  "Activate",
-  "Monitor",
-];
+  ["Discover", "খুঁজে দেখুন"],
+  ["Choose automation", "অটোমেশন বাছুন"],
+  ["Configure", "কনফিগার করুন"],
+  ["Verify payment", "পেমেন্ট যাচাই"],
+  ["Activate", "চালু করুন"],
+  ["Monitor", "মনিটর করুন"],
+] as const;
 
 export function JourneySection() {
+  const t = useT();
   return (
-    <section className="border-b border-border bg-card/50 px-4 py-20 sm:px-6 sm:py-28">
-      <div className="mx-auto max-w-7xl">
+    <section className="bg-surface py-16 sm:py-20">
+      <div className="container-page">
         <div className="max-w-3xl">
-          <p className="text-sm font-bold text-primary">Always on, wherever your customers are</p>
-          <h2 className="mt-2 text-4xl font-extrabold tracking-tight">
-            From first visit to a monitored system
+          <span className="eyebrow">
+            {t("Always on, wherever your customers are", "গ্রাহক যেখানেই থাকুন, সবসময় চালু")}
+          </span>
+          <h2 className="h-section mt-4">
+            {t(
+              "From first visit to a monitored system",
+              "প্রথম ভিজিট থেকে মনিটর করা সিস্টেম পর্যন্ত",
+            )}
           </h2>
           <ol className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {JOURNEY.map((j, i) => (
-              <li
-                key={j}
-                className="flex items-center gap-4 rounded-2xl border border-border bg-background p-4"
-              >
+            {JOURNEY.map(([je, jb], i) => (
+              <li key={je} className="flex items-center gap-4 surface-card p-4">
                 <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-primary/40 text-sm font-bold text-primary">
                   {i + 1}
                 </span>
-                <span className="font-semibold">{j}</span>
+                <span className="font-semibold">{t(je, jb)}</span>
               </li>
             ))}
           </ol>
           <p className="mt-6 text-sm text-muted-foreground">
-            Payment is checked by a person, not assumed. Your system goes through testing before it
-            is switched on.
+            {t(
+              "Payment is checked by a person, not assumed. Your system goes through testing before it is switched on.",
+              "পেমেন্ট একজন মানুষ যাচাই করেন, ধরে নেওয়া হয় না। চালুর আগে আপনার সিস্টেম পরীক্ষা করা হয়।",
+            )}
           </p>
         </div>
       </div>
@@ -138,53 +170,72 @@ export function JourneySection() {
   );
 }
 
-const WHY = [
+const WHY: { icon: typeof Activity; t: [string, string]; b: [string, string] }[] = [
   {
     icon: Activity,
-    t: "Real deployments, real state",
-    b: "Every system has a live status: testing, active, paused or expired. You see the same state our team sees.",
+    t: ["Real deployments, real state", "আসল ডিপ্লয়মেন্ট, আসল অবস্থা"],
+    b: [
+      "Every system has a live status: testing, active, paused or expired. You see the same state our team sees.",
+      "প্রতিটি সিস্টেমের লাইভ স্ট্যাটাস আছে: টেস্টিং, সক্রিয়, বিরতি বা মেয়াদোত্তীর্ণ। আমাদের টিম যা দেখে আপনিও তা-ই দেখেন।",
+    ],
   },
   {
     icon: GitBranch,
-    t: "AI provider failover",
-    b: "Requests rotate across several AI providers. If one fails, the next takes over automatically.",
+    t: ["AI provider failover", "AI প্রোভাইডার ফেইলওভার"],
+    b: [
+      "Requests rotate across several AI providers. If one fails, the next takes over automatically.",
+      "অনুরোধগুলো কয়েকটি AI প্রোভাইডারে ঘোরে। একটি ব্যর্থ হলে পরেরটি স্বয়ংক্রিয়ভাবে দায়িত্ব নেয়।",
+    ],
   },
   {
     icon: ShieldCheck,
-    t: "Locked to your domain",
-    b: "Each deployment is tied to your website and kept separate from every other client.",
+    t: ["Locked to your domain", "আপনার ডোমেইনে লক"],
+    b: [
+      "Each deployment is tied to your website and kept separate from every other client.",
+      "প্রতিটি ডিপ্লয়মেন্ট আপনার ওয়েবসাইটে আবদ্ধ এবং অন্য সব ক্লায়েন্ট থেকে আলাদা।",
+    ],
   },
   {
     icon: UserCheck,
-    t: "Human verification & handoff",
-    b: "People check payments, and your team gets the conversation when the AI shouldn't answer.",
+    t: ["Human verification & handoff", "মানুষের যাচাই ও হস্তান্তর"],
+    b: [
+      "People check payments, and your team gets the conversation when the AI shouldn't answer.",
+      "মানুষ পেমেন্ট যাচাই করেন, আর AI-এর উত্তর দেওয়া উচিত না হলে কথোপকথন আপনার টিম পায়।",
+    ],
   },
   {
     icon: Database,
-    t: "Separated data",
-    b: "Identity, billing, AI and customer conversations live in four separate databases.",
+    t: ["Separated data", "আলাদা ডেটা"],
+    b: [
+      "Identity, billing, AI and customer conversations live in four separate databases.",
+      "পরিচয়, বিলিং, AI ও গ্রাহক কথোপকথন চারটি আলাদা ডাটাবেসে থাকে।",
+    ],
   },
   {
     icon: BadgeCheck,
-    t: "Transparent billing & analytics",
-    b: "Clear expiry dates, no hidden renewals, and real counts of runs, leads and conversations.",
+    t: ["Transparent billing & analytics", "স্বচ্ছ বিলিং ও অ্যানালিটিক্স"],
+    b: [
+      "Clear expiry dates, no hidden renewals, and real counts of runs, leads and conversations.",
+      "স্পষ্ট মেয়াদ, লুকানো নবায়ন নেই, এবং রান, লিড ও কথোপকথনের আসল হিসাব।",
+    ],
   },
 ];
 
 export function WhyAnthetic() {
+  const t = useT();
   return (
-    <section className="border-b border-border px-4 py-20 sm:px-6 sm:py-28">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm font-bold text-primary">Why AntheticPlus?</p>
-        <h2 className="mt-2 max-w-3xl text-4xl font-extrabold tracking-tight">
-          Built like infrastructure, not a widget.
+    <section className="py-16 sm:py-20">
+      <div className="container-page">
+        <span className="eyebrow">{t("Why AntheticPlus?", "কেন AntheticPlus?")}</span>
+        <h2 className="h-section mt-4 max-w-3xl">
+          {t("Built like infrastructure, not a widget.", "উইজেট নয়, অবকাঠামোর মতো তৈরি।")}
         </h2>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {WHY.map((w) => (
-            <div key={w.t} className="rounded-3xl border border-border bg-card p-6">
+            <div key={w.t[0]} className="surface-card lift p-6">
               <w.icon className="h-5 w-5 text-primary" />
-              <h3 className="mt-4 font-extrabold">{w.t}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{w.b}</p>
+              <h3 className="mt-4 font-extrabold">{t(w.t[0], w.t[1])}</h3>
+              <p className="mt-2 text-sm leading-6 text-body">{t(w.b[0], w.b[1])}</p>
             </div>
           ))}
         </div>
@@ -194,14 +245,15 @@ export function WhyAnthetic() {
 }
 
 const LAYERS = [
-  { key: "db1", label: "Identity" },
-  { key: "db2", label: "Billing & deployments" },
-  { key: "db3", label: "AI" },
-  { key: "db4", label: "CRM & execution" },
+  { key: "db1", label: "Identity", bn: "পরিচয়" },
+  { key: "db2", label: "Billing & deployments", bn: "বিলিং ও ডিপ্লয়মেন্ট" },
+  { key: "db3", label: "AI", bn: "AI" },
+  { key: "db4", label: "CRM & execution", bn: "CRM ও এক্সিকিউশন" },
 ] as const;
 
 /** Readiness report backed by the live status check. Shows only up/down + latency — never secrets. */
 export function ReadinessReport() {
+  const t = useT();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["public-status"],
     queryFn: () => getSystemStatus(),
@@ -213,22 +265,26 @@ export function ReadinessReport() {
       className={`text-xs font-semibold ${ok ? "text-success" : ok === false ? "text-destructive" : "text-muted-foreground"}`}
     >
       {isLoading
-        ? "Checking…"
+        ? t("Checking…", "যাচাই হচ্ছে…")
         : isError || ok === undefined
-          ? "Unavailable"
+          ? t("Unavailable", "পাওয়া যাচ্ছে না")
           : ok
-            ? "Operational"
-            : "Degraded"}
+            ? t("Operational", "সচল")
+            : t("Degraded", "সমস্যাযুক্ত")}
       {sub && ok ? <span className="ml-1 font-normal text-muted-foreground">{sub}</span> : null}
     </span>
   );
   return (
-    <section className="px-4 py-20 sm:px-6 sm:py-24">
-      <div className="mx-auto max-w-4xl rounded-3xl border border-border bg-card p-6 sm:p-8">
+    <section className="px-4 pb-20 sm:px-6 sm:pb-24">
+      <div className="mx-auto max-w-4xl surface-card p-6 sm:p-8">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-2xl font-extrabold">Live readiness report</h2>
+          <h2 className="text-2xl font-extrabold">
+            {t("Live readiness report", "লাইভ রেডিনেস রিপোর্ট")}
+          </h2>
           <span className="text-xs text-muted-foreground">
-            {data ? `Checked ${new Date(data.checkedAt).toLocaleTimeString()}` : ""}
+            {data
+              ? `${t("Checked", "যাচাই")} ${new Date(data.checkedAt).toLocaleTimeString()}`
+              : ""}
           </span>
         </div>
         <ul className="mt-6 divide-y divide-border">
@@ -236,24 +292,31 @@ export function ReadinessReport() {
             const d = data?.database.domains[l.key];
             return (
               <li key={l.key} className="flex items-center justify-between py-3 text-sm">
-                <span className="font-semibold">{l.label}</span>
+                <span className="font-semibold">{t(l.label, l.bn)}</span>
                 {cell(d?.ok, d ? `${d.latencyMs} ms` : undefined)}
               </li>
             );
           })}
           <li className="flex items-center justify-between py-3 text-sm">
-            <span className="font-semibold">AI provider failover</span>
+            <span className="font-semibold">
+              {t("AI provider failover", "AI প্রোভাইডার ফেইলওভার")}
+            </span>
             {cell(data?.inference.ok)}
           </li>
           <li className="flex items-center justify-between py-3 text-sm">
-            <span className="font-semibold">Monitoring & execution API</span>
+            <span className="font-semibold">
+              {t("Monitoring & execution API", "মনিটরিং ও এক্সিকিউশন API")}
+            </span>
             {cell(data?.api.ok)}
           </li>
         </ul>
         <p className="mt-4 text-xs text-muted-foreground">
-          Results come from a live check each time this page loads.{" "}
+          {t(
+            "Results come from a live check each time this page loads.",
+            "প্রতিবার পেজ লোড হলে লাইভ চেক থেকে ফলাফল আসে।",
+          )}{" "}
           <Link to="/status" className="underline">
-            Full status
+            {t("Full status", "সম্পূর্ণ স্ট্যাটাস")}
           </Link>
         </p>
       </div>

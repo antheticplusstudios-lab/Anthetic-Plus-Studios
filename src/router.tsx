@@ -5,7 +5,7 @@ import { LogoLoader } from "@/components/logo-loader";
 
 export const getRouter = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { staleTime: 60_000, refetchOnWindowFocus: false } },
+    defaultOptions: { queries: { staleTime: 300_000, refetchOnWindowFocus: false } },
   });
 
   const router = createRouter({
@@ -13,7 +13,7 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreload: "intent",
-    defaultPreloadStaleTime: 0,
+    defaultPreloadStaleTime: 60_000,
     defaultPendingComponent: () => <LogoLoader />,
     defaultPendingMs: 250,
   });

@@ -14,7 +14,22 @@ import {
   adminCreatePromo,
 } from "@/lib/admin-data.functions";
 
-export const Route = createFileRoute("/_authenticated/admin/pricing")({ component: PricingPage });
+export const Route = createFileRoute("/_authenticated/admin/pricing")({
+  head: () => ({
+    meta: [
+      { title: "Admin Pricing — AntheticPlus Studios" },
+      { name: "description", content: "Admin Pricing in the AntheticPlus AI automation platform." },
+      { property: "og:title", content: "Admin Pricing — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Pricing in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: PricingPage,
+});
 
 type Plan = {
   slug: string;

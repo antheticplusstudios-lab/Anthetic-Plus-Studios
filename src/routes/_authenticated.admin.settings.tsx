@@ -20,7 +20,22 @@ import { getSystemSettings } from "@/lib/admin-data.functions";
 import { saveSetting } from "@/lib/admin-center.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
-  head: () => ({ meta: [{ title: "System Settings — AntheticPlus Control Center" }] }),
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Admin Settings in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:title", content: "Admin Settings — AntheticPlus Studios" },
+      {
+        property: "og:description",
+        content: "Admin Settings in the AntheticPlus AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "System Settings — AntheticPlus Control Center" },
+    ],
+  }),
   component: SettingsPage,
 });
 
