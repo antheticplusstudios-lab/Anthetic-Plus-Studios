@@ -16,6 +16,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+/** Supported public site languages. */
+const LANGS = [
+  { code: "en", short: "EN", label: "English" },
+  { code: "bn", short: "বাংলা", label: "বাংলা" },
+] as const;
+
 /** Autumic public navigation: solutions, industries, delivery process and company information. */
 const NAV = [
   { to: "/", en: "Home", bn: "হোম", exact: true },
@@ -181,7 +187,7 @@ export function SiteHeader() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  hash={"hash" in item ? item.hash : undefined}
+                  {...("hash" in item && item.hash ? { hash: item.hash } : {})}
                   activeOptions={{ exact: item.exact }}
                   onClick={() => setOpen(false)}
                   className="rounded-xl px-4 py-3 text-base font-semibold text-foreground transition-colors hover:bg-accent data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
