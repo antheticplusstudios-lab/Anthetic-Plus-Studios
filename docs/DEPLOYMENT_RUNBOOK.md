@@ -1,4 +1,4 @@
-# AntheticPlus Production Deployment Runbook
+# Autumic Production Deployment Runbook
 
 ## 1. Create infrastructure
 
@@ -12,7 +12,7 @@ Create four separate Supabase projects/databases across the two Supabase organiz
 Also provision:
 
 - Vercel project for the TanStack Start app
-- FastAPI service at `api.antheticplus.com`
+- FastAPI service at `your configured Autumic API hostname`
 - Redis instance reachable by FastAPI/workers
 - one worker process for the outbox consumer
 - one worker process for durable execution
@@ -59,15 +59,15 @@ DB3_URL
 DB3_SERVICE_KEY
 DB4_URL
 DB4_SERVICE_KEY
-ANTHETICPLUS_DB3_MASTER_KEY
+AUTUMIC_DB3_MASTER_KEY
 REDIS_URL
 FASTAPI_BACKEND_URL
 FASTAPI_WS_URL
 NITRO_PRESET=vercel
-ALLOWED_WIDGET_HOSTS=antheticplus.vercel.app,antheticplus.com
+ALLOWED_WIDGET_HOSTS=your Autumic Vercel hostname,autumic.com
 ```
 
-`ALLOWED_WIDGET_HOSTS` is a comma-separated list of trusted root hosts. Each configured root automatically allows that host and its subdomains. For example, `antheticplus.com` covers `www.antheticplus.com` and `client.antheticplus.com`. Browser `Origin` does not include URL paths, so `/anything` does not require another entry. Do not configure a broad host such as `vercel.app`; add your specific Vercel hostname now and add `antheticplus.com` when the custom domain is purchased.
+`ALLOWED_WIDGET_HOSTS` is a comma-separated list of trusted root hosts. Each configured root automatically allows that host and its subdomains. For example, `autumic.com` covers `www.autumic.com` and `client.autumic.com`. Browser `Origin` does not include URL paths, so `/anything` does not require another entry. Do not configure a broad host such as `vercel.app`; add your specific Vercel hostname now and add `autumic.com` when the custom domain is purchased.
 
 Never place a service-role key, provider API key, encryption key, or Redis credential in Git or a `VITE_*` variable.
 
@@ -90,7 +90,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Expose the service as `https://api.antheticplus.com`.
+Expose the service as `https://your configured Autumic API hostname`.
 
 ## 6. Start workers
 

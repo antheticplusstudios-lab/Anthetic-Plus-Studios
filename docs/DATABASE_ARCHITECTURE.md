@@ -1,8 +1,8 @@
-# AntheticPlus Four-Database Architecture
+# Autumic Four-Database Architecture
 
 ## Rule
 
-AntheticPlus uses four separate Supabase projects/Postgres databases. Do not collapse them into schemas of one project.
+Autumic uses four separate Supabase projects/Postgres databases. Do not collapse them into schemas of one project.
 
 ## Ownership matrix
 

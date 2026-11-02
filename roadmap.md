@@ -1,4 +1,4 @@
-# Anthetic Plus Studios upgrade
+# Autumic upgrade
 ## Oct 24 request
 - [ ] Floating (detached, rounded) top bar instead of full-width stuck bar.
 - [ ] Material 3 easing + reduced-motion on dialogs, navigation, buttons.

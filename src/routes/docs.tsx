@@ -29,7 +29,7 @@ export const Route = createFileRoute("/docs")({
 
 type Doc = { id: string; en: [string, string[]]; bn: [string, string[]]; code?: string };
 
-const EMBED = `<script src="https://YOUR-ANTHETICPLUS-HOST/assistant.js" data-site-id="YOUR_SITE_ID" defer></script>`;
+const EMBED = `<script src="https://YOUR-AUTUMIC-HOST/assistant.js" data-site-id="YOUR_SITE_ID" defer></script>`;
 
 const DOCS: Doc[] = [
   {
