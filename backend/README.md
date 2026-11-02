@@ -38,16 +38,17 @@ Workflow webhooks use an endpoint key plus an HMAC SHA-256 signature. The caller
 ```text
 X-AntheticPlus-Timestamp: <unix timestamp>
 X-AntheticPlus-Signature: sha256=<hex hmac>
+X-AntheticPlus-Event-ID: <provider event id>
 ```
 
-The signature covers `<timestamp>.<raw request body>`. Requests older than five minutes are rejected. Send `X-AntheticPlus-Event-ID` when your provider has a stable event ID so webhook retries are idempotent; otherwise the runtime falls back to a hash of the raw payload.
+The signature covers `<timestamp>.<raw request body>`. Requests older than five minutes are rejected. Send `X-AntheticPlus-Event-ID` when your provider has a stable event ID so webhook retries are idempotent; otherwise Autumic falls back to a hash of the raw payload. The three legacy `X-AntheticPlus-*` headers remain accepted for existing webhook integrations.
 
 ## Production topology
 
 - Vercel: TanStack Start web application
 - FastAPI: configured API host for the gateway/runtime/webhooks/WebSocket
 - Redis: rate limiting, schedule locks and transient runtime state
-- Workers: DB outbox processing and durable durable execution execution
+- Workers: DB outbox processing and durable workflow execution
 - DB1: auth/identity
 - DB2: billing + automation runtime
 - DB3: AI + RAG

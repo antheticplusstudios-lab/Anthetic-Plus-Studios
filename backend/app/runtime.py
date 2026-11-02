@@ -5,10 +5,10 @@ from .config import settings
 
 _WIDGET_DEFAULTS = {
     "style": "metal-balls",
-    "primary": "#FF0000",
-    "secondary": "#FF0000",
-    "center": "#FBFBFB",
-    "glow": "#FF0000",
+    "primary": "#171717",
+    "secondary": "#404040",
+    "center": "#F5F5F5",
+    "glow": "#FFFFFF",
     "size": 64, "position": "bottom-right", "ballCount": 32, "radius": 37,
     "ballSize": 3, "centerSize": 31, "tilt": 49, "variation": 0.14, "shine": True, "speed": 1,
     "stateAnimations": {}, "labels": {}, "welcome": "Hello! How can I help you today?",
