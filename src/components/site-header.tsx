@@ -110,7 +110,7 @@ export function SiteHeader() {
               <Link
                 key={item.to}
                 to={item.to}
-                hash={"hash" in item ? item.hash : undefined}
+                {...("hash" in item && item.hash ? { hash: item.hash } : {})}
                 activeOptions={{ exact: item.exact }}
                 className={cn(linkCls, "group")}
               >
