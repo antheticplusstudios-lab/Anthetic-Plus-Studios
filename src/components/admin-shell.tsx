@@ -185,6 +185,13 @@ export const adminNav = [
     roles: ["owner", "admin"],
   },
   {
+    label: "Contributions of Autumic",
+    to: "/admin/contributions",
+    group: "Platform & Security",
+    icon: Users,
+    roles: ["owner", "admin"],
+  },
+  {
     label: "Analytics",
     to: "/admin/analytics",
     group: "Clients & Operations",
@@ -313,7 +320,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <Boxes className="size-4" />
         </span>
         <div className="min-w-0">
-          <p className="text-xs font-semibold">AntheticPlus workspace</p>
+          <p className="text-xs font-semibold">Autumic workspace</p>
           <p className="mt-1 text-[11px] capitalize text-muted-foreground">
             {role ?? "Checking access"}
           </p>
