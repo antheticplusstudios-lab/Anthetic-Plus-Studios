@@ -163,7 +163,7 @@ function AutomationDetail() {
                 </Button>
                 <p className="mt-4 text-xs leading-5 text-muted-foreground">{t("Custom integrations and implementation can be discussed when needed.", "প্রয়োজন হলে কাস্টম ইন্টিগ্রেশন ও বাস্তবায়ন নিয়েও আলোচনা করা যাবে।")}</p>
               </div>
-            </aside>    </aside>
+            </aside>
           </div>
         </section>
 
