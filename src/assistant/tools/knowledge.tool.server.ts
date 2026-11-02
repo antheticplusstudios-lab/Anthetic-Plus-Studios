@@ -1,3 +1,4 @@
+import { db2Admin } from "@/server/db/clients.server";
 import { z } from "zod";
 import { retrieveKnowledge } from "@/lib/rag.server";
 import { defineTool } from "../assistant.registry.server";

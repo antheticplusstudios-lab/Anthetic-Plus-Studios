@@ -81,96 +81,13 @@ export const solutionsListSchema = z
 
 /** Built-in defaults, used only when no configuration exists or public reads fail. */
 export const DEFAULT_SOLUTIONS: SiteSolution[] = [
-  {
-    id: "clinics",
-    icon: "heart-pulse",
-    slug: "voice-sms-receptionist",
-    en: {
-      team: "Dental & medical practices",
-      problem:
-        "The receptionist answers every call, checks live calendar availability, books the appointment and texts a confirmation.",
-    },
-    bn: {
-      team: "ডেন্টাল ও মেডিকেল প্র্যাকটিস",
-      problem:
-        "রিসেপশনিস্ট প্রতিটি কল ধরে, লাইভ ক্যালেন্ডার দেখে অ্যাপয়েনমেন্ট বুক করে এবং কনফার্মেশন এসএমএস পাঠায়।",
-    },
-  },
-  {
-    id: "home-services",
-    icon: "wrench",
-    slug: "voice-sms-receptionist",
-    en: {
-      team: "Home service companies",
-      problem:
-        "Job details are captured, a visit is booked from real availability and the team is notified — even mid-emergency.",
-    },
-    bn: {
-      team: "হোম সার্ভিস কোম্পানি",
-      problem:
-        "কাজের বিবরণ নেওয়া হয়, আসল সময়সূচি থেকে ভিজিট বুক হয় এবং টিমকে জানানো হয় — জরুরি মুহূর্তেও।",
-    },
-  },
-  {
-    id: "agencies",
-    icon: "building-2",
-    slug: "lead-capture-qualifier",
-    en: {
-      team: "Agencies & B2B service providers",
-      problem:
-        "The qualifier starts a conversation on-site, asks about budget, timeline and service, and routes hot leads instantly.",
-    },
-    bn: {
-      team: "এজেন্সি ও B2B সার্ভিস প্রোভাইডার",
-      problem:
-        "কোয়ালিফায়ার সাইটেই কথোপকথন শুরু করে, বাজেট-সময়সীমা-সার্ভিস জানতে চায় এবং হট লিড সঙ্গে সঙ্গে পাঠায়।",
-    },
-  },
-  {
-    id: "saas-support",
-    icon: "life-buoy",
-    slug: "knowledge-base-support",
-    en: {
-      team: "SaaS & membership support teams",
-      problem:
-        "The support agent learns your docs and FAQs, answers with citations and hands complex requests to a person.",
-    },
-    bn: {
-      team: "SaaS ও মেম্বারশিপ সাপোর্ট টিম",
-      problem:
-        "সাপোর্ট এজেন্ট আপনার ডকস ও FAQ শেখে, সূত্রসহ উত্তর দেয় এবং জটিল অনুরোধ মানুষের কাছে পাঠায়।",
-    },
-  },
-  {
-    id: "ecommerce",
-    icon: "shopping-bag",
-    slug: "social-dm-assistant",
-    en: {
-      team: "Ecommerce & hospitality",
-      problem:
-        "Product questions across WhatsApp, Instagram and Messenger get instant answers, and qualified buyers reach your team.",
-    },
-    bn: {
-      team: "ইকমার্স ও হসপিটালিটি",
-      problem:
-        "WhatsApp, Instagram ও Messenger-এ প্রোডাক্টের প্রশ্নের তাৎক্ষণিক উত্তর মিলে, যাচাইকৃত ক্রেতা টিমে পৌঁছায়।",
-    },
-  },
-  {
-    id: "social-first",
-    icon: "megaphone",
-    slug: "social-dm-assistant",
-    en: {
-      team: "Social-first businesses",
-      problem:
-        "Campaign message spikes are handled around the clock, with contact details captured from every conversation.",
-    },
-    bn: {
-      team: "সোশ্যাল-ফার্স্ট ব্যবসা",
-      problem:
-        "ক্যাম্পেইনের মেসেজ চাপ দিন-রাত সামলানো হয়, প্রতিটি কথোপকথনের যোগাযোগ তথ্য সংরক্ষিত হয়।",
-    },
-  },
+  { id: "real-estate", icon: "building-2", slug: "lead-capture-qualifier", en: { team: "Real estate", problem: "Capture property enquiries, understand buyer requirements and route qualified interest to the right team member." }, bn: { team: "রিয়েল এস্টেট", problem: "প্রপার্টি সংক্রান্ত জিজ্ঞাসা সংগ্রহ, ক্রেতার চাহিদা বোঝা এবং উপযুক্ত টিম সদস্যের কাছে পাঠান।" } },
+  { id: "healthcare", icon: "heart-pulse", slug: "voice-sms-receptionist", en: { team: "Healthcare", problem: "Help patients reach the right team, capture appointment requests and coordinate follow-up." }, bn: { team: "স্বাস্থ্যসেবা", problem: "রোগীদের সঠিক টিমের কাছে পৌঁছাতে, অ্যাপয়েন্টমেন্টের অনুরোধ নিতে এবং ফলো-আপ সমন্বয় করতে সহায়তা করুন।" } },
+  { id: "ecommerce", icon: "shopping-bag", slug: "social-dm-assistant", en: { team: "E-commerce", problem: "Respond to product questions across messaging channels, capture buyer interest and hand conversations to staff." }, bn: { team: "ই-কমার্স", problem: "মেসেজিং চ্যানেলে পণ্যের প্রশ্নের উত্তর, ক্রেতার আগ্রহ সংগ্রহ এবং প্রয়োজনে কর্মীদের কাছে কথোপকথন পাঠান।" } },
+  { id: "education", icon: "life-buoy", slug: "knowledge-base-support", en: { team: "Education", problem: "Answer common questions from approved course, admission and service information, with a clear human hand-off." }, bn: { team: "শিক্ষা", problem: "অনুমোদিত কোর্স, ভর্তি ও সেবা-সংক্রান্ত তথ্য থেকে সাধারণ প্রশ্নের উত্তর দিন এবং প্রয়োজনে মানুষের কাছে পাঠান।" } },
+  { id: "hospitality", icon: "calendar-check", slug: "voice-sms-receptionist", en: { team: "Hotels & hospitality", problem: "Handle guest enquiries, capture booking requests and pass important details to the front desk." }, bn: { team: "হোটেল ও আতিথেয়তা", problem: "অতিথির জিজ্ঞাসা সামলান, বুকিং অনুরোধ সংগ্রহ করুন এবং গুরুত্বপূর্ণ তথ্য ফ্রন্ট ডেস্কে পাঠান।" } },
+  { id: "finance", icon: "life-buoy", slug: "knowledge-base-support", en: { team: "Finance", problem: "Provide consistent answers from approved service information and route sensitive or complex requests to staff." }, bn: { team: "ফাইন্যান্স", problem: "অনুমোদিত সেবার তথ্য থেকে ধারাবাহিক উত্তর দিন এবং সংবেদনশীল বা জটিল অনুরোধ কর্মীদের কাছে পাঠান।" } },
+  { id: "professional-services", icon: "users", slug: "lead-capture-qualifier", en: { team: "Professional services", problem: "Qualify incoming enquiries, capture project details and help the team prioritize follow-up." }, bn: { team: "পেশাদার সেবা", problem: "আসা জিজ্ঞাসা যাচাই, প্রকল্পের তথ্য সংগ্রহ এবং ফলো-আপ অগ্রাধিকার নির্ধারণে টিমকে সহায়তা করুন।" } },
 ];
 
 /** Solutions only ever point at products that actually exist in the catalog. */

@@ -30,7 +30,7 @@ export const getLivePricing = createServerFn({ method: "GET" })
       }));
     } catch (err) {
       console.warn(
-        "[pricing] live pricing unavailable, using catalog fallback:",
+        "[pricing] live pricing unavailable; checkout requires an active database plan:",
         err instanceof Error ? err.message : err,
       );
       return [];
