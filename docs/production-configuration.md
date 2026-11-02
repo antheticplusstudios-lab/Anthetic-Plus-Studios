@@ -1,4 +1,4 @@
-# AntheticPlus Studios — Production Configuration Recovery
+# Autumic — Production Configuration Reference
 
 This runbook separates code fixes from deployment-secret configuration. Never commit a real `.env` file or place a Supabase service-role/secret key in any `VITE_*` variable.
 
@@ -21,7 +21,7 @@ Configure these in the hosting platform's server/build environment according to 
 
 - `DB1_URL`, `DB1_SERVICE_KEY`, `DB1_ANON_KEY`
 - `DB2_URL`, `DB2_SERVICE_KEY`
-- `DB3_URL`, `DB3_SERVICE_KEY`, `ANTHETICPLUS_DB3_MASTER_KEY`
+- `DB3_URL`, `DB3_SERVICE_KEY`, `AUTUMIC_DB3_MASTER_KEY` (legacy `ANTHETICPLUS_DB3_MASTER_KEY` remains supported during migration)
 - `DB4_URL`, `DB4_SERVICE_KEY`
 
 Retrieve service-role/secret keys from the matching Supabase project dashboard. Keep them server-only. Never paste them into chat, source code, issues, or `VITE_*` variables.
