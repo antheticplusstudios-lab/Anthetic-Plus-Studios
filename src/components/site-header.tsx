@@ -25,6 +25,37 @@ const LANGS = [
 /** Autumic public navigation: solutions, industries, delivery process and company information. */
 const NAV = [
   { to: "/", en: "Home", bn: "হোম", exact: true },
+  { to: "/automations", en: "Products", bn: "প্রোডাক্ট", exact: false },
+  { to: "/checkout", en: "Pricing", bn: "মূল্য", exact: false },
+  { to: "/docs", en: "Docs", bn: "ডকস", exact: false },
+  { to: "/about", en: "About", bn: "আমাদের কথা", exact: false },
+] as const;ink } from "@tanstack/react-router";
+import { ArrowRight, Check, ChevronDown, Globe, LayoutDashboard, Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AuthDialog } from "@/components/auth-dialog";
+import { HomeBrand } from "@/components/home-brand";
+import { AnimatePresence, motion, useReducedMotion, glide } from "@/components/motion";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useCurrentUser } from "@/hooks/use-portal";
+import { cn } from "@/lib/utils";
+import { useLang, useT, type Lang } from "@/lib/i18n";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+/** Supported public site languages. */
+const LANGS = [
+  { code: "en", short: "EN", label: "English" },
+  { code: "bn", short: "বাংলা", label: "বাংলা" },
+] as const;
+
+/** Autumic public navigation: solutions, industries, delivery process and company information. */
+const NAV = [
+  { to: "/", en: "Home", bn: "হোম", exact: true },
   { to: "/", hash: "solutions", en: "Solutions", bn: "সমাধান", exact: false },
   { to: "/automations", en: "Automations", bn: "অটোমেশন", exact: false },
   { to: "/", hash: "industries", en: "Industries", bn: "শিল্পখাত", exact: false },
