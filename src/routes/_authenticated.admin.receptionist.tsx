@@ -15,16 +15,16 @@ export const Route = createFileRoute("/_authenticated/admin/receptionist")({
     meta: [
       {
         name: "description",
-        content: "Admin Receptionist in the AntheticPlus AI automation platform.",
+        content: "Admin Receptionist in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Receptionist — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Receptionist — Autumic" },
       {
         property: "og:description",
-        content: "Admin Receptionist in the AntheticPlus AI automation platform.",
+        content: "Admin Receptionist in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "Live Automations — AntheticPlus" },
+      { title: "Live Automations — Autumic" },
     ],
   }),
   component: ReceptionistAdmin,

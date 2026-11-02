@@ -47,9 +47,9 @@ const HIGHLIGHTS = [
 ] as const;
 
 const SUGGESTIONS = [
-  ["What automations do you offer?", "আপনারা কোন কোন অটোমেশন দেন?"],
-  ["Tell me about AntheticPlus in Bangla", "AntheticPlus সম্পর্কে বাংলায় বলুন"],
-  ["How does payment verification work?", "পেমেন্ট যাচাই কীভাবে হয়?"],
+  ["What does Autumic automate for businesses?", "আপনারা কোন কোন অটোমেশন দেন?"],
+  ["Tell me about Autumic in Bangla", "Autumic সম্পর্কে বাংলায় বলুন"],
+  ["Which business tasks can I automate?", "কোন ব্যবসায়িক কাজ অটোমেট করতে পারি?"],
 ] as const;
 
 function Outcome({ a }: { a: NonNullable<ChatEntry["actions"]>[number] }) {
@@ -169,27 +169,27 @@ export function HomeHero() {
         <Entrance className="order-1 text-center lg:text-left">
           <span className="eyebrow">
             <span className="h-1.5 w-1.5 rounded-full bg-success" />{" "}
-            {t("AI workforce platform", "AI ওয়ার্কফোর্স প্ল্যাটফর্ম")}
+            {t("AI automation company", "AI অটোমেশন কোম্পানি")}
           </span>
           <h1 className="h-display mt-5">
-            {t("Build. Automate. Grow.", "গড়ুন। অটোমেট করুন। এগিয়ে যান।")}
+            {t("Build To Automate", "অটোমেশনের জন্য তৈরি")}
           </h1>
           <p className="lead mx-auto mt-5 max-w-lg lg:mx-0">
             {t(
-              "Intelligent AI tools for voice conversations, workflow automation, AI agents, and business insights — connected in one platform.",
-              "ভয়েস কথোপকথন, ওয়ার্কফ্লো অটোমেশন, AI এজেন্ট ও ব্যবসার তথ্য বিশ্লেষণের বুদ্ধিমান টুল — এক প্ল্যাটফর্মে।",
+              "We build AI employees that answer customers, generate sales and automate your operations 24/7.",
+              "আমরা তৈরি করি এমন AI কর্মী, যারা ২৪/৭ গ্রাহকের উত্তর দেয়, বিক্রয় বাড়াতে সহায়তা করে এবং ব্যবসার কাজ স্বয়ংক্রিয় করে।",
             )}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
             <Button variant="hero" size="xl" asChild>
-              <Link to="/auth">
-                {t("Get Started", "শুরু করুন")} <ArrowRight />
+              <Link to="/contact">
+                {t("Book a free consultation", "বিনামূল্যে পরামর্শ নিন")} <ArrowRight />
               </Link>
             </Button>
             <Button variant="pill" size="xl" asChild>
               <Link to="/automations">
                 <PlayCircle className="text-primary" />{" "}
-                {t("Explore the Platform", "প্ল্যাটফর্ম দেখুন")}
+                {t("Explore solutions", "সমাধানগুলো দেখুন")}
               </Link>
             </Button>
           </div>
@@ -261,7 +261,7 @@ export function HomeHero() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold text-foreground">
-                  {t("Talk to AntheticPlus", "AntheticPlus-এর সাথে কথা বলুন")}
+                  {t("Talk to Autumic", "Autumic-এর সাথে কথা বলুন")}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">
                   {enabled

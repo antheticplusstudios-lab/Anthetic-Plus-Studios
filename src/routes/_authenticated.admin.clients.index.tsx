@@ -15,16 +15,16 @@ export const Route = createFileRoute("/_authenticated/admin/clients/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
 
-      { title: "Users & Clients — AntheticPlus Control Center" },
+      { title: "Users & Clients — Autumic Control Center" },
       {
         name: "description",
         content:
-          "Unified directory of every AntheticPlus user, client, partner and staff member with moderation controls.",
+          "Unified directory of every Autumic user, client, partner and staff member with moderation controls.",
       },
-      { property: "og:title", content: "Users & Clients — AntheticPlus Control Center" },
+      { property: "og:title", content: "Users & Clients — Autumic Control Center" },
       {
         property: "og:description",
-        content: "Unified directory of every AntheticPlus user with moderation controls.",
+        content: "Unified directory of every Autumic user with moderation controls.",
       },
     ],
   }),

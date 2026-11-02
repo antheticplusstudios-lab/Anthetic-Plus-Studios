@@ -21,16 +21,16 @@ export const Route = createFileRoute("/_authenticated/admin/verification")({
     meta: [
       {
         name: "description",
-        content: "Admin Verification in the AntheticPlus AI automation platform.",
+        content: "Admin Verification in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Verification — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Verification — Autumic" },
       {
         property: "og:description",
-        content: "Admin Verification in the AntheticPlus AI automation platform.",
+        content: "Admin Verification in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "Verification Queue — AntheticPlus" },
+      { title: "Verification Queue — Autumic" },
     ],
   }),
   component: VerificationPage,

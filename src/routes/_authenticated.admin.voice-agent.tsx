@@ -39,16 +39,16 @@ export const Route = createFileRoute("/_authenticated/admin/voice-agent")({
     meta: [
       {
         name: "description",
-        content: "Admin Voice Agent in the AntheticPlus AI automation platform.",
+        content: "Admin Voice Agent in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Voice Agent — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Voice Agent — Autumic" },
       {
         property: "og:description",
-        content: "Admin Voice Agent in the AntheticPlus AI automation platform.",
+        content: "Admin Voice Agent in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "Voice Channel & Email — AntheticPlus Control Center" },
+      { title: "Voice Channel & Email — Autumic Control Center" },
     ],
   }),
   component: VoiceAgentAdminPage,
@@ -89,9 +89,9 @@ function VoiceAgentAdminPage() {
   const [languageTagsDraft, setLanguageTagsDraft] = useState("");
   const [groqKey, setGroqKey] = useState("");
   const [ttsKey, setTtsKey] = useState("");
-  const [ttsTestText, setTtsTestText] = useState("Hello from AntheticPlus.");
+  const [ttsTestText, setTtsTestText] = useState("Hello from Autumic.");
   const [resendKey, setResendKey] = useState("");
-  const [testQuestion, setTestQuestion] = useState("What does AntheticPlus offer?");
+  const [testQuestion, setTestQuestion] = useState("What does Autumic offer?");
   const [testAnswer, setTestAnswer] = useState("");
   const [testAccountContext, setTestAccountContext] = useState(false);
   const [emailTemplateType, setEmailTemplateType] = useState<VoiceEmailType>("renewal");
@@ -225,7 +225,7 @@ function VoiceAgentAdminPage() {
           enabled: settings?.emailEnabled ?? false,
           provider: settings?.emailProvider ?? "none",
           apiKey: resendKey || undefined,
-          fromName: settings?.emailFromName ?? "AntheticPlus Studios",
+          fromName: settings?.emailFromName ?? "Autumic",
           fromEmail: settings?.emailFromAddress ?? "",
           replyTo: settings?.emailReplyTo ?? "",
         },
@@ -264,7 +264,7 @@ function VoiceAgentAdminPage() {
   return (
     <AdminPage
       title="Voice Channel & Email"
-      subtitle="Voice and email are channels of the one Website AI Agent — not a separate agent. Settings here apply to both text and voice replies on the AntheticPlus site."
+      subtitle="Voice and email are channels of the one Website AI Agent — not a separate agent. Settings here apply to both text and voice replies on the Autumic site."
       actions={
         <Button onClick={() => settingsMutation.mutate()} disabled={settingsMutation.isPending}>
           {settingsMutation.isPending ? <Save className="animate-pulse" /> : <Save />}

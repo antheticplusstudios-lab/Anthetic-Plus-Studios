@@ -85,7 +85,7 @@ export const dashboardGuideTool = defineTool<z.infer<typeof input>>({
   name: "get_dashboard_guide",
   label: "Dashboard guide",
   description:
-    "Explain where a signed-in AntheticPlus user can find a dashboard feature. Use this when the user asks how to do something in the dashboard or where a setting/page is located.",
+    "Explain where a signed-in Autumic user can find a dashboard feature. Use this when the user asks how to do something in the dashboard or where a setting/page is located.",
   inputDoc: '{"query":"short description of what the user wants to find"}',
   access: "member",
   sideEffect: false,

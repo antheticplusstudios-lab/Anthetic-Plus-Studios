@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 import { LangProvider } from "@/lib/i18n";
 import { PageTransition } from "@/components/motion";
+import { WhatsAppFloat } from "@/components/whatsapp-float";
 
 function NotFoundComponent() {
   return (
@@ -76,13 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AntheticPlus Studios" },
+      { title: "Autumic" },
       {
         name: "description",
         content:
-          "AI automations that capture leads, serve customers, and recover revenue around the clock.",
+          "Autumic builds AI employees that answer customers, generate sales and automate business operations. Build To Automate.",
       },
-      { name: "author", content: "AntheticPlus Studios" },
+      { name: "author", content: "Autumic" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -97,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "icon", href: "/favicon.svg", type: "image/png" },
     ],
   }),
   shellComponent: RootShell,
@@ -108,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
@@ -143,6 +144,7 @@ function RootComponent() {
           </PageTransition>
         </MaintenanceGate>
         <Toaster position="top-right" richColors closeButton />
+        <WhatsAppFloat />
       </LangProvider>
     </QueryClientProvider>
   );

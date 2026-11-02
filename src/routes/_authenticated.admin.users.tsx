@@ -14,7 +14,7 @@ import { PLATFORM_LABEL, hostOf, platformOfDomain, type Platform } from "@/lib/p
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({
     meta: [
-      { title: "Users — AntheticPlus Control Center" },
+      { title: "Users — Autumic Control Center" },
       {
         name: "description",
         content: "Search, ban, mute and inspect every user across both websites.",

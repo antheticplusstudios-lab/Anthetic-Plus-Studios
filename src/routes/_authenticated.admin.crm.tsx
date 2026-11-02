@@ -13,12 +13,12 @@ import { adminAddCrmTag, adminRemoveCrmTag, adminListCrm } from "@/lib/admin-dat
 export const Route = createFileRoute("/_authenticated/admin/crm")({
   head: () => ({
     meta: [
-      { title: "Admin Crm — AntheticPlus Studios" },
-      { name: "description", content: "Admin Crm in the AntheticPlus AI automation platform." },
-      { property: "og:title", content: "Admin Crm — AntheticPlus Studios" },
+      { title: "Admin Crm — Autumic" },
+      { name: "description", content: "Admin Crm in the Autumic AI automation platform." },
+      { property: "og:title", content: "Admin Crm — Autumic" },
       {
         property: "og:description",
-        content: "Admin Crm in the AntheticPlus AI automation platform.",
+        content: "Admin Crm in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

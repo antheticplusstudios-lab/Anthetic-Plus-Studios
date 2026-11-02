@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { contactSchema, looksLikeSpam } from "@/lib/contact-schema";
 
-const SUPPORT_INBOX = "antheticplusstudios@gmail.com";
+const SUPPORT_INBOX = "info@autumic.com";
 
 export type ContactResult =
   | { status: "sent" }
@@ -47,8 +47,8 @@ export const submitContact = createServerFn({ method: "POST" })
       });
       await sendEmail({
         to: data.email,
-        subject: "We got your message — AntheticPlus Studios",
-        text: `Hi ${data.name},\n\nThanks for reaching out. Our team has your message and will reply soon.\n\n— AntheticPlus Studios`,
+        subject: "We got your message — Autumic",
+        text: `Hi ${data.name},\n\nThanks for reaching out. Our team has your message and will reply soon.\n\n— Autumic`,
       }).catch(() => undefined);
       if (savedId) {
         const { getDb } = await import("@/server/db/clients.server");

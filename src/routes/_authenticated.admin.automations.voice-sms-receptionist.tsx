@@ -6,17 +6,17 @@ export const Route = createFileRoute("/_authenticated/admin/automations/voice-sm
     meta: [
       {
         property: "og:title",
-        content: "Admin Automations Voice Sms Receptionist — AntheticPlus Studios",
+        content: "Admin Automations Voice Sms Receptionist — Autumic",
       },
       {
         property: "og:description",
         content:
-          "Admin Automations Voice Sms Receptionist in the AntheticPlus AI automation platform.",
+          "Admin Automations Voice Sms Receptionist in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
 
-      { title: "voice-sms-receptionist control room — AntheticPlus" },
+      { title: "voice-sms-receptionist control room — Autumic" },
       {
         name: "description",
         content: "Deployments, configuration, provider pool, executions and health.",

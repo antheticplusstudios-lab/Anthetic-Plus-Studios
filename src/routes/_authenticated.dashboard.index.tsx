@@ -8,12 +8,12 @@ import { daysRemaining, statusClass, statusLabels } from "@/lib/portal";
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — AntheticPlus Studios" },
+      { title: "Dashboard — Autumic" },
       {
         name: "description",
-        content: "Your AntheticPlus automation overview, metrics and renewal countdown.",
+        content: "Your Autumic automation overview, metrics and renewal countdown.",
       },
-      { property: "og:title", content: "AntheticPlus Client Dashboard" },
+      { property: "og:title", content: "Autumic Client Dashboard" },
       {
         property: "og:description",
         content: "Monitor automations, conversations, leads and renewals.",

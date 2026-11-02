@@ -14,9 +14,9 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Sign in — AntheticPlus Studios" },
-      { name: "description", content: "Access your AntheticPlus automation workspace." },
-      { property: "og:title", content: "AntheticPlus Studios Sign In" },
+      { title: "Sign in — Autumic" },
+      { name: "description", content: "Access your Autumic automation workspace." },
+      { property: "og:title", content: "Autumic Sign In" },
       { property: "og:description", content: "Access your AI automation workspace." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

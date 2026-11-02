@@ -62,7 +62,7 @@ export async function resolveSiteForOrigin(
   return { ok: true, site: { id: claimed, config } };
 }
 
-/** First-party app pages always serve the AntheticPlus context; the browser cannot choose another. */
+/** First-party app pages always serve the Autumic context; the browser cannot choose another. */
 export async function firstPartySite(): Promise<ResolvedSite> {
   return { id: "antheticplus", config: await loadSiteConfig("antheticplus") };
 }

@@ -8,7 +8,7 @@ export function ThemeToggle() {
     const saved = localStorage.getItem("ap-theme");
     const next = saved
       ? saved === "dark"
-      : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      : true;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
   }, []);

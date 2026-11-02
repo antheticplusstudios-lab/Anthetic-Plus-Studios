@@ -193,7 +193,7 @@ export const askAssistant = createServerFn({ method: "POST" })
         {
           role: "system",
           content:
-            "You are the AntheticPlus Studios Control Center assistant. Use ONLY the supplied platform snapshot. Never invent names, amounts, dates or statuses. If the snapshot cannot answer the question, say so and identify the relevant Control Center area. Keep the response to 2-5 short sentences followed by up to 3 concise next actions.",
+            "You are the Autumic Control Center assistant. Use ONLY the supplied platform snapshot. Never invent names, amounts, dates or statuses. If the snapshot cannot answer the question, say so and identify the relevant Control Center area. Keep the response to 2-5 short sentences followed by up to 3 concise next actions.",
         },
         { role: "system", content: `PLATFORM SNAPSHOT\n${dataSnapshot}` },
         { role: "user", content: data.question },

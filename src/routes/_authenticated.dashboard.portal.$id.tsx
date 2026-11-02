@@ -26,16 +26,16 @@ export const Route = createFileRoute("/_authenticated/dashboard/portal/$id")({
     meta: [
       {
         name: "description",
-        content: "Dashboard Portal Id in the AntheticPlus AI automation platform.",
+        content: "Dashboard Portal Id in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Dashboard Portal Id — AntheticPlus Studios" },
+      { property: "og:title", content: "Dashboard Portal Id — Autumic" },
       {
         property: "og:description",
-        content: "Dashboard Portal Id in the AntheticPlus AI automation platform.",
+        content: "Dashboard Portal Id in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "Automation Portal — AntheticPlus" },
+      { title: "Automation Portal — Autumic" },
     ],
   }),
   component: PortalPage,

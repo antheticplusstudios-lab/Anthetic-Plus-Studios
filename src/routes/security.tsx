@@ -18,13 +18,13 @@ import { Hero3D } from "@/components/hero-3d";
 export const Route = createFileRoute("/security")({
   head: () => ({
     meta: [
-      { title: "Security & Trust — AntheticPlus Studios" },
+      { title: "Security & Trust — Autumic" },
       {
         name: "description",
         content:
-          "How AntheticPlus protects your data: tenant isolation at the database row level, encrypted secrets, zero-retention AI processing and an immutable audit trail.",
+          "How Autumic protects your data: tenant isolation at the database row level, encrypted secrets, zero-retention AI processing and an immutable audit trail.",
       },
-      { property: "og:title", content: "Security & Trust — AntheticPlus Studios" },
+      { property: "og:title", content: "Security & Trust — Autumic" },
       {
         property: "og:description",
         content:
@@ -226,7 +226,7 @@ export default function SecurityPage() {
               {t("Found a problem?", "কোনো সমস্যা পেয়েছেন?")}{" "}
               <a
                 className="font-semibold text-primary"
-                href="mailto:antheticplusstudios@gmail.com?subject=Vulnerability%20disclosure"
+                href="mailto:info@autumic.com?subject=Vulnerability%20disclosure"
               >
                 {t("Report it privately", "গোপনে জানান")}
               </a>{" "}

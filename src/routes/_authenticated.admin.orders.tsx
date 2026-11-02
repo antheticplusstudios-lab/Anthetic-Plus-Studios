@@ -17,12 +17,12 @@ import { useAllPayments } from "@/hooks/use-admin";
 export const Route = createFileRoute("/_authenticated/admin/orders")({
   head: () => ({
     meta: [
-      { title: "Admin Orders — AntheticPlus Studios" },
-      { name: "description", content: "Admin Orders in the AntheticPlus AI automation platform." },
-      { property: "og:title", content: "Admin Orders — AntheticPlus Studios" },
+      { title: "Admin Orders — Autumic" },
+      { name: "description", content: "Admin Orders in the Autumic AI automation platform." },
+      { property: "og:title", content: "Admin Orders — Autumic" },
       {
         property: "og:description",
-        content: "Admin Orders in the AntheticPlus AI automation platform.",
+        content: "Admin Orders in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

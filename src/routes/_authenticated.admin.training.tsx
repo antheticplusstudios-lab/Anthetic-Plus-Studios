@@ -5,15 +5,15 @@ import { TrainingPanel } from "@/components/training-panel";
 export const Route = createFileRoute("/_authenticated/admin/training")({
   head: () => ({
     meta: [
-      { property: "og:title", content: "Admin Training — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Training — Autumic" },
       {
         property: "og:description",
-        content: "Admin Training in the AntheticPlus AI automation platform.",
+        content: "Admin Training in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
 
-      { title: "Auto-training — AntheticPlus Admin" },
+      { title: "Auto-training — Autumic Admin" },
       {
         name: "description",
         content: "Train website assistants and client automations from their websites.",

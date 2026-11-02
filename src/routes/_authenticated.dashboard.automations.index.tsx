@@ -18,12 +18,12 @@ import { FolderFloat } from "@/components/folder-float";
 export const Route = createFileRoute("/_authenticated/dashboard/automations/")({
   head: () => ({
     meta: [
-      { title: "My Automations — AntheticPlus Studios" },
+      { title: "My Automations — Autumic" },
       {
         name: "description",
         content: "Status, setup progress and next steps for every automation you own.",
       },
-      { property: "og:title", content: "My AntheticPlus Automations" },
+      { property: "og:title", content: "My Autumic Automations" },
       {
         property: "og:description",
         content: "Status, setup progress and next steps for every automation you own.",

@@ -43,7 +43,7 @@ async function crawl(start: string, onPage: (n: number) => Promise<void>) {
     seen.add(url);
     try {
       const { response } = await safeFetch(url, {
-        headers: { "user-agent": "AntheticPlusTrainer/1.0" },
+        headers: { "user-agent": "AutumicTrainer/1.0" },
       });
       if (!response.ok || !(response.headers.get("content-type") ?? "").includes("html")) continue;
       const html = await readLimitedText(response);

@@ -15,15 +15,15 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/automations/round-robin")({
   head: () => ({
     meta: [
-      { title: "Admin Automations Round Robin — AntheticPlus Studios" },
+      { title: "Admin Automations Round Robin — Autumic" },
       {
         name: "description",
-        content: "Admin Automations Round Robin in the AntheticPlus AI automation platform.",
+        content: "Admin Automations Round Robin in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Automations Round Robin — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Automations Round Robin — Autumic" },
       {
         property: "og:description",
-        content: "Admin Automations Round Robin in the AntheticPlus AI automation platform.",
+        content: "Admin Automations Round Robin in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

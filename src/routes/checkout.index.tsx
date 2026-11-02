@@ -1,131 +1,23 @@
-import { useT } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
-import { Hero3D } from "@/components/hero-3d";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
-import { SubscriptionSchedule } from "@/components/subscription-schedule";
-import { money } from "@/components/admin-ui";
-import { useFeatureFlag } from "@/hooks/use-system-settings";
-import { livePricingQueryOptions, storefrontItems } from "@/lib/pricing";
-import type { BillingCycle } from "@/lib/billing";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/checkout/")({
-  loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(livePricingQueryOptions),
-  head: () => ({
-    meta: [
-      { title: "Checkout — AntheticPlus Studios" },
-      {
-        name: "description",
-        content: "Choose an automation and billing cycle, and see your exact UTC billing schedule.",
-      },
-      { property: "og:title", content: "Checkout — AntheticPlus Studios" },
-      {
-        property: "og:description",
-        content: "Transparent subscription scheduling with automatic stop at period end.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () => ({ meta: [
+    { title: "Custom Automation Proposals — Autumic" },
+    { name: "description", content: "Talk to Autumic about a custom AI automation package for your business." },
+    { property: "og:title", content: "Custom Automation Proposals — Autumic" },
+  ]}),
   component: CheckoutPage,
 });
 
 function CheckoutPage() {
   const t = useT();
-  const { data } = useSuspenseQuery(livePricingQueryOptions);
-  const storefrontOpen = useFeatureFlag("public_storefront");
-  const items = storefrontItems(data);
-  const [slug, setSlug] = useState(items[0]?.slug ?? "");
-  const [cycle, setCycle] = useState<BillingCycle>("monthly");
-  const [start] = useState(() => new Date());
-  const selected = items.find((i) => i.slug === slug);
-  const total = selected ? (cycle === "yearly" ? selected.yearlyPrice : selected.price) : 0;
-
-  return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader />
-      <main className="relative mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_380px]">
-        <Hero3D />
-        <section className="relative">
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-            {t("Checkout", "চেকআউট")}
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            {t(
-              "Pick an automation and how often you want to be billed.",
-              "একটি অটোমেশন এবং বিল দেওয়ার সময়সূচি বেছে নিন।",
-            )}
-          </p>
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            {items.map((item) => (
-              <button
-                key={item.slug}
-                type="button"
-                onClick={() => setSlug(item.slug)}
-                className={`rounded-2xl border p-4 text-left transition-colors ${
-                  item.slug === slug
-                    ? "border-primary bg-secondary"
-                    : "border-border bg-card hover:border-primary/40"
-                }`}
-              >
-                <p className="font-bold">{item.name}</p>
-                <p className="text-sm text-muted-foreground tabular-nums">
-                  {money(item.price)}
-                  {t("/mo", "/মাস")}
-                </p>
-              </button>
-            ))}
-          </div>
-          <div className="mt-6 inline-grid grid-cols-2 rounded-full border border-border bg-card p-1">
-            <Button
-              variant={cycle === "monthly" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setCycle("monthly")}
-            >
-              {t("Monthly · 30 days", "মাসিক · ৩০ দিন")}
-            </Button>
-            <Button
-              variant={cycle === "yearly" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setCycle("yearly")}
-            >
-              {t("Yearly · 365 days", "বার্ষিক · ৩৬৫ দিন")}
-            </Button>
-          </div>
-        </section>
-        <aside className="relative space-y-4">
-          <div className="rounded-2xl border border-border bg-card p-5">
-            <p className="text-sm text-muted-foreground">{t("Due today", "আজ পরিশোধযোগ্য")}</p>
-            <p className="text-3xl font-extrabold tabular-nums">{money(total)}</p>
-            {selected && cycle === "yearly" && selected.yearlyDiscountPct > 0 && (
-              <p className="text-sm text-primary">
-                {t("Includes", "অন্তর্ভুক্ত রয়েছে")} {selected.yearlyDiscountPct}%{" "}
-                {t("yearly saving", "বার্ষিক সাশ্রয়")}
-              </p>
-            )}
-          </div>
-          <SubscriptionSchedule cycle={cycle} start={start} />
-          {!storefrontOpen && (
-            <p className="rounded-2xl border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-              {t(
-                "New orders are paused while we finish onboarding our current clients. Email antheticplusstudios@gmail.com and we'll reserve your spot.",
-                "বর্তমান ক্লায়েন্টদের অনবোর্ডিং শেষ না হওয়া পর্যন্ত নতুন অর্ডার বন্ধ রয়েছে। আপনার স্থান সংরক্ষণ করতে antheticplusstudios@gmail.com ঠিকানায় ইমেইল করুন।",
-              )}
-            </p>
-          )}
-          {selected && storefrontOpen && (
-            <Button className="w-full" size="lg" asChild>
-              <Link to="/checkout/$slug" params={{ slug: selected.slug }} search={{ plan: cycle }}>
-                {t("Continue to payment", "পেমেন্টে এগিয়ে যান")}
-              </Link>
-            </Button>
-          )}
-        </aside>
-      </main>
-      <SiteFooter />
-    </div>
-  );
+  return <div className="min-h-screen bg-background"><SiteHeader/><main className="container-page grid min-h-[65vh] items-center gap-10 py-20 lg:grid-cols-[1.1fr_.9fr]">
+    <section><span className="eyebrow">{t("Custom packages","কাস্টম প্যাকেজ")}</span><h1 className="h-display mt-5">{t("Your business is not a one-size-fits-all price tag.","আপনার ব্যবসার জন্য এক মাপের মূল্যতালিকা নয়।")}</h1><p className="lead mt-5">{t("Autumic scopes each automation around your goals, workflows, channels and existing tools. We’ll start with a free consultation, understand what needs to change, and prepare a proposal for your requirements.", "Autumic আপনার লক্ষ্য, ওয়ার্কফ্লো, যোগাযোগের মাধ্যম ও ব্যবহৃত টুল অনুযায়ী অটোমেশনের পরিধি নির্ধারণ করে। বিনামূল্যে পরামর্শ দিয়ে শুরু করে আপনার প্রয়োজন বুঝে প্রস্তাব তৈরি করব।")}</p><Button asChild size="lg" className="mt-8"><Link to="/contact">{t("Book a free consultation","বিনামূল্যে পরামর্শ নিন")} <ArrowRight/></Link></Button></section>
+    <aside className="surface-card space-y-5 p-7"><h2 className="text-xl font-semibold">{t("Talk to Autumic","Autumic-এর সঙ্গে কথা বলুন")}</h2><a className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground" href="mailto:info@autumic.com"><Mail className="size-4 text-primary"/>info@autumic.com</a><a className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground" href="tel:+8801915349394"><Phone className="size-4 text-primary"/>+880 1915-349394</a><p className="flex items-center gap-3 text-sm text-muted-foreground"><MapPin className="size-4 text-primary"/>Baridhara, Dhaka-1212, Bangladesh</p><Button asChild variant="outline" className="w-full"><Link to="/automations">{t("Explore automation solutions","অটোমেশন সমাধান দেখুন")}</Link></Button></aside>
+  </main><SiteFooter/></div>;
 }

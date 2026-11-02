@@ -226,7 +226,7 @@ export function WhyAnthetic() {
   return (
     <section className="py-16 sm:py-20">
       <div className="container-page">
-        <span className="eyebrow">{t("Why AntheticPlus?", "কেন AntheticPlus?")}</span>
+        <span className="eyebrow">{t("Why Autumic?", "কেন Autumic?")}</span>
         <h2 className="h-section mt-4 max-w-3xl">
           {t("Built like infrastructure, not a widget.", "উইজেট নয়, অবকাঠামোর মতো তৈরি।")}
         </h2>

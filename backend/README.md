@@ -1,4 +1,4 @@
-# AntheticPlus FastAPI Runtime
+# Autumic FastAPI Runtime
 
 This service is the server-side gateway/runtime for the four-database architecture. Browser code never receives service-role keys or provider secrets.
 
@@ -40,12 +40,12 @@ X-AntheticPlus-Timestamp: <unix timestamp>
 X-AntheticPlus-Signature: sha256=<hex hmac>
 ```
 
-The signature covers `<timestamp>.<raw request body>`. Requests older than five minutes are rejected. Send `X-AntheticPlus-Event-ID` when your provider has a stable event ID so webhook retries are idempotent; otherwise AntheticPlus falls back to a hash of the raw payload.
+The signature covers `<timestamp>.<raw request body>`. Requests older than five minutes are rejected. Send `X-AntheticPlus-Event-ID` when your provider has a stable event ID so webhook retries are idempotent; otherwise the runtime falls back to a hash of the raw payload.
 
 ## Production topology
 
 - Vercel: TanStack Start web application
-- FastAPI: `api.antheticplus.com` gateway/runtime/webhooks/WebSocket
+- FastAPI: configured API host for the gateway/runtime/webhooks/WebSocket
 - Redis: rate limiting, schedule locks and transient runtime state
 - Workers: DB outbox processing and durable durable execution execution
 - DB1: auth/identity

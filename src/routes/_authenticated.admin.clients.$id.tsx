@@ -18,14 +18,14 @@ export const Route = createFileRoute("/_authenticated/admin/clients/$id")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
 
-      { title: "Client Detail — AntheticPlus Control Center" },
+      { title: "Client Detail — Autumic Control Center" },
       {
         name: "description",
         content:
           "Full account record: profile, roles, restrictions, orders, automations, usage, conversations and audit trail.",
       },
-      { property: "og:title", content: "Client Detail — AntheticPlus Control Center" },
-      { property: "og:description", content: "Full account record for one AntheticPlus user." },
+      { property: "og:title", content: "Client Detail — Autumic Control Center" },
+      { property: "og:description", content: "Full account record for one Autumic user." },
     ],
   }),
   component: ClientDetailPage,

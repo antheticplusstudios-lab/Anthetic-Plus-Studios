@@ -41,6 +41,6 @@ export const saveContributions = createServerFn({ method: "POST" })
       { onConflict: "key" },
     );
     if (error) throw new Error("Contributions could not be saved.");
-    await auditMutation(context, { action: "settings.updated", targetId: null, targetType: KEY, after: { count: clean.length } });
+    try { await auditMutation(context, { action: "settings.updated", targetType: KEY, after: { count: clean.length } }); } catch (auditError) { console.error("[contributions] audit log failed after save", auditError); }
     return { ok: true };
   });

@@ -16,12 +16,12 @@ import { daysRemaining, scriptTag, statusClass, statusLabels } from "@/lib/porta
 export const Route = createFileRoute("/_authenticated/dashboard/automations/$id")({
   head: () => ({
     meta: [
-      { title: "Manage Automation — AntheticPlus Studios" },
+      { title: "Manage Automation — Autumic" },
       {
         name: "description",
         content: "Configure your AI automation, copy your embed script and view analytics.",
       },
-      { property: "og:title", content: "Manage AntheticPlus Automation" },
+      { property: "og:title", content: "Manage Autumic Automation" },
       {
         property: "og:description",
         content: "Your installation snippet, instructions and performance.",
@@ -157,7 +157,7 @@ function Page() {
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
                 {frozen
-                  ? "Your domain is frozen by AntheticPlus Studios. Contact antheticplusstudios@gmail.com."
+                  ? "Your domain is frozen by Autumic. Contact info@autumic.com."
                   : instance.status === "pending_payment"
                     ? "Your payment is awaiting verification. The snippet unlocks as soon as it is approved."
                     : "Submit a renewal transaction ID to unlock your snippet again."}

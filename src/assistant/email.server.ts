@@ -53,7 +53,7 @@ async function readEmailConfig() {
     key,
     provider: String(stored["provider"] ?? agent["emailProvider"] ?? "none"),
     enabled: Boolean(stored["enabled"] ?? agent["emailEnabled"] ?? false),
-    fromName: String(stored["fromName"] ?? agent["emailFromName"] ?? "AntheticPlus Studios"),
+    fromName: String(stored["fromName"] ?? agent["emailFromName"] ?? "Autumic"),
     fromEmail: String(stored["fromEmail"] ?? agent["emailFromAddress"] ?? "").trim(),
     replyTo: String(stored["replyTo"] ?? agent["emailReplyTo"] ?? "").trim(),
   };

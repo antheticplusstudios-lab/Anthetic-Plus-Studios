@@ -5,6 +5,7 @@ import { AuthDialog } from "@/components/auth-dialog";
 import { HomeBrand } from "@/components/home-brand";
 import { AnimatePresence, motion, useReducedMotion, glide } from "@/components/motion";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useCurrentUser } from "@/hooks/use-portal";
 import { cn } from "@/lib/utils";
 import { useLang, useT, type Lang } from "@/lib/i18n";
@@ -15,13 +16,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-/** Real routes only. "Products" = automations catalog, "Pricing" = checkout plans. */
+/** Autumic public navigation: solutions, industries, delivery process and company information. */
 const NAV = [
   { to: "/", en: "Home", bn: "হোম", exact: true },
-  { to: "/automations", en: "Products", bn: "প্রোডাক্ট", exact: false },
-  { to: "/checkout", en: "Pricing", bn: "মূল্য", exact: false },
-  { to: "/docs", en: "Docs", bn: "ডকস", exact: false },
+  { to: "/solutions", en: "Solutions", bn: "সমাধান", exact: false },
+  { to: "/", hash: "industries", en: "Industries", bn: "শিল্পখাত", exact: false },
+  { to: "/", hash: "how-it-works", en: "How it works", bn: "যেভাবে কাজ করি", exact: false },
   { to: "/about", en: "About", bn: "আমাদের কথা", exact: false },
+  { to: "/contact", en: "Contact", bn: "যোগাযোগ", exact: false },
   { to: "/contributions", en: "Contributions", bn: "অবদান", exact: false },
 ] as const;
 
@@ -113,6 +115,7 @@ export function SiteHeader() {
               <Link
                 key={item.to}
                 to={item.to}
+                hash={"hash" in item ? item.hash : undefined}
                 activeOptions={{ exact: item.exact }}
                 className={cn(linkCls, "group")}
               >
@@ -127,6 +130,7 @@ export function SiteHeader() {
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <LanguagePicker />
+            <ThemeToggle />
             {!isLoading &&
               (signedIn ? (
                 <Button
@@ -182,6 +186,7 @@ export function SiteHeader() {
                 <Link
                   key={item.to}
                   to={item.to}
+                  hash={"hash" in item ? item.hash : undefined}
                   activeOptions={{ exact: item.exact }}
                   onClick={() => setOpen(false)}
                   className="rounded-xl px-4 py-3 text-base font-semibold text-foreground transition-colors hover:bg-accent data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"

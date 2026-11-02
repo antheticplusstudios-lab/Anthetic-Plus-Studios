@@ -22,7 +22,7 @@ import { PLATFORM_LABEL } from "@/lib/platforms";
 export const Route = createFileRoute("/_authenticated/admin/messages")({
   head: () => ({
     meta: [
-      { title: "Inbox & Email — AntheticPlus Control Center" },
+      { title: "Inbox & Email — Autumic Control Center" },
       {
         name: "description",
         content: "Read contact form messages and email users on either website.",

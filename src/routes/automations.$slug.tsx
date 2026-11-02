@@ -1,35 +1,31 @@
 import { useT } from "@/lib/i18n";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, Clock3, GlobeLock, ShieldCheck, Zap } from "lucide-react";
-import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { livePricingQueryOptions, withLivePricing } from "@/lib/pricing";
-import { money } from "@/components/admin-ui";
+import { getAutomation, isAutomationSlug } from "@/lib/automations";
+import { isListedProduct } from "@/lib/storefront";
 import { Hero3D } from "@/components/hero-3d";
 
 export const Route = createFileRoute("/automations/$slug")({
-  loader: async ({ context: { queryClient }, params: { slug } }) => {
-    const plans = await queryClient.ensureQueryData(livePricingQueryOptions);
-    const item = withLivePricing(plans).find((entry) => entry.slug === slug);
-    if (!item || !item.listed) throw notFound();
+  loader: ({ params: { slug } }) => {
+    const item = isAutomationSlug(slug) ? getAutomation(slug) : undefined;
+    if (!item || !isListedProduct(slug)) throw notFound();
     return { slug: item.slug };
   },
   head: () => ({
     meta: [
-      { title: "AI Automations — AntheticPlus Studios" },
+      { title: "AI Automation Solutions — Autumic" },
       {
         name: "description",
         content:
-          "Production AI systems for voice, SMS, chat, social, appointments and reviews — locked to your domain and billed on a transparent monthly plan.",
+          "AI Receptionist, AI Sales Agent, AI Customer Support Agent and AI Chatbot solutions configured around your business.",
       },
-      { property: "og:title", content: "AI Automations — AntheticPlus Studios" },
+      { property: "og:title", content: "AI Automation Solutions — Autumic" },
       {
         property: "og:description",
-        content: "Answer, qualify, book, support, recover and collect reviews around the clock.",
+        content: "Practical automation for customer communication, sales and repetitive business workflows.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -41,10 +37,7 @@ export const Route = createFileRoute("/automations/$slug")({
 function AutomationDetail() {
   const t = useT();
   const { slug } = Route.useLoaderData();
-  const { data: plans } = useSuspenseQuery(livePricingQueryOptions);
-  const item = withLivePricing(plans).find((entry) => entry.slug === slug)!;
-  const priced = item;
-  const [yearly, setYearly] = useState(false);
+  const item = getAutomation(slug)!;
 
   return (
     <div className="min-h-screen bg-background">
@@ -82,7 +75,7 @@ function AutomationDetail() {
                 <p className="mt-4 text-muted-foreground">
                   {item.shortName}{" "}
                   {t(
-                    "ships configured, tested and monitored from day one — you never touch a model, a prompt or a server.",
+                    "can be configured around your team’s process, approved business information and customer hand-off requirements.",
                     "প্রথম দিন থেকেই কনফিগার, পরীক্ষিত ও পর্যবেক্ষিত অবস্থায় চালু হয়—আপনাকে মডেল, প্রম্পট বা সার্ভার নিয়ে কাজ করতে হবে না।",
                   )}
                 </p>
@@ -156,80 +149,21 @@ function AutomationDetail() {
               </div>
             </div>
 
-            {/* Price card */}
+            {/* Custom proposal card */}
             <aside className="lg:sticky lg:top-24 lg:self-start">
               <div className="rounded-3xl border border-primary/20 bg-card p-6 shadow-xl">
-                <p className="text-sm font-bold text-primary">
-                  {t("Live pricing", "বর্তমান মূল্য")}
-                </p>
-                <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-secondary px-4 py-3">
-                  <span className="text-sm font-bold">{t("Yearly billing", "বার্ষিক বিলিং")}</span>
-                  <Switch
-                    checked={yearly}
-                    onCheckedChange={(checked) => setYearly(Boolean(checked))}
-                  />
-                </div>
-                <p className="mt-6 flex items-end gap-1">
-                  <span className="text-5xl font-extrabold tabular-nums tracking-tight">
-                    {money(priced.monthlyOf(yearly))}
-                  </span>
-                  <span className="pb-1.5 text-sm font-semibold text-muted-foreground">
-                    {t("/mo", "/মাস")}
-                  </span>
-                </p>
-                {yearly ? (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {money(priced.yearlyPrice)}{" "}
-                    {t(
-                      "billed once a year after the one-time setup fee —",
-                      "এককালীন সেটআপ ফি-এর পর বছরে একবার বিল করা হয়—",
-                    )}{" "}
-                    {priced.yearlyDiscountPct}%{" "}
-                    {t("off monthly.", "মাসিক মূল্যের তুলনায় সাশ্রয়।")}
-                  </p>
-                ) : (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {t(
-                      "One-time setup fee today. Monthly billing begins after the setup period; switch to yearly any time and pay",
-                      "আজ এককালীন সেটআপ ফি। সেটআপ শেষে মাসিক বিলিং শুরু হবে; যেকোনো সময় বার্ষিক প্ল্যানে বদলে প্রতি মাসে",
-                    )}{" "}
-                    {priced.yearlyDiscountPct}% {t("less per month.", "কম পরিশোধ করুন।")}
-                  </p>
-                )}
-                <div className="mt-5 rounded-2xl border border-border bg-secondary/60 p-4 text-sm">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-semibold">
-                      {t("One-time setup fee today", "আজ এককালীন সেটআপ ফি")}
-                    </span>
-                    <span className="font-extrabold">{money(priced.setupFee)}</span>
-                  </div>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    {t("Your selected", "আপনার নির্বাচিত")}{" "}
-                    {yearly ? t("yearly", "বার্ষিক") : t("monthly", "মাসিক")}{" "}
-                    {t(
-                      "plan starts after setup. The next recurring payment is due after the first billing period.",
-                      "প্ল্যান সেটআপের পর শুরু হবে। প্রথম বিলিং সময়কাল শেষে পরবর্তী নিয়মিত পেমেন্ট দিতে হবে।",
-                    )}
-                  </p>
-                </div>
+                <p className="text-sm font-bold text-primary">{t("Configured for your business", "আপনার ব্যবসার জন্য কনফিগার করা")}</p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight">{t("A solution shaped around your workflow.", "আপনার কাজের ধরন অনুযায়ী সমাধান।")}</h2>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{t("Autumic offers custom packages rather than a public fixed-price list. Tell us about your team, tools and goals, and we’ll prepare a proposal for your requirements.", "Autumic প্রকাশ্য নির্দিষ্ট মূল্যতালিকার বদলে কাস্টম প্যাকেজ দেয়। আপনার টিম, ব্যবহৃত টুল ও লক্ষ্য সম্পর্কে জানান, আমরা আপনার প্রয়োজন অনুযায়ী প্রস্তাব তৈরি করব।")}</p>
                 <Button size="lg" className="mt-7 w-full" asChild>
-                  <Link
-                    to="/checkout/$slug"
-                    params={{ slug: item.slug }}
-                    search={{ plan: yearly ? "yearly" : "monthly" }}
-                  >
-                    {t("Order this system", "এই সিস্টেম অর্ডার করুন")} <ArrowRight />
-                  </Link>
+                  <Link to="/contact">{t("Request a free consultation", "বিনামূল্যে পরামর্শ নিন")} <ArrowRight /></Link>
                 </Button>
-                <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-muted-foreground">
-                  <Clock3 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                  {t(
-                    "Payment is verified by a person, usually within a few hours. Your automation is activated with a written expiry date the moment it is approved.",
-                    "পেমেন্ট সাধারণত কয়েক ঘণ্টার মধ্যে একজন কর্মী যাচাই করেন। অনুমোদনের সঙ্গে সঙ্গেই নির্দিষ্ট মেয়াদ শেষের তারিখসহ আপনার অটোমেশন সক্রিয় হয়।",
-                  )}
-                </p>
+                <Button size="lg" variant="outline" className="mt-3 w-full" asChild>
+                  <Link to="/checkout/$slug" params={{ slug: item.slug }} search={{ plan: "monthly" }}>{t("Continue to secure checkout", "নিরাপদ চেকআউটে এগিয়ে যান")}</Link>
+                </Button>
+                <p className="mt-4 text-xs leading-5 text-muted-foreground">{t("Custom integrations and implementation can be discussed when needed.", "প্রয়োজন হলে কাস্টম ইন্টিগ্রেশন ও বাস্তবায়ন নিয়েও আলোচনা করা যাবে।")}</p>
               </div>
-            </aside>
+            </aside>    </aside>
           </div>
         </section>
 

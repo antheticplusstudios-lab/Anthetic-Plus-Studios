@@ -6,17 +6,17 @@ export const Route = createFileRoute("/_authenticated/admin/automations/social-d
     meta: [
       {
         property: "og:title",
-        content: "Admin Automations Social Dm Assistant — AntheticPlus Studios",
+        content: "Admin Automations Social Dm Assistant — Autumic",
       },
       {
         property: "og:description",
         content:
-          "Admin Automations Social Dm Assistant in the AntheticPlus AI automation platform.",
+          "Admin Automations Social Dm Assistant in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
 
-      { title: "social-dm-assistant control room — AntheticPlus" },
+      { title: "social-dm-assistant control room — Autumic" },
       {
         name: "description",
         content: "Deployments, configuration, provider pool, executions and health.",

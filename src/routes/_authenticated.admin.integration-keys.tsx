@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/admin/integration-keys")({
     meta: [
       { name: "twitter:card", content: "summary" },
 
-      { title: "Integration Keys — AntheticPlus Control Center" },
+      { title: "Integration Keys — Autumic Control Center" },
       {
         name: "description",
         content: "Add and rotate Inworld, Twilio, Resend and AI keys for every automation.",

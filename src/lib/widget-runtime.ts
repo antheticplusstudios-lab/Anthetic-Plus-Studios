@@ -1,19 +1,19 @@
 /**
- * Production AntheticPlus widget runtime (Gen 2).
+ * Production Autumic widget runtime (Gen 2).
  * The visual is the configurable Metal Balls / sphere-field renderer used by
  * the admin Widget Manager. The browser receives presentation configuration
  * only; credentials remain server-side.
  */
 export function widgetSource(apiBase: string, fallbackToken = "") {
-  return `/* AntheticPlus widget v3 - Metal Balls */
+  return `/* Autumic widget v3 - Metal Balls */
 (function(){
   if (window.__antheticPlusWidget) return;
   var GATEWAY = ${JSON.stringify(apiBase)};
   var API = (GATEWAY ? GATEWAY.replace(/\\/$/, "") + "/v1/widget" : "");
-  if (!API) { console.error("[AntheticPlus] VITE_API_GATEWAY_URL is not configured"); return; }
+  if (!API) { console.error("[Autumic] VITE_API_GATEWAY_URL is not configured"); return; }
   var me = document.currentScript || document.querySelector('script[data-token][src*="widget"]');
   var TOKEN = (me && me.getAttribute("data-token")) || ${JSON.stringify(fallbackToken)};
-  if (!TOKEN) { console.warn("[AntheticPlus] missing data-token"); return; }
+  if (!TOKEN) { console.warn("[Autumic] missing data-token"); return; }
   window.__antheticPlusWidget = true;
   var SK = "ap_sess_" + TOKEN, sess;
   try { sess = localStorage.getItem(SK); } catch(e) {}

@@ -33,16 +33,16 @@ export const Route = createFileRoute("/_authenticated/admin/infrastructure")({
     meta: [
       {
         name: "description",
-        content: "Admin Infrastructure in the AntheticPlus AI automation platform.",
+        content: "Admin Infrastructure in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Infrastructure — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Infrastructure — Autumic" },
       {
         property: "og:description",
-        content: "Admin Infrastructure in the AntheticPlus AI automation platform.",
+        content: "Admin Infrastructure in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "AI Infrastructure — AntheticPlus" },
+      { title: "AI Infrastructure — Autumic" },
     ],
   }),
   component: InfrastructurePage,

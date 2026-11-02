@@ -13,13 +13,13 @@ import { Hero3D } from "@/components/hero-3d";
 export const Route = createFileRoute("/status")({
   head: () => ({
     meta: [
-      { title: "System Status — AntheticPlus Studios" },
+      { title: "System Status — Autumic" },
       {
         name: "description",
         content:
-          "Live availability for the AntheticPlus platform: database, public widget API, AI inference and scheduled billing jobs.",
+          "Live availability for the Autumic platform: database, public widget API, AI inference and scheduled billing jobs.",
       },
-      { property: "og:title", content: "System Status — AntheticPlus Studios" },
+      { property: "og:title", content: "System Status — Autumic" },
       {
         property: "og:description",
         content:

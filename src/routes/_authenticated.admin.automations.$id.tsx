@@ -37,14 +37,14 @@ export const Route = createFileRoute("/_authenticated/admin/automations/$id")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
 
-      { title: "Automation Control Center — AntheticPlus" },
+      { title: "Automation Control Center — Autumic" },
       {
         name: "description",
         content:
           "Full control of one automation: runtime, health, widget, knowledge, channels, conversations, logs and audit.",
       },
-      { property: "og:title", content: "Automation Control Center — AntheticPlus" },
-      { property: "og:description", content: "Full control of one AntheticPlus automation." },
+      { property: "og:title", content: "Automation Control Center — Autumic" },
+      { property: "og:description", content: "Full control of one Autumic automation." },
     ],
   }),
   component: ControlCenter,

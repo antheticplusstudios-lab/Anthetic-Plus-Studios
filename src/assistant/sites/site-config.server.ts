@@ -19,19 +19,24 @@ const DEFAULTS: Record<SiteId, SiteConfig> = {
   antheticplus: {
     enabled: true,
     voiceEnabled: true,
-    displayName: "AntheticPlus Copilot",
-    persona: "A friendly, precise product guide for AntheticPlus Studios.",
+    displayName: "Autumic Copilot",
+    persona: "A friendly, precise product guide for Autumic.",
     tone: "Warm, concise, confident. Plain language.",
     welcomeMessage:
-      "Hi! I'm AntheticPlus Copilot. I can explain the site, help with your dashboard, and check your account when you're signed in.",
+      "Hi! I'm Autumic Copilot. I can explain our AI automation services and help you book a free consultation.",
     instructions:
-      "You are the private AntheticPlus Copilot. Stay strictly inside the AntheticPlus context selected for this request. Never mix another website, tenant, customer, friend, administrator, or unrelated account into this conversation. For signed-in users, use live account tools for account facts and explain the exact dashboard area that can help. Never claim an email or other action happened unless its confirmed tool result says it did.",
+      "You are the private Autumic Copilot. Stay strictly inside the Autumic context selected for this request. Never mix another website, tenant, customer, friend, administrator, or unrelated account into this conversation. For signed-in users, use live account tools for account facts and explain the exact dashboard area that can help. Never claim an email or other action happened unless its confirmed tool result says it did.",
     businessInfo:
-      "AntheticPlus Studios builds focused AI workforce systems for growing businesses. Visitors can explore automation products, create an account and order an automation; payment is manually verified. Security, tenant-isolation and audit practices are described at /security.",
-    services: `AI Voice & SMS Receptionist
-AI Lead Capture & Smart Qualifier
-AI Knowledge Base Support Agent
-AI Social DM & Messaging Assistant`,
+      "Autumic is an AI automation company serving Bangladesh and international markets. We build AI Receptionists, Workflow Automation, AI Sales Agents, AI Chatbots, WhatsApp AI automation, lead follow-up, appointment booking, email automation and custom workflows. We work with real estate, healthcare, ecommerce, education, hotels, finance and professional services. Packages are custom-scoped; public fixed pricing is not available. The primary next step is a free consultation at /contact. Contact: info@autumic.com, +880 1915-349394, Baridhara, Dhaka-1212, Bangladesh.",
+    services: `AI Receptionist
+Workflow Automation
+AI Sales Agent
+AI Chatbot
+WhatsApp AI Automation
+Lead Follow-up
+Appointment Booking
+Email Automation
+Custom Business Workflows`,
     products: `voice-sms-receptionist
 lead-capture-qualifier
 knowledge-base-support
@@ -39,11 +44,11 @@ social-dm-assistant`,
     faqs: "",
     terminology: "",
     policies: "",
-    contact: "General support: antheticplusstudios@gmail.com",
+    contact: "General support: info@autumic.com",
     hours: "",
-    branding: { primary: "#7c5cff", accent: "#22d3ee", position: "right" },
+    branding: { primary: "#f5f5f5", accent: "#a3a3a3", position: "right" },
     voice: { lang: "en-US", rate: 1, pitch: 1 },
-    allowedTools: SITE_TOOL_CATALOG.map((t) => t.name),
+    allowedTools: SITE_TOOL_CATALOG.filter((t) => t.name !== "get_pricing").map((t) => t.name),
     emailEnabled: true,
     limits: { maxMessageChars: 1200, maxTurnsPerConversation: 40 },
     extraDomains: [],
@@ -73,7 +78,7 @@ social-dm-assistant`,
     hours: "",
     branding: { primary: "#7c5cff", accent: "#22d3ee", position: "right" as const },
     voice: { lang: "en-US", rate: 1, pitch: 1 },
-    // Partner agents start with knowledge search only. No AntheticPlus account or admin tools.
+    // Partner agents start with knowledge search only. No Autumic account or admin tools.
     allowedTools: ["search_site_knowledge"],
     emailEnabled: false,
     limits: { maxMessageChars: 1200, maxTurnsPerConversation: 40 },
@@ -116,7 +121,10 @@ export function normalizeConfig(id: SiteId, raw: unknown): SiteConfig {
     return tool;
   });
   const storedTools = migratedTools.filter(
-    (tool, index, all) => known.has(tool) && all.indexOf(tool) === index,
+    (tool, index, all) =>
+      known.has(tool) &&
+      all.indexOf(tool) === index &&
+      !(id === "antheticplus" && tool === "get_pricing"),
   );
   // This read-only guide is part of the first-party assistant's baseline support surface.
   // Add it to older stored configs without re-enabling any side-effecting capability.
@@ -126,21 +134,31 @@ export function normalizeConfig(id: SiteId, raw: unknown): SiteConfig {
     !storedTools.includes("get_dashboard_guide")
       ? [...storedTools, "get_dashboard_guide"]
       : storedTools;
+  const siteText = (value: unknown, fallback: string, max: number) =>
+    str(value, fallback, max)
+      .replace(/AntheticPlus/gi, "Autumic")
+      .replace(/antheticplusstudios@gmail.com/gi, "info@autumic.com")
+      .replace(/AI Voice & SMS Receptionist/gi, "AI Receptionist")
+      .replace(/AI Lead Capture & Smart Qualifier/gi, "AI Sales Agent")
+      .replace(/AI Knowledge Base Support Agent/gi, "AI Customer Support Agent")
+      .replace(/AI Social DM & Messaging Assistant/gi, "AI Chatbot")
+      .replace(/Autumic Studios builds focused AI workforce systems for growing businesses\./gi, "Autumic is an AI automation company serving Bangladesh and international markets.")
+      .replace(/Visitors can explore automation products, create an account and order an automation; payment is manually verified\./gi, "Packages are custom-scoped; public fixed pricing is not available. Visitors can book a free consultation at /contact.");
   return {
     enabled: bool(v["enabled"], d["enabled"]),
     voiceEnabled: bool(v["voiceEnabled"], d["voiceEnabled"]),
-    displayName: str(v["displayName"], d["displayName"], 80) || d["displayName"],
-    persona: str(v["persona"], d["persona"], 2000),
-    tone: str(v["tone"], d["tone"], 1000),
-    welcomeMessage: str(v["welcomeMessage"], d["welcomeMessage"], 600) || d["welcomeMessage"],
-    instructions: str(v["instructions"], d["instructions"], 6000),
-    businessInfo: str(v["businessInfo"], d["businessInfo"], 8000),
-    services: str(v["services"], d["services"], 8000),
+    displayName: id === "antheticplus" ? siteText(v["displayName"], d["displayName"], 80) || d["displayName"] : str(v["displayName"], d["displayName"], 80) || d["displayName"],
+    persona: id === "antheticplus" ? siteText(v["persona"], d["persona"], 2000) : str(v["persona"], d["persona"], 2000),
+    tone: id === "antheticplus" ? siteText(v["tone"], d["tone"], 1000) : str(v["tone"], d["tone"], 1000),
+    welcomeMessage: id === "antheticplus" ? siteText(v["welcomeMessage"], d["welcomeMessage"], 600) || d["welcomeMessage"] : str(v["welcomeMessage"], d["welcomeMessage"], 600) || d["welcomeMessage"],
+    instructions: id === "antheticplus" ? siteText(v["instructions"], d["instructions"], 6000) : str(v["instructions"], d["instructions"], 6000),
+    businessInfo: id === "antheticplus" ? siteText(v["businessInfo"], d["businessInfo"], 8000) : str(v["businessInfo"], d["businessInfo"], 8000),
+    services: id === "antheticplus" ? siteText(v["services"], d["services"], 8000) : str(v["services"], d["services"], 8000),
     products: str(v["products"], d["products"], 8000),
-    faqs: str(v["faqs"], d["faqs"], 12000),
-    terminology: str(v["terminology"], d["terminology"], 4000),
-    policies: str(v["policies"], d["policies"], 8000),
-    contact: str(v["contact"], d["contact"], 2000),
+    faqs: id === "antheticplus" ? siteText(v["faqs"], d["faqs"], 12000) : str(v["faqs"], d["faqs"], 12000),
+    terminology: id === "antheticplus" ? siteText(v["terminology"], d["terminology"], 4000) : str(v["terminology"], d["terminology"], 4000),
+    policies: id === "antheticplus" ? siteText(v["policies"], d["policies"], 8000) : str(v["policies"], d["policies"], 8000),
+    contact: id === "antheticplus" ? siteText(v["contact"], d["contact"], 2000) : str(v["contact"], d["contact"], 2000),
     hours: str(v["hours"], d["hours"], 1000),
     branding: {
       primary: color(b["primary"], d.branding["primary"]),

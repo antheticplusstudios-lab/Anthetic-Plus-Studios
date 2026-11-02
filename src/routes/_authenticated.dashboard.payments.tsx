@@ -10,12 +10,12 @@ import { daysRemaining, statusClass, statusLabels, type Instance } from "@/lib/p
 export const Route = createFileRoute("/_authenticated/dashboard/payments")({
   head: () => ({
     meta: [
-      { title: "Subscription Payments — AntheticPlus Studios" },
+      { title: "Subscription Payments — Autumic" },
       {
         name: "description",
-        content: "Review verification status and renew your AntheticPlus subscriptions.",
+        content: "Review verification status and renew your Autumic subscriptions.",
       },
-      { property: "og:title", content: "AntheticPlus Subscription Payments" },
+      { property: "og:title", content: "Autumic Subscription Payments" },
       {
         property: "og:description",
         content: "Track manual payment verification and submit renewals.",

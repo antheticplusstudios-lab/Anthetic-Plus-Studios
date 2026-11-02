@@ -11,12 +11,12 @@ import { adminListAutomations } from "@/lib/admin-data.functions";
 export const Route = createFileRoute("/_authenticated/admin/creator")({
   head: () => ({
     meta: [
-      { title: "Admin Creator — AntheticPlus Studios" },
-      { name: "description", content: "Admin Creator in the AntheticPlus AI automation platform." },
-      { property: "og:title", content: "Admin Creator — AntheticPlus Studios" },
+      { title: "Admin Creator — Autumic" },
+      { name: "description", content: "Admin Creator in the Autumic AI automation platform." },
+      { property: "og:title", content: "Admin Creator — Autumic" },
       {
         property: "og:description",
-        content: "Admin Creator in the AntheticPlus AI automation platform.",
+        content: "Admin Creator in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

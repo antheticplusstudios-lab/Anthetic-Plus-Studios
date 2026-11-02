@@ -1,8 +1,11 @@
-/** The same availability rule drives product listings and solution destinations. */
+/** All four Autumic automation products remain visible; availability is not coupled to price-table outages. */
 export type ProductListing = { slug: string; active: boolean; listed?: boolean };
-export function isListedProduct(slug: string, plans: readonly ProductListing[] = []): boolean {
-  const plan = plans.find((item) => item.slug === slug);
-  return plan
-    ? plan.active && plan.listed !== false
-    : ["voice-sms-receptionist", "social-dm-assistant"].includes(slug);
+const AUTUMIC_PRODUCTS = new Set([
+  "voice-sms-receptionist",
+  "lead-capture-qualifier",
+  "knowledge-base-support",
+  "social-dm-assistant",
+]);
+export function isListedProduct(slug: string, _plans: readonly ProductListing[] = []): boolean {
+  return AUTUMIC_PRODUCTS.has(slug);
 }

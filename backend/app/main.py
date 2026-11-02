@@ -15,7 +15,7 @@ from .ai import completion, embedding
 from .security import current_user, assert_automation_access, assert_conversation_access
 from .config import settings as _cors_settings
 
-app = FastAPI(title='AntheticPlus FastAPI', version='1.2.0')
+app = FastAPI(title='Autumic API', version='1.2.0')
 app.add_middleware(ExplicitOriginCORSMiddleware, policy=CorsPolicy.from_settings(
     environment=_cors_settings.environment,
     allowed=_cors_settings.cors_allowed_origins,
