@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   BadgeCheck,
@@ -13,7 +13,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { getSystemStatus } from "@/lib/status.functions";
-import { livePricingQueryOptions, withLivePricing } from "@/lib/pricing";
+import { isListedProduct } from "@/lib/storefront";
 import { useT } from "@/lib/i18n";
 
 const SYSTEMS = [
@@ -65,13 +65,9 @@ const SYSTEMS = [
 
 export function FourSystems() {
   const t = useT();
-  const { data: plans } = useSuspenseQuery(livePricingQueryOptions);
-  const visible = new Set(
-    withLivePricing(plans)
-      .filter((item) => item.listed)
-      .map((item) => item.slug),
-  );
-  const systems = SYSTEMS.filter((s) => visible.has(s.slug));
+  // Public marketing pages must not call the authenticated pricing endpoint.
+  // All four catalog products stay discoverable; checkout verifies live plans after sign-in.
+  const systems = SYSTEMS.filter((system) => isListedProduct(system.slug));
   return (
     <section className="py-16 sm:py-20">
       <div className="container-page">
