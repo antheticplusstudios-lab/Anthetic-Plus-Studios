@@ -289,12 +289,12 @@ export function HomeHero() {
                     {config?.welcomeMessage ||
                       (enabled
                         ? t(
-                            "Hi! Ask me about our automations and pricing — in English or বাংলা.",
-                            "হ্যালো! আমাদের অটোমেশন ও মূল্য সম্পর্কে জিজ্ঞাসা করুন — বাংলা বা English-এ।",
+                            "Hi! Ask me about our AI Receptionist, Workflow Automation, AI Sales Agent or AI Chatbot — in English or বাংলা.",
+                            "হ্যালো! AI Receptionist, Workflow Automation, AI Sales Agent বা AI Chatbot সম্পর্কে জিজ্ঞাসা করুন — বাংলা বা English-এ।",
                           )
                         : t(
-                            "The assistant is currently unavailable. You can still explore our products or contact the team.",
-                            "অ্যাসিস্ট্যান্ট এখন পাওয়া যাচ্ছে না। আমাদের প্রোডাক্ট দেখুন বা টিমের সাথে যোগাযোগ করুন।",
+                            "The assistant is currently unavailable. You can still explore our automation solutions or book a free consultation.",
+                            "অ্যাসিস্ট্যান্ট এখন পাওয়া যাচ্ছে না। আমাদের অটোমেশন সমাধান দেখুন বা বিনামূল্যে পরামর্শ নিন।",
                           ))}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
