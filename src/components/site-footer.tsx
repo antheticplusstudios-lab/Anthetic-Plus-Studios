@@ -100,6 +100,11 @@ export function SiteFooter() {
                 {t("Contact", "যোগাযোগ")}
               </Link>
             </li>
+            <li>
+              <Link to="/contributions" className={linkCls}>
+                {t("Contributions of Autumic", "Autumic-এর অবদান")}
+              </Link>
+            </li>
           </Col>
 
           <Col title={t("Resources", "রিসোর্স")}>

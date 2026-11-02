@@ -33,7 +33,7 @@ export const DEFAULT_MULTILINGUAL_VOICE_CONFIG: MultilingualVoiceConfig = {
     { tag: "hi-IN", label: "Hindi (India)", enabled: true, priority: 50 },
   ],
   allowCodeSwitching: true,
-  vocabulary: ["Autumic", "Autumic"],
+  vocabulary: ["Autumic", "Build To Automate"],
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>

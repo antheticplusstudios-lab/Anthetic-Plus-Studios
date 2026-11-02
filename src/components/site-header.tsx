@@ -19,17 +19,12 @@ import {
 /** Autumic public navigation: solutions, industries, delivery process and company information. */
 const NAV = [
   { to: "/", en: "Home", bn: "হোম", exact: true },
-  { to: "/solutions", en: "Solutions", bn: "সমাধান", exact: false },
+  { to: "/", hash: "solutions", en: "Solutions", bn: "সমাধান", exact: false },
+  { to: "/automations", en: "Automations", bn: "অটোমেশন", exact: false },
   { to: "/", hash: "industries", en: "Industries", bn: "শিল্পখাত", exact: false },
   { to: "/", hash: "how-it-works", en: "How it works", bn: "যেভাবে কাজ করি", exact: false },
-  { to: "/about", en: "About", bn: "আমাদের কথা", exact: false },
-  { to: "/contact", en: "Contact", bn: "যোগাযোগ", exact: false },
   { to: "/contributions", en: "Contributions", bn: "অবদান", exact: false },
-] as const;
-
-const LANGS: { code: Lang; short: string; label: string }[] = [
-  { code: "en", short: "EN", label: "English" },
-  { code: "bn", short: "বাং", label: "বাংলা" },
+  { to: "/contact", en: "Contact", bn: "যোগাযোগ", exact: false },
 ];
 
 export function LanguagePicker({ className }: { className?: string }) {
