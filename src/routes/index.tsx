@@ -32,7 +32,6 @@ import {
 } from "@/components/home/front-office";
 
 export const Route = createFileRoute("/")({
-  loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(livePricingQueryOptions),
   head: () => ({
     meta: [
       { title: "Autumic — Build To Automate." },
