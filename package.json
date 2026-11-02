@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build && npm run typecheck",
+    "build": "vite build && npm run typecheck && npm test",
     "build:dev": "vite build --mode development",
     "start": "node .output/server/index.mjs",
     "preview": "vite preview --host 0.0.0.0",
@@ -15,7 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preflight": "node scripts/preflight.mjs",
-    "check": "npm run build && npm run lint && npm test",
+    "check": "npm run build && npm run lint",
     "build:node": "NITRO_PRESET=node-server vite build"
   },
   "overrides": {
