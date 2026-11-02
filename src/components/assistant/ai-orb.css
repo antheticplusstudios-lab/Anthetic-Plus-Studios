@@ -1,4 +1,4 @@
-/* AntheticPlus signature AI Orb. All motion is driven by data-state + --orb-level (0..1, live audio). */
+/* Autumic signature AI Orb. All motion is driven by data-state + --orb-level (0..1, live audio). */
 .ai-orb {
   --size: var(--orb-responsive-size, 320px);
   --orb-level: 0;
