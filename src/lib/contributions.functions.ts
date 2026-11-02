@@ -10,7 +10,7 @@ export const getContributions = createServerFn({ method: "GET" }).handler(async 
   const { db1Admin } = await import("@/server/db/clients.server");
   const { data, error } = await db1Admin.from("platform_settings").select("value").eq("key", KEY).maybeSingle();
   if (error) throw new Error("Contributions are temporarily unavailable.");
-  return data ? contributionsSchema.parse(data.value) : [];
+  return data ? contributionsSchema.parse(data.value).filter((person) => person.published).sort((a, b) => a.sortOrder - b.sortOrder) : [];
 });
 
 export const getAdminContributions = createServerFn({ method: "GET" })
