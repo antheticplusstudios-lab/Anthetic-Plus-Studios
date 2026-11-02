@@ -31,6 +31,10 @@ python -m app.workflows
 - `POST /v1/knowledge/documents` — authenticated RAG document ingestion/embedding.
 - `WS /ws/chat/{conversation_id}` — authenticated-by-installation widget WebSocket channel.
 
+## Encryption key configuration
+
+Set `AUTUMIC_DB3_MASTER_KEY` to the existing base64-encoded 32-byte AES-256 key used to encrypt provider credentials and webhook secrets. The legacy `ANTHETICPLUS_DB3_MASTER_KEY` name remains a fallback so current deployments continue working while environment settings are migrated.
+
 ## Webhook signing
 
 Workflow webhooks use an endpoint key plus an HMAC SHA-256 signature. The caller sends:

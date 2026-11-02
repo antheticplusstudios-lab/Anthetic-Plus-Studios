@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     db4_service_key: str
     redis_url: str = 'redis://localhost:6379/0'
     allowed_widget_hosts: str = ''
+    autumic_db3_master_key: str | None = None
+    # Backward-compatible alias for existing encrypted provider-key deployments.
     antheticplus_db3_master_key: str | None = None
 
 settings = Settings()

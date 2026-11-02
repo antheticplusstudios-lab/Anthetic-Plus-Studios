@@ -84,10 +84,11 @@ class KnowledgeDocument(BaseModel):
     content: str = Field(min_length=1, max_length=2_000_000)
 
 def _decrypt_server_secret(payload: str) -> str:
-    if not _settings.antheticplus_db3_master_key:
+    master_key = _settings.autumic_db3_master_key or _settings.antheticplus_db3_master_key
+    if not master_key:
         raise HTTPException(503, 'Webhook signing is not configured')
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-    key = base64.b64decode(_settings.antheticplus_db3_master_key)
+    key = base64.b64decode(master_key)
     raw = base64.b64decode(payload)
     if len(key) != 32 or len(raw) < 28:
         raise HTTPException(500, 'Invalid webhook secret configuration')
