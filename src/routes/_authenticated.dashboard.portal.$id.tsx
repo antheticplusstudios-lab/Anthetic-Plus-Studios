@@ -6,14 +6,12 @@ import { Copy, Trash2, TriangleAlert, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { StatusPill, timeAgo } from "@/components/admin-ui";
 import { WidgetCustomizer } from "@/components/widget-customizer";
-import { AUTOMATION_LABEL, MESSAGING_FEATURES, RECEPTIONIST_CAPABILITIES } from "@/lib/catalog-v2";
+import { AUTOMATION_LABEL } from "@/lib/catalog-v2";
 import {
   getMyAutomationPortal,
   getConversationMessages,
-  updateAutomationTask,
   createCrawlJob,
   deleteKnowledgeDocument,
   saveManualKnowledgeDocument,
@@ -138,7 +136,7 @@ function PortalPage() {
         <AutomationSettings automationId={id} kind={kind} initial={a.settings ?? {}} refresh={refresh} />
       )}
       {tab === "Phone & Calendar" && kind === "ai_receptionist" && (
-        <Integrations automationId={id} clientId={a.client_id} connections={pd.integrations} providers={["twilio", "google_calendar"]} />
+        <Integrations automationId={id} connections={pd.integrations} providers={["twilio", "google_calendar"]} />
       )}
       {tab === "Channels" && kind === "messaging_ai" && (
         <Integrations automationId={id} clientId={a.client_id} connections={pd.integrations} providers={["whatsapp", "meta_page", "messenger", "instagram"]} />
@@ -639,52 +637,14 @@ function Knowledge({
   );
 }
 
-function Features({
-  automationId,
-  type,
-  tasks,
-  refresh,
-}: {
-  automationId: string;
-  type: string;
-  tasks: PortalData["tasks"];
-  refresh: () => void;
-}) {
-  const list = type === "messaging_ai" ? MESSAGING_FEATURES : RECEPTIONIST_CAPABILITIES;
-  const byKey = new Map(tasks.map((t) => [t.task_key, t]));
-  async function toggle(key: string, enabled: boolean) {
-    try {
-      await updateAutomationTask({ data: { automationId, taskKey: key, enabled } });
-      refresh();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not update feature.");
-    }
-  }
-  return (
-    <div className="grid gap-2 sm:grid-cols-2">
-      {list.map((c) => (
-        <div key={c.key} className="flex items-start gap-3 rounded-xl border border-border p-3">
-          <div className="flex-1">
-            <div className="text-sm font-bold">{c.label}</div>
-            <div className="text-xs text-muted-foreground">{c.desc}</div>
-          </div>
-          <Switch
-            checked={byKey.get(c.key)?.enabled ?? false}
-            onCheckedChange={(v) => void toggle(c.key, v)}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function Integrations({
   automationId,
   connections,
+  providers,
 }: {
   automationId: string;
-  clientId: string;
   connections: Awaited<ReturnType<typeof getMyAutomationPortal>>["integrations"];
+  providers: string[];
 }) {
   const connected = new Map(
     connections.filter((s) => s.status === "connected").map((s) => [s.provider, s]),
@@ -761,7 +721,7 @@ function Integrations({
   }
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {Object.keys(labels).map((key) => (
+      {providers.map((key) => (
         <div key={key} className="rounded-2xl border border-border bg-card p-4">
           <div className="font-bold">{labels[key]}</div>
           <div className="my-2">
