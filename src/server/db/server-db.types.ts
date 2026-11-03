@@ -352,21 +352,6 @@ export type DB2Database = ServerDatabaseBase<
       created_at: string;
     }>;
     orders: ServerTable<{
-      verified_by_user_id: string | null;
-      order_id: string;
-      created_by_user_id: string | null;
-      automation_type: string | null;
-      delivery_channel: string | null;
-      selected_features: Json;
-      pricing_snapshot: Json;
-      full_name: string | null;
-      company_name: string | null;
-      contact_email: string | null;
-      country: string | null;
-      target_domain_url: string | null;
-      payment_method_id: string | null;
-      payment_proof_data: Json;
-      origin_domain: string | null;
       id: string;
       client_id: string;
       user_id: string | null;
@@ -402,15 +387,6 @@ export type DB2Database = ServerDatabaseBase<
       updated_at: string;
     }>;
     payment_verifications: ServerTable<{
-      client_id: string;
-      submitted_by_user_id: string;
-      transaction_id: string | null;
-      sender_name: string | null;
-      currency: string | null;
-      proof_data: Json;
-      verified_by_user_id: string | null;
-      verified_at: string | null;
-      rejection_reason: string | null;
       id: string;
       order_id: string;
       payment_method_id: string | null;
