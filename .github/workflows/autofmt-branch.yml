@@ -1,0 +1,41 @@
+name: One-time branch formatting
+
+on:
+  push:
+    branches:
+      - feat/autumic-contributions
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/autumic-contributions
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Format files changed from main
+        shell: bash
+        run: |
+          git fetch origin main
+          git diff --name-only origin/main...HEAD -- '*.ts' '*.tsx' '*.css' '*.md' | xargs -r npx prettier --write
+      - name: Commit formatting and remove this temporary workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -u
+          git rm -f .github/workflows/autofmt-branch.yml
+          if ! git diff --cached --quiet; then
+            git commit -m "Format Autumic rebrand changes"
+            git push origin HEAD:feat/autumic-contributions
+          fi
