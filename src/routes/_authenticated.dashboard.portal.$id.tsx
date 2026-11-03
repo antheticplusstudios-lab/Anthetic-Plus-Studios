@@ -83,10 +83,15 @@ function PortalPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
-            {kind === "ai_receptionist" ? "Voice operations" :
-              kind === "lead_capture" ? "Sales pipeline" :
-                kind === "kb_support" ? "Customer support" :
-                  kind === "messaging_ai" ? "Social messaging" : "Automation workspace"}
+            {kind === "ai_receptionist"
+              ? "Voice operations"
+              : kind === "lead_capture"
+                ? "Sales pipeline"
+                : kind === "kb_support"
+                  ? "Customer support"
+                  : kind === "messaging_ai"
+                    ? "Social messaging"
+                    : "Automation workspace"}
           </p>
           <h1 className="mt-1 text-2xl font-extrabold">
             {AUTOMATION_LABEL[a.automation_type ?? ""] ?? a.name ?? a.automation_type}
@@ -131,19 +136,44 @@ function PortalPage() {
       )}
       {tab === "Conversations" && <Inbox automationId={id} conversations={pd.conversations} />}
       {tab === "Knowledge Base" && (
-        <Knowledge automationId={id} clientId={a.client_id} documents={pd.knowledge} crawlJobs={pd.crawlJobs} refresh={refresh} />
+        <Knowledge
+          automationId={id}
+          clientId={a.client_id}
+          documents={pd.knowledge}
+          crawlJobs={pd.crawlJobs}
+          refresh={refresh}
+        />
       )}
       {tab === "Settings" && kind && (
-        <AutomationSettings automationId={id} kind={kind} initial={a.settings ?? {}} refresh={refresh} />
+        <AutomationSettings
+          automationId={id}
+          kind={kind}
+          initial={a.settings ?? {}}
+          refresh={refresh}
+        />
       )}
       {tab === "Phone & Calendar" && kind === "ai_receptionist" && (
-        <Integrations automationId={id} connections={pd.integrations} providers={["twilio", "google_calendar"]} refresh={refresh} />
+        <Integrations
+          automationId={id}
+          connections={pd.integrations}
+          providers={["twilio", "google_calendar"]}
+          refresh={refresh}
+        />
       )}
       {tab === "Channels" && kind === "messaging_ai" && (
-        <Integrations automationId={id} connections={pd.integrations} providers={["whatsapp", "meta_page", "messenger", "instagram"]} refresh={refresh} />
+        <Integrations
+          automationId={id}
+          connections={pd.integrations}
+          providers={["whatsapp", "meta_page", "messenger", "instagram"]}
+          refresh={refresh}
+        />
       )}
-      {tab === "Widget" && <WidgetCustomizer automationId={id} initial={a.widget_config} onSaved={refresh} />}
-      {tab === "Installation" && <Installation automationId={id} domain={a.domain_url} refresh={refresh} />}
+      {tab === "Widget" && (
+        <WidgetCustomizer automationId={id} initial={a.widget_config} onSaved={refresh} />
+      )}
+      {tab === "Installation" && (
+        <Installation automationId={id} domain={a.domain_url} refresh={refresh} />
+      )}
     </div>
   );
 }
@@ -160,11 +190,22 @@ function Metric({ label, value, note }: { label: string; value: string | number;
   );
 }
 
-function Overview({ portal, kind }: { portal: PortalData; kind: EngineKind | null; refresh: () => void }) {
+function Overview({
+  portal,
+  kind,
+}: {
+  portal: PortalData;
+  kind: EngineKind | null;
+  refresh: () => void;
+}) {
   const a = portal.automation;
   const leads = portal.leads;
-  const openTickets = portal.tickets.filter((ticket) => !["resolved", "closed"].includes(ticket.status)).length;
-  const hotLeads = leads.filter((lead) => lead.lead_score >= Number(portal.automation.settings?.["hot_threshold"] ?? 60)).length;
+  const openTickets = portal.tickets.filter(
+    (ticket) => !["resolved", "closed"].includes(ticket.status),
+  ).length;
+  const hotLeads = leads.filter(
+    (lead) => lead.lead_score >= Number(portal.automation.settings?.["hot_threshold"] ?? 60),
+  ).length;
   const connected = portal.integrations.filter((item) => item.status === "connected").length;
   const cards: [string, string | number, string][] =
     kind === "ai_receptionist"
@@ -178,8 +219,16 @@ function Overview({ portal, kind }: { portal: PortalData; kind: EngineKind | nul
         ? [
             ["Total leads", leads.length, "Captured by this sales agent"],
             ["Hot leads", hotLeads, "Based on your saved hot-score threshold"],
-            ["Qualified", leads.filter((lead) => lead.status === "qualified").length, "Ready for follow-up"],
-            ["Conversion wins", leads.filter((lead) => lead.status === "won").length, "Marked won by your team"],
+            [
+              "Qualified",
+              leads.filter((lead) => lead.status === "qualified").length,
+              "Ready for follow-up",
+            ],
+            [
+              "Conversion wins",
+              leads.filter((lead) => lead.status === "won").length,
+              "Marked won by your team",
+            ],
           ]
         : kind === "kb_support"
           ? [
@@ -192,13 +241,21 @@ function Overview({ portal, kind }: { portal: PortalData; kind: EngineKind | nul
               ["Conversations", portal.conversations.length, "Across connected messaging channels"],
               ["Connected channels", connected, "Verified channel connections"],
               ["Leads captured", leads.length, "Contacts collected in conversations"],
-              ["Messages sent", Number(portal.usage?.sms_count_used ?? 0), "Usage reported this billing period"],
+              [
+                "Messages sent",
+                Number(portal.usage?.sms_count_used ?? 0),
+                "Usage reported this billing period",
+              ],
             ];
   const descriptions: Record<EngineKind, string> = {
-    ai_receptionist: "Monitor caller activity, bookings, phone connectivity and the rules that control call handling.",
-    lead_capture: "Review new prospects, prioritize hot leads, update pipeline stages and tune qualification rules.",
-    kb_support: "Keep answers grounded in approved knowledge, review escalations and resolve customer issues.",
-    messaging_ai: "Manage your connected social channels, monitor conversations and control your brand voice.",
+    ai_receptionist:
+      "Monitor caller activity, bookings, phone connectivity and the rules that control call handling.",
+    lead_capture:
+      "Review new prospects, prioritize hot leads, update pipeline stages and tune qualification rules.",
+    kb_support:
+      "Keep answers grounded in approved knowledge, review escalations and resolve customer issues.",
+    messaging_ai:
+      "Manage your connected social channels, monitor conversations and control your brand voice.",
   };
   return (
     <div className="grid gap-5">
@@ -208,23 +265,54 @@ function Overview({ portal, kind }: { portal: PortalData; kind: EngineKind | nul
           {kind ? descriptions[kind] : "Manage your automation and monitor its activity."}
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {cards.map(([label, value, note]) => <Metric key={String(label)} label={String(label)} value={value} note={String(note)} />)}
+          {cards.map(([label, value, note]) => (
+            <Metric key={String(label)} label={String(label)} value={value} note={String(note)} />
+          ))}
         </div>
       </section>
       <section className="rounded-3xl border border-border bg-card p-5">
         <h2 className="font-bold">Automation health</h2>
         <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
-          <div><p className="text-xs text-muted-foreground">Runtime state</p><p className="mt-1 font-semibold capitalize">{String(a.run_state ?? a.status ?? "unknown").replace(/_/g, " ")}</p></div>
-          <div><p className="text-xs text-muted-foreground">Last successful activity</p><p className="mt-1 font-semibold">{a.last_success_at ? new Date(a.last_success_at).toLocaleString() : "No successful run recorded"}</p></div>
-          <div><p className="text-xs text-muted-foreground">Subscription</p><p className="mt-1 font-semibold capitalize">{String(portal.subscription?.status ?? a.status ?? "unknown").replace(/_/g, " ")}</p></div>
+          <div>
+            <p className="text-xs text-muted-foreground">Runtime state</p>
+            <p className="mt-1 font-semibold capitalize">
+              {String(a.run_state ?? a.status ?? "unknown").replace(/_/g, " ")}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Last successful activity</p>
+            <p className="mt-1 font-semibold">
+              {a.last_success_at
+                ? new Date(a.last_success_at).toLocaleString()
+                : "No successful run recorded"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Subscription</p>
+            <p className="mt-1 font-semibold capitalize">
+              {String(portal.subscription?.status ?? a.status ?? "unknown").replace(/_/g, " ")}
+            </p>
+          </div>
         </div>
-        {a.last_error && <p className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{a.last_error}</p>}
+        {a.last_error && (
+          <p className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+            {a.last_error}
+          </p>
+        )}
       </section>
     </div>
   );
 }
 
-function Installation({ automationId, domain, refresh }: { automationId: string; domain: string; refresh: () => void }) {
+function Installation({
+  automationId,
+  domain,
+  refresh,
+}: {
+  automationId: string;
+  domain: string;
+  refresh: () => void;
+}) {
   const [snippet, setSnippet] = useState("");
   const [busy, setBusy] = useState(false);
   const generate = async () => {
@@ -235,7 +323,9 @@ function Installation({ automationId, domain, refresh }: { automationId: string;
       refresh();
       toast.success("A new installation script is ready");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not generate the installation script.");
+      toast.error(
+        error instanceof Error ? error.message : "Could not generate the installation script.",
+      );
     } finally {
       setBusy(false);
     }
@@ -244,16 +334,28 @@ function Installation({ automationId, domain, refresh }: { automationId: string;
     <section className="rounded-3xl border border-border bg-card p-5">
       <h2 className="text-lg font-extrabold">Install on your website</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Generate a domain-bound script for {domain || "your registered website"}. Generating a new script rotates the previous token, so replace the old snippet when reinstalling.
+        Generate a domain-bound script for {domain || "your registered website"}. Generating a new
+        script rotates the previous token, so replace the old snippet when reinstalling.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <Button onClick={() => void generate()} disabled={busy}>{busy ? "Generating…" : "Generate new script"}</Button>
-        {snippet && <Button variant="outline" onClick={() => copy(snippet)}><Copy className="h-4 w-4" /> Copy script</Button>}
+        <Button onClick={() => void generate()} disabled={busy}>
+          {busy ? "Generating…" : "Generate new script"}
+        </Button>
+        {snippet && (
+          <Button variant="outline" onClick={() => copy(snippet)}>
+            <Copy className="h-4 w-4" /> Copy script
+          </Button>
+        )}
       </div>
       {snippet ? (
-        <pre className="mt-4 overflow-x-auto rounded-xl bg-muted p-4 text-xs"><code>{snippet}</code></pre>
+        <pre className="mt-4 overflow-x-auto rounded-xl bg-muted p-4 text-xs">
+          <code>{snippet}</code>
+        </pre>
       ) : (
-        <p className="mt-4 rounded-xl bg-muted p-4 text-sm text-muted-foreground">For security, the raw token is not stored for later display. Generate a script when you need to install or reinstall.</p>
+        <p className="mt-4 rounded-xl bg-muted p-4 text-sm text-muted-foreground">
+          For security, the raw token is not stored for later display. Generate a script when you
+          need to install or reinstall.
+        </p>
       )}
       <ol className="mt-4 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
         <li>Copy the generated script.</li>
@@ -265,10 +367,20 @@ function Installation({ automationId, domain, refresh }: { automationId: string;
 }
 
 function AutomationSettings({
-  automationId, kind, initial, refresh,
-}: { automationId: string; kind: EngineKind; initial: Record<string, unknown>; refresh: () => void }) {
+  automationId,
+  kind,
+  initial,
+  refresh,
+}: {
+  automationId: string;
+  kind: EngineKind;
+  initial: Record<string, unknown>;
+  refresh: () => void;
+}) {
   const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(CONFIG_FIELDS[kind].map((field) => [field.key, String(initial[field.key] ?? "")])),
+    Object.fromEntries(
+      CONFIG_FIELDS[kind].map((field) => [field.key, String(initial[field.key] ?? "")]),
+    ),
   );
   const [saving, setSaving] = useState(false);
   const fields = CONFIG_FIELDS[kind];
@@ -289,9 +401,13 @@ function AutomationSettings({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-extrabold">Automation behaviour</h2>
-          <p className="mt-1 text-sm text-muted-foreground">These settings are applied by the automation runtime. Save changes when finished.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            These settings are applied by the automation runtime. Save changes when finished.
+          </p>
         </div>
-        <Button onClick={() => void save()} disabled={saving}>{saving ? "Saving…" : "Save settings"}</Button>
+        <Button onClick={() => void save()} disabled={saving}>
+          {saving ? "Saving…" : "Save settings"}
+        </Button>
       </div>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         {fields.map((field) => {
@@ -300,18 +416,49 @@ function AutomationSettings({
           return (
             <label key={field.key} className={wide ? "grid gap-1.5 md:col-span-2" : "grid gap-1.5"}>
               <span className="text-sm font-semibold">{field.label}</span>
-              {field.help && <span className="text-xs leading-5 text-muted-foreground">{field.help}</span>}
+              {field.help && (
+                <span className="text-xs leading-5 text-muted-foreground">{field.help}</span>
+              )}
               {wide ? (
-                <Textarea rows={4} value={value} maxLength={8000} onChange={(event) => setValues((current) => ({ ...current, [field.key]: event.target.value }))} />
-              ) : (
-                <Input
-                  type={field.key === "notify_email" ? "email" : field.key === "webhook_url" ? "url" : field.kind === "number" ? "number" : "text"}
-                  min={field.kind === "number" ? 0 : undefined}
-                  max={["hot_threshold", "warm_threshold"].includes(field.key) ? 100 : field.key === "confidence_threshold" ? 1 : field.key === "voice_rate" ? 2 : undefined}
-                  step={field.key === "confidence_threshold" || field.key === "voice_rate" ? "0.05" : "1"}
+                <Textarea
+                  rows={4}
                   value={value}
                   maxLength={8000}
-                  onChange={(event) => setValues((current) => ({ ...current, [field.key]: event.target.value }))}
+                  onChange={(event) =>
+                    setValues((current) => ({ ...current, [field.key]: event.target.value }))
+                  }
+                />
+              ) : (
+                <Input
+                  type={
+                    field.key === "notify_email"
+                      ? "email"
+                      : field.key === "webhook_url"
+                        ? "url"
+                        : field.kind === "number"
+                          ? "number"
+                          : "text"
+                  }
+                  min={field.kind === "number" ? 0 : undefined}
+                  max={
+                    ["hot_threshold", "warm_threshold"].includes(field.key)
+                      ? 100
+                      : field.key === "confidence_threshold"
+                        ? 1
+                        : field.key === "voice_rate"
+                          ? 2
+                          : undefined
+                  }
+                  step={
+                    field.key === "confidence_threshold" || field.key === "voice_rate"
+                      ? "0.05"
+                      : "1"
+                  }
+                  value={value}
+                  maxLength={8000}
+                  onChange={(event) =>
+                    setValues((current) => ({ ...current, [field.key]: event.target.value }))
+                  }
                 />
               )}
             </label>
@@ -319,17 +466,30 @@ function AutomationSettings({
         })}
       </div>
       <div className="mt-5 flex justify-end">
-        <Button onClick={() => void save()} disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
+        <Button onClick={() => void save()} disabled={saving}>
+          {saving ? "Saving…" : "Save changes"}
+        </Button>
       </div>
     </section>
   );
 }
 
-function Leads({ automationId, rows, refresh }: { automationId: string; rows: PortalData["leads"]; refresh: () => void }) {
+function Leads({
+  automationId,
+  rows,
+  refresh,
+}: {
+  automationId: string;
+  rows: PortalData["leads"];
+  refresh: () => void;
+}) {
   const [filter, setFilter] = useState("all");
   const [busyId, setBusyId] = useState("");
   const filtered = filter === "all" ? rows : rows.filter((lead) => lead.status === filter);
-  async function changeStatus(leadId: string, status: "new" | "qualified" | "contacted" | "won" | "lost" | "archived") {
+  async function changeStatus(
+    leadId: string,
+    status: "new" | "qualified" | "contacted" | "won" | "lost" | "archived",
+  ) {
     setBusyId(leadId);
     try {
       await updateMyLeadStatus({ data: { automationId, leadId, status } });
@@ -344,30 +504,85 @@ function Leads({ automationId, rows, refresh }: { automationId: string; rows: Po
   return (
     <section className="rounded-3xl border border-border bg-card p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h2 className="text-lg font-extrabold">Lead pipeline</h2><p className="text-sm text-muted-foreground">{rows.length} leads captured by this automation</p></div>
-        <select className="h-10 rounded-xl border border-border bg-background px-3 text-sm" value={filter} onChange={(event) => setFilter(event.target.value)}>
-          {["all", "new", "qualified", "contacted", "won", "lost", "archived"].map((status) => <option key={status} value={status}>{status === "all" ? "All stages" : status}</option>)}
+        <div>
+          <h2 className="text-lg font-extrabold">Lead pipeline</h2>
+          <p className="text-sm text-muted-foreground">
+            {rows.length} leads captured by this automation
+          </p>
+        </div>
+        <select
+          className="h-10 rounded-xl border border-border bg-background px-3 text-sm"
+          value={filter}
+          onChange={(event) => setFilter(event.target.value)}
+        >
+          {["all", "new", "qualified", "contacted", "won", "lost", "archived"].map((status) => (
+            <option key={status} value={status}>
+              {status === "all" ? "All stages" : status}
+            </option>
+          ))}
         </select>
       </div>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[780px] text-left text-sm">
-          <thead className="text-xs uppercase text-muted-foreground"><tr>{["Lead", "Intent / summary", "Source", "Score", "Captured", "Pipeline stage"].map((label) => <th key={label} className="px-3 py-3">{label}</th>)}</tr></thead>
+          <thead className="text-xs uppercase text-muted-foreground">
+            <tr>
+              {["Lead", "Intent / summary", "Source", "Score", "Captured", "Pipeline stage"].map(
+                (label) => (
+                  <th key={label} className="px-3 py-3">
+                    {label}
+                  </th>
+                ),
+              )}
+            </tr>
+          </thead>
           <tbody className="divide-y divide-border">
             {filtered.map((lead) => (
               <tr key={lead.id}>
-                <td className="px-3 py-3"><p className="font-semibold">{lead.name || "Unnamed lead"}</p><p className="text-xs text-muted-foreground">{lead.email || lead.phone || "No contact details"}</p></td>
-                <td className="max-w-[240px] px-3 py-3"><p className="font-medium">{lead.intent || "—"}</p><p className="line-clamp-2 text-xs text-muted-foreground">{lead.summary}</p></td>
+                <td className="px-3 py-3">
+                  <p className="font-semibold">{lead.name || "Unnamed lead"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {lead.email || lead.phone || "No contact details"}
+                  </p>
+                </td>
+                <td className="max-w-[240px] px-3 py-3">
+                  <p className="font-medium">{lead.intent || "—"}</p>
+                  <p className="line-clamp-2 text-xs text-muted-foreground">{lead.summary}</p>
+                </td>
                 <td className="px-3 py-3 text-muted-foreground">{lead.source || "—"}</td>
                 <td className="px-3 py-3 font-bold tabular-nums">{lead.lead_score}/100</td>
-                <td className="px-3 py-3 text-xs text-muted-foreground">{new Date(lead.captured_at || lead.created_at).toLocaleDateString()}</td>
+                <td className="px-3 py-3 text-xs text-muted-foreground">
+                  {new Date(lead.captured_at || lead.created_at).toLocaleDateString()}
+                </td>
                 <td className="px-3 py-3">
-                  <select aria-label={`Stage for ${lead.name || "lead"}`} className="h-9 rounded-lg border border-border bg-background px-2 text-xs" disabled={busyId === lead.id} value={lead.status} onChange={(event) => void changeStatus(lead.id, event.target.value as "new" | "qualified" | "contacted" | "won" | "lost" | "archived")}>
-                    {["new", "qualified", "contacted", "won", "lost", "archived"].map((status) => <option key={status} value={status}>{status}</option>)}
+                  <select
+                    aria-label={`Stage for ${lead.name || "lead"}`}
+                    className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
+                    disabled={busyId === lead.id}
+                    value={lead.status}
+                    onChange={(event) =>
+                      void changeStatus(
+                        lead.id,
+                        event.target.value as
+                          "new" | "qualified" | "contacted" | "won" | "lost" | "archived",
+                      )
+                    }
+                  >
+                    {["new", "qualified", "contacted", "won", "lost", "archived"].map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
                   </select>
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && <tr><td colSpan={6} className="px-3 py-12 text-center text-muted-foreground">No leads in this stage yet.</td></tr>}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-3 py-12 text-center text-muted-foreground">
+                  No leads in this stage yet.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -375,9 +590,20 @@ function Leads({ automationId, rows, refresh }: { automationId: string; rows: Po
   );
 }
 
-function Appointments({ automationId, rows, refresh }: { automationId: string; rows: PortalData["appointments"]; refresh: () => void }) {
+function Appointments({
+  automationId,
+  rows,
+  refresh,
+}: {
+  automationId: string;
+  rows: PortalData["appointments"];
+  refresh: () => void;
+}) {
   const [busyId, setBusyId] = useState("");
-  async function changeStatus(appointmentId: string, status: "booked" | "completed" | "canceled" | "no_show" | "rescheduled") {
+  async function changeStatus(
+    appointmentId: string,
+    status: "booked" | "completed" | "canceled" | "no_show" | "rescheduled",
+  ) {
     setBusyId(appointmentId);
     try {
       await updateMyAppointmentStatus({ data: { automationId, appointmentId, status } });
@@ -392,25 +618,68 @@ function Appointments({ automationId, rows, refresh }: { automationId: string; r
   return (
     <section className="rounded-3xl border border-border bg-card p-5">
       <h2 className="text-lg font-extrabold">Appointments</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Bookings created through this receptionist. Update the status after the customer is served.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Bookings created through this receptionist. Update the status after the customer is served.
+      </p>
       <div className="mt-4 grid gap-3">
         {rows.map((row) => (
-          <article key={row.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border p-4">
-            <div className="min-w-0"><p className="font-semibold">{row.visitor_name || "Customer"}</p><p className="text-xs text-muted-foreground">{new Date(row.starts_at).toLocaleString()} · {row.visitor_phone || row.visitor_email || "No contact"}</p>{row.notes && <p className="mt-1 text-xs text-muted-foreground">{row.notes}</p>}</div>
-            <select aria-label={`Booking status for ${row.visitor_name || "customer"}`} className="h-9 rounded-lg border border-border bg-background px-2 text-xs" disabled={busyId === row.id} value={row.status} onChange={(event) => void changeStatus(row.id, event.target.value as "booked" | "completed" | "canceled" | "no_show" | "rescheduled")}>
-              {["booked", "completed", "canceled", "no_show", "rescheduled"].map((status) => <option key={status} value={status}>{status.replace("_", " ")}</option>)}
+          <article
+            key={row.id}
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border p-4"
+          >
+            <div className="min-w-0">
+              <p className="font-semibold">{row.visitor_name || "Customer"}</p>
+              <p className="text-xs text-muted-foreground">
+                {new Date(row.starts_at).toLocaleString()} ·{" "}
+                {row.visitor_phone || row.visitor_email || "No contact"}
+              </p>
+              {row.notes && <p className="mt-1 text-xs text-muted-foreground">{row.notes}</p>}
+            </div>
+            <select
+              aria-label={`Booking status for ${row.visitor_name || "customer"}`}
+              className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
+              disabled={busyId === row.id}
+              value={row.status}
+              onChange={(event) =>
+                void changeStatus(
+                  row.id,
+                  event.target.value as
+                    "booked" | "completed" | "canceled" | "no_show" | "rescheduled",
+                )
+              }
+            >
+              {["booked", "completed", "canceled", "no_show", "rescheduled"].map((status) => (
+                <option key={status} value={status}>
+                  {status.replace("_", " ")}
+                </option>
+              ))}
             </select>
           </article>
         ))}
-        {rows.length === 0 && <p className="rounded-xl bg-muted/50 p-8 text-center text-sm text-muted-foreground">No appointments have been recorded yet.</p>}
+        {rows.length === 0 && (
+          <p className="rounded-xl bg-muted/50 p-8 text-center text-sm text-muted-foreground">
+            No appointments have been recorded yet.
+          </p>
+        )}
       </div>
     </section>
   );
 }
 
-function Tickets({ automationId, rows, refresh }: { automationId: string; rows: PortalData["tickets"]; refresh: () => void }) {
+function Tickets({
+  automationId,
+  rows,
+  refresh,
+}: {
+  automationId: string;
+  rows: PortalData["tickets"];
+  refresh: () => void;
+}) {
   const [busyId, setBusyId] = useState("");
-  async function changeStatus(ticketId: string, status: "open" | "assigned" | "resolved" | "closed") {
+  async function changeStatus(
+    ticketId: string,
+    status: "open" | "assigned" | "resolved" | "closed",
+  ) {
     setBusyId(ticketId);
     try {
       await updateMyTicketStatus({ data: { automationId, ticketId, status } });
@@ -425,19 +694,49 @@ function Tickets({ automationId, rows, refresh }: { automationId: string; rows: 
   return (
     <section className="rounded-3xl border border-border bg-card p-5">
       <h2 className="text-lg font-extrabold">Escalations & support tickets</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Questions the AI could not safely resolve, or that matched your handoff rules.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Questions the AI could not safely resolve, or that matched your handoff rules.
+      </p>
       <div className="mt-4 grid gap-3">
         {rows.map((row) => (
           <article key={row.id} className="rounded-2xl border border-border p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div><p className="font-semibold">{row.visitor_contact || "Customer"}</p><p className="mt-1 text-sm text-muted-foreground">{row.reason.replace(/_/g, " ")}</p><p className="mt-1 text-xs text-muted-foreground">{new Date(row.created_at).toLocaleString()} · Sentiment {Number(row.sentiment).toFixed(2)}</p></div>
-              <select aria-label="Ticket status" className="h-9 rounded-lg border border-border bg-background px-2 text-xs" disabled={busyId === row.id} value={row.status} onChange={(event) => void changeStatus(row.id, event.target.value as "open" | "assigned" | "resolved" | "closed")}>
-                {["open", "assigned", "resolved", "closed"].map((status) => <option key={status} value={status}>{status}</option>)}
+              <div>
+                <p className="font-semibold">{row.visitor_contact || "Customer"}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {row.reason.replace(/_/g, " ")}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {new Date(row.created_at).toLocaleString()} · Sentiment{" "}
+                  {Number(row.sentiment).toFixed(2)}
+                </p>
+              </div>
+              <select
+                aria-label="Ticket status"
+                className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
+                disabled={busyId === row.id}
+                value={row.status}
+                onChange={(event) =>
+                  void changeStatus(
+                    row.id,
+                    event.target.value as "open" | "assigned" | "resolved" | "closed",
+                  )
+                }
+              >
+                {["open", "assigned", "resolved", "closed"].map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
               </select>
             </div>
           </article>
         ))}
-        {rows.length === 0 && <p className="rounded-xl bg-muted/50 p-8 text-center text-sm text-muted-foreground">No escalations waiting for your team.</p>}
+        {rows.length === 0 && (
+          <p className="rounded-xl bg-muted/50 p-8 text-center text-sm text-muted-foreground">
+            No escalations waiting for your team.
+          </p>
+        )}
       </div>
     </section>
   );

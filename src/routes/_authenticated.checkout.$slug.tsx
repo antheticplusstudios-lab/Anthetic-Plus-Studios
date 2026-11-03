@@ -84,8 +84,7 @@ function Checkout() {
     if (kind === "lead_capture")
       return { required_fields: "email|phone", hot_threshold: "60", warm_threshold: "35" };
     if (kind === "kb_support") return { citation_mode: "inline" };
-    if (kind === "messaging_ai")
-      return { channels: "whatsapp,instagram,messenger" };
+    if (kind === "messaging_ai") return { channels: "whatsapp,instagram,messenger" };
     return {};
   });
 
@@ -510,19 +509,11 @@ function Checkout() {
               ) : (
                 <Input
                   className="mt-2"
-                  type={
-                    key === "notify_email"
-                      ? "email"
-                      : f.kind === "number"
-                        ? "number"
-                        : "text"
-                  }
+                  type={key === "notify_email" ? "email" : f.kind === "number" ? "number" : "text"}
                   min={f.kind === "number" ? 0 : undefined}
                   max={["hot_threshold", "warm_threshold"].includes(key) ? 100 : undefined}
                   value={value}
-                  onChange={(e) =>
-                    setConfig((current) => ({ ...current, [key]: e.target.value }))
-                  }
+                  onChange={(e) => setConfig((current) => ({ ...current, [key]: e.target.value }))}
                 />
               )}
               {required && touched && !(config[key] ?? "").trim() && (
