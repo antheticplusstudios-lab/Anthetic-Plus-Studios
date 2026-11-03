@@ -937,19 +937,18 @@ export const submitRenewalPayment = createServerFn({ method: "POST" })
     }
     const { error } = await db2Admin.from("payment_verifications").insert({
       order_id: subscription.order_id,
-      client_id: context.tenant.clientId,
-      submitted_by_user_id: context.userId,
       payment_method_id: method.id,
       sender_phone: null,
-      transaction_id: data.transactionId,
       trx_id: data.transactionId,
-      sender_name: data.senderName,
       amount: data.amount,
-      currency: "USD",
       status: "pending",
-      proof_data: { sender_name: data.senderName, source: "renewal" },
       notes: data.senderName,
-      metadata: { sender_name: data.senderName, source: "renewal" },
+      metadata: {
+        sender_name: data.senderName,
+        currency: "USD",
+        submitted_by_user_id: context.userId,
+        source: "renewal",
+      },
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -1004,7 +1003,7 @@ export const submitOrder = createServerFn({ method: "POST" })
       .from("payment_verifications")
       .select("id")
       .eq("trx_id", data.transactionId)
-      .in("status", ["pending", "verified", "approved"])
+      .in("status", ["pending", "approved"])
       .limit(1)
       .maybeSingle();
     if (dupe)
@@ -1057,52 +1056,33 @@ export const submitOrder = createServerFn({ method: "POST" })
       }
     }
     const orderNumber = newOrderNumber();
+    const pricingSnapshot = {
+      plan: data.plan,
+      base: recurringAmount,
+      recurring_amount: recurringAmount,
+      setup_fee: setupFee,
+      first_payment_due_after_days: data.plan === "yearly" ? 365 : 30,
+      promo_code: promoPercent ? data.promoCode?.toUpperCase() : null,
+      promo_percent: promoPercent,
+    };
+    // DB2's live orders table keeps storefront-only fields in metadata. Do not send
+    // legacy bootstrap columns that are not present in the production schema.
     const orderPayload = {
       client_id: context.tenant.clientId,
       user_id: context.userId,
-      created_by_user_id: context.userId,
       organization_id: context.tenant.organizationId,
-      order_id: orderNumber,
       order_number: orderNumber,
       product_type: data.product,
-      automation_type: data.product,
       product_name: data.product,
-      description: `AntheticPlus ${data.product} automation`,
+      description: `Autumic ${data.product} automation`,
       total_amount: total,
       currency: "USD",
       status: orderStatusToDb("pending_verification"),
       submitted_at: new Date().toISOString(),
-      delivery_channel: data.deliveryChannel,
-      selected_features: data.features,
-      pricing_snapshot: {
-        plan: data.plan,
-        base: recurringAmount,
-        recurring_amount: recurringAmount,
-        setup_fee: setupFee,
-        first_payment_due_after_days: data.plan === "yearly" ? 365 : 30,
-        promo_code: promoPercent ? data.promoCode?.toUpperCase() : null,
-        promo_percent: promoPercent,
-      },
-      full_name: data.fullName,
-      company_name: data.company,
-      contact_email: data.email,
-      country: data.country,
-      target_domain_url: data.target,
-      payment_method_id: method.id,
-      payment_proof_data: data.proof,
-      origin_domain: domain,
       metadata: {
         delivery_channel: data.deliveryChannel,
         selected_features: data.features,
-        pricing_snapshot: {
-          plan: data.plan,
-          base: recurringAmount,
-          recurring_amount: recurringAmount,
-          setup_fee: setupFee,
-          first_payment_due_after_days: data.plan === "yearly" ? 365 : 30,
-          promo_code: promoPercent ? data.promoCode?.toUpperCase() : null,
-          promo_percent: promoPercent,
-        },
+        pricing_snapshot: pricingSnapshot,
         full_name: data.fullName,
         company_name: data.company,
         contact_email: data.email,
@@ -1110,6 +1090,7 @@ export const submitOrder = createServerFn({ method: "POST" })
         target_domain_url: data.target,
         origin_domain: domain,
         payment_method_id: method.id,
+        payment_proof_data: data.proof,
         configuration: data.configuration,
       },
     };
@@ -1121,21 +1102,32 @@ export const submitOrder = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     const { error: verifyError } = await db2Admin.from("payment_verifications").insert({
       order_id: order.id,
-      client_id: context.tenant.clientId,
-      submitted_by_user_id: context.userId,
       payment_method_id: method.id,
       sender_phone: null,
-      transaction_id: data.transactionId,
       trx_id: data.transactionId,
-      sender_name: data.senderName,
       amount: total,
-      currency: "USD",
       status: "pending",
-      proof_data: data.proof,
       notes: data.senderName,
-      metadata: { sender_name: data.senderName, proof: data.proof, currency: "USD" },
+      metadata: {
+        sender_name: data.senderName,
+        proof: data.proof,
+        currency: "USD",
+        submitted_by_user_id: context.userId,
+        source: "checkout",
+      },
     });
-    if (verifyError) throw new Error(verifyError.message);
+    if (verifyError) {
+      const { error: cleanupError } = await db2Admin
+        .from("orders")
+        .delete()
+        .eq("id", order.id)
+        .eq("client_id", context.tenant.clientId);
+      if (cleanupError)
+        throw new Error(
+          `Payment submission failed: ${verifyError.message}. The pending order also needs admin review: ${cleanupError.message}`,
+        );
+      throw new Error(verifyError.message);
+    }
     await db2Admin.rpc("enqueue_outbox", {
       p_event_type: "order.created",
       p_aggregate_type: "order",
