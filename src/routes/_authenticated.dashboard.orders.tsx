@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { StatusPill, money, shortDate } from "@/components/admin-ui";
 import { useMyPayments, useInstances } from "@/hooks/use-portal";
