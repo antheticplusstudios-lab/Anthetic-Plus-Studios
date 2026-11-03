@@ -1290,12 +1290,9 @@ export const adminReviewOrder = createServerFn({ method: "POST" })
       .from("payment_verifications")
       .update({
         status: next,
-        rejection_reason: data.approve ? null : data.reason,
         notes: data.reason,
         reviewed_by: context.userId,
-        verified_by_user_id: data.approve ? context.userId : null,
         reviewed_at: now,
-        verified_at: data.approve ? now : null,
       })
       .eq("id", pv.id);
     if (error) throw new Error(error.message);
