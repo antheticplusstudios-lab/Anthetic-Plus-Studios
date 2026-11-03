@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { adminDeletePaymentMethod, adminListPaymentMethods, adminSavePaymentMethod } from "@/lib/admin-data.functions";
+import {
+  adminDeletePaymentMethod,
+  adminListPaymentMethods,
+  adminSavePaymentMethod,
+} from "@/lib/admin-data.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/payment-methods")({
   head: () => ({
@@ -37,7 +41,13 @@ function PaymentMethodsPage() {
       return adminListPaymentMethods();
     },
   });
-  const [n, setN] = useState({ method_name: "", provider_name: "Manual", account_identifier: "", instructions: "", fields: "sender_phone, trx_id" });
+  const [n, setN] = useState({
+    method_name: "",
+    provider_name: "Manual",
+    account_identifier: "",
+    instructions: "",
+    fields: "sender_phone, trx_id",
+  });
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ["admin-pm"] });
     void qc.invalidateQueries({ queryKey: ["payment-methods-active"] });
@@ -56,7 +66,9 @@ function PaymentMethodsPage() {
           id,
           method_name: String(patch["method_name"] ?? current?.method_name ?? "Payment method"),
           provider_name: String(patch["provider_name"] ?? current?.provider_name ?? "Manual"),
-          account_identifier: String(patch["account_identifier"] ?? current?.account_identifier ?? ""),
+          account_identifier: String(
+            patch["account_identifier"] ?? current?.account_identifier ?? "",
+          ),
           instructions: String(patch["instructions"] ?? current?.instructions ?? ""),
           required_fields: (patch["required_fields"] as string[]) ?? current?.required_fields ?? [],
           is_active: Boolean(patch["is_active"] ?? current?.is_active ?? true),
@@ -81,7 +93,13 @@ function PaymentMethodsPage() {
           is_active: true,
         },
       });
-      setN({ method_name: "", provider_name: "Manual", account_identifier: "", instructions: "", fields: "sender_phone, trx_id" });
+      setN({
+        method_name: "",
+        provider_name: "Manual",
+        account_identifier: "",
+        instructions: "",
+        fields: "sender_phone, trx_id",
+      });
       toast.success("Payment method added");
       refresh();
     } catch (e) {
@@ -92,7 +110,11 @@ function PaymentMethodsPage() {
     if (!window.confirm("Remove " + name + " from checkout?")) return;
     try {
       const result = await adminDeletePaymentMethod({ data: { id } });
-      toast.success(result.archived ? "Method has payment history, so it was safely disabled." : "Payment method deleted");
+      toast.success(
+        result.archived
+          ? "Method has payment history, so it was safely disabled."
+          : "Payment method deleted",
+      );
       refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Delete failed");
@@ -106,7 +128,13 @@ function PaymentMethodsPage() {
     >
       <div className="grid gap-4">
         {(list.data ?? []).map((m) => (
-          <MethodCard key={m.id} m={m} onSave={save} parse={parse} onDelete={() => void remove(m.id, m.method_name)} />
+          <MethodCard
+            key={m.id}
+            m={m}
+            onSave={save}
+            parse={parse}
+            onDelete={() => void remove(m.id, m.method_name)}
+          />
         ))}
         <Panel title="Add a payment method">
           <div className="grid gap-3">
