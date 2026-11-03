@@ -1,0 +1,40 @@
+name: Temporary automation dashboard formatter
+
+on:
+  push:
+    branches:
+      - feat/all-automation-checkout-orders
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: "!startsWith(github.event.head_commit.message, 'chore(format):')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Format changed dashboard files
+        run: |
+          npx prettier --write \
+            src/lib/client-platform.functions.ts \
+            src/routes/_authenticated.checkout.$slug.tsx \
+            src/routes/_authenticated.dashboard.portal.$id.tsx
+      - name: Commit formatting
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/lib/client-platform.functions.ts src/routes/_authenticated.checkout.$slug.tsx src/routes/_authenticated.dashboard.portal.$id.tsx
+          if git diff --cached --quiet; then
+            echo "No formatting changes needed."
+            exit 0
+          fi
+          git commit -m "chore(format): format automation dashboards"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
