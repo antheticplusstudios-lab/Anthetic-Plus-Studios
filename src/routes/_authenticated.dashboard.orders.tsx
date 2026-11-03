@@ -75,7 +75,15 @@ function OrdersPage() {
               Order AI Sales Agent
             </Link>
           </Button>
-          <Button asChild size="sm" variant="outline"><Link to="/checkout/$slug" params={{ slug: "knowledge-base-support" }} search={{ plan: "monthly" }}>Order AI Support Agent</Link></Button>
+          <Button asChild size="sm" variant="outline">
+            <Link
+              to="/checkout/$slug"
+              params={{ slug: "knowledge-base-support" }}
+              search={{ plan: "monthly" }}
+            >
+              Order AI Support Agent
+            </Link>
+          </Button>
         </div>
       </div>
       <div className="grid gap-3">
