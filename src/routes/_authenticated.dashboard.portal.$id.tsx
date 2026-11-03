@@ -716,7 +716,7 @@ function Integrations({
     try {
       await removeAutomationIntegration({ data: { automationId, provider: key } });
       toast.success("Integration disconnected");
-      window.location.reload();
+      refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not disconnect integration");
     }
