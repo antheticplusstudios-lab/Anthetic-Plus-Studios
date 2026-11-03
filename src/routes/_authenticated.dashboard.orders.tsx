@@ -48,7 +48,15 @@ function OrdersPage() {
           </p>
         </div>
         <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-2">
-          <Button asChild size="sm"><Link to="/checkout/$slug" params={{ slug: "voice-sms-receptionist" }} search={{ plan: "monthly" }}>Order AI Receptionist</Link></Button>
+          <Button asChild size="sm">
+            <Link
+              to="/checkout/$slug"
+              params={{ slug: "voice-sms-receptionist" }}
+              search={{ plan: "monthly" }}
+            >
+              Order AI Receptionist
+            </Link>
+          </Button>
           <Button asChild size="sm"><Link to="/checkout/$slug" params={{ slug: "social-dm-assistant" }} search={{ plan: "monthly" }}>Order AI Chatbot</Link></Button>
           <Button asChild size="sm" variant="outline"><Link to="/checkout/$slug" params={{ slug: "lead-capture-qualifier" }} search={{ plan: "monthly" }}>Order AI Sales Agent</Link></Button>
           <Button asChild size="sm" variant="outline"><Link to="/checkout/$slug" params={{ slug: "knowledge-base-support" }} search={{ plan: "monthly" }}>Order AI Support Agent</Link></Button>
