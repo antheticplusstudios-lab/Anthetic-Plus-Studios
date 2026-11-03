@@ -85,11 +85,19 @@ export function ReactivationModal({
           <div>
             <Label>Payment method</Label>
             {methodsQuery.isLoading ? (
-              <p className="mt-2 text-sm text-muted-foreground">Loading available payment methods…</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Loading available payment methods…
+              </p>
             ) : methodsQuery.isError ? (
               <div className="mt-2 text-sm text-destructive">
                 <p>Payment methods couldn't be loaded.</p>
-                <Button type="button" size="sm" variant="outline" className="mt-2" onClick={() => void methodsQuery.refetch()}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="mt-2"
+                  onClick={() => void methodsQuery.refetch()}
+                >
                   Try again
                 </Button>
               </div>
@@ -101,24 +109,36 @@ export function ReactivationModal({
                     type="button"
                     aria-pressed={method === item.id}
                     onClick={() => setMethod(item.id)}
-                    className={method === item.id ? "rounded-xl border border-primary bg-primary/8 px-3 py-2.5 text-left text-xs font-bold text-primary" : "rounded-xl border border-border px-3 py-2.5 text-left text-xs font-bold text-muted-foreground"}
+                    className={
+                      method === item.id
+                        ? "rounded-xl border border-primary bg-primary/8 px-3 py-2.5 text-left text-xs font-bold text-primary"
+                        : "rounded-xl border border-border px-3 py-2.5 text-left text-xs font-bold text-muted-foreground"
+                    }
                   >
                     {item.method_name}
                   </button>
                 ))}
               </div>
             ) : (
-              <p className="mt-2 text-sm text-muted-foreground">No active payment methods are available.</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                No active payment methods are available.
+              </p>
             )}
             {selectedMethod && (
               <div className="mt-3 rounded-xl border border-primary/25 bg-primary/5 p-3 text-sm">
                 <p className="font-bold">{selectedMethod.method_name}</p>
                 {selectedMethod.account_identifier &&
-                  !selectedMethod.account_identifier.toLowerCase().includes("configure in control center") && (
-                    <p className="mt-1 break-all font-semibold">{selectedMethod.account_identifier}</p>
+                  !selectedMethod.account_identifier
+                    .toLowerCase()
+                    .includes("configure in control center") && (
+                    <p className="mt-1 break-all font-semibold">
+                      {selectedMethod.account_identifier}
+                    </p>
                   )}
                 {selectedMethod.instructions && (
-                  <p className="mt-2 whitespace-pre-wrap text-muted-foreground">{selectedMethod.instructions}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
+                    {selectedMethod.instructions}
+                  </p>
                 )}
               </div>
             )}
