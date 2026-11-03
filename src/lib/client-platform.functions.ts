@@ -115,42 +115,44 @@ export const updateMyProfile = createServerFn({ method: "POST" })
 export const getActivePaymentMethods = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
-  const { data, error } = await db2Admin
-    .from("payment_methods")
-    .select("id,client_id,method_type,provider_name,account_name,account_identifier,is_active,is_default,metadata")
-    .eq("is_active", true)
-    .neq("method_type", "card")
-    .order("is_default", { ascending: false })
-    .order("created_at", { ascending: true });
-  if (error) throw new Error(error.message);
-  return (data ?? [])
-    .filter(
-      (row) =>
-        row.method_type !== "card" &&
-        !["stripe", "paypal"].includes((row.provider_name ?? "").toLowerCase()),
-    )
-    .map((row) => {
-    const meta =
-      row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
-        ? row.metadata
-        : {};
-    const instructions =
-      "instructions" in meta && typeof meta["instructions"] === "string"
-        ? meta["instructions"]
-        : "";
-    const fields =
-      "required_fields" in meta && Array.isArray(meta["required_fields"])
-        ? meta["required_fields"].filter((field): field is string => typeof field === "string")
-        : [];
-    return {
-      ...row,
-      method_name: row.account_name ?? row.provider_name ?? row.method_type,
-      instructions,
-      required_fields: fields,
-      is_card: row.method_type === "card",
-    };
+    const { data, error } = await db2Admin
+      .from("payment_methods")
+      .select(
+        "id,client_id,method_type,provider_name,account_name,account_identifier,is_active,is_default,metadata",
+      )
+      .eq("is_active", true)
+      .neq("method_type", "card")
+      .order("is_default", { ascending: false })
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? [])
+      .filter(
+        (row) =>
+          row.method_type !== "card" &&
+          !["stripe", "paypal"].includes((row.provider_name ?? "").toLowerCase()),
+      )
+      .map((row) => {
+        const meta =
+          row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+            ? row.metadata
+            : {};
+        const instructions =
+          "instructions" in meta && typeof meta["instructions"] === "string"
+            ? meta["instructions"]
+            : "";
+        const fields =
+          "required_fields" in meta && Array.isArray(meta["required_fields"])
+            ? meta["required_fields"].filter((field): field is string => typeof field === "string")
+            : [];
+        return {
+          ...row,
+          method_name: row.account_name ?? row.provider_name ?? row.method_type,
+          instructions,
+          required_fields: fields,
+          is_card: row.method_type === "card",
+        };
+      });
   });
-});
 
 export const getMyOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -929,7 +931,9 @@ export const submitRenewalPayment = createServerFn({ method: "POST" })
       method.method_type === "card" ||
       ["stripe", "paypal"].includes((method.provider_name ?? "").toLowerCase())
     ) {
-      throw new Error("Selected payment method is unavailable. Choose an active method and try again.");
+      throw new Error(
+        "Selected payment method is unavailable. Choose an active method and try again.",
+      );
     }
     const { error } = await db2Admin.from("payment_verifications").insert({
       order_id: subscription.order_id,
@@ -985,7 +989,8 @@ export const submitOrder = createServerFn({ method: "POST" })
       .select("id,method_type,provider_name,account_name,account_identifier,is_active,metadata")
       .eq("id", data.paymentMethodId)
       .maybeSingle();
-    if (methodError) throw new Error(`Could not verify the selected payment method: ${methodError.message}`);
+    if (methodError)
+      throw new Error(`Could not verify the selected payment method: ${methodError.message}`);
     if (
       !method?.is_active ||
       method.method_type === "card" ||
