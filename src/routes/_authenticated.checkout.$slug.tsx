@@ -340,7 +340,9 @@ function Checkout() {
             </div>
             <div className="mt-2 flex items-center justify-between gap-4">
               <span className="text-muted-foreground">Transaction reference</span>
-              <span className="max-w-[60%] break-all text-right font-semibold">{form.transaction}</span>
+              <span className="max-w-[60%] break-all text-right font-semibold">
+                {form.transaction}
+              </span>
             </div>
           </div>
         </motion.div>
