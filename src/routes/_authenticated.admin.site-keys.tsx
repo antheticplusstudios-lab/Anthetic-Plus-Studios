@@ -47,7 +47,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/site-keys")({
   head: () => ({
     meta: [
-      { title: "Website Installation Keys — AntheticPlus Control Center" },
+      { title: "Website Installation Keys — Autumic Control Center" },
       {
         name: "description",
         content: "Create, rotate, revoke and test website assistant installation keys.",

@@ -11,15 +11,15 @@ import { globalAdminSearch } from "@/lib/admin-search.functions";
 export const Route = createFileRoute("/_authenticated/admin/search")({
   head: () => ({
     meta: [
-      { name: "description", content: "Admin Search in the AntheticPlus AI automation platform." },
-      { property: "og:title", content: "Admin Search — AntheticPlus Studios" },
+      { name: "description", content: "Admin Search in the Autumic AI automation platform." },
+      { property: "og:title", content: "Admin Search — Autumic" },
       {
         property: "og:description",
-        content: "Admin Search in the AntheticPlus AI automation platform.",
+        content: "Admin Search in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "Global Search — AntheticPlus Control Center" },
+      { title: "Global Search — Autumic Control Center" },
     ],
   }),
   component: GlobalSearchPage,

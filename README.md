@@ -1,6 +1,6 @@
-# Anthetic Plus Studios
+# Autumic — Build To Automate
 
-Anthetic Plus Studios is a React, TypeScript, TanStack Start, Vite, and Nitro application with Supabase integrations and a companion Python backend.
+Autumic is an AI automation company. This repository contains its React, TypeScript, TanStack Start, Vite, and Nitro web application with Supabase integrations and a companion Python backend.
 
 ## Requirements
 

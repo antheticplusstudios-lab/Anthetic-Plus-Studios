@@ -16,17 +16,15 @@ import { submitContact, type ContactResult } from "@/lib/contact.functions";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — AntheticPlus Studios" },
+      { title: "Contact — Autumic" },
       {
         name: "description",
-        content:
-          "Talk to AntheticPlus Studios about AI automations, support, billing or partnerships.",
+        content: "Book a free consultation about AI automation for your business.",
       },
-      { property: "og:title", content: "Contact — AntheticPlus Studios" },
+      { property: "og:title", content: "Contact — Autumic" },
       {
         property: "og:description",
-        content:
-          "Talk to AntheticPlus Studios about AI automations, support, billing or partnerships.",
+        content: "Talk to Autumic about AI automations, support, billing or partnerships.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -98,25 +96,25 @@ function ContactPage() {
           </h1>
           <p className="relative mt-3 text-muted-foreground">
             {t(
-              "Questions about an automation, your account, or working together? Send us a message and we'll reply by email.",
-              "অটোমেশন, আপনার অ্যাকাউন্ট বা একসঙ্গে কাজ করা নিয়ে প্রশ্ন আছে? আমাদের বার্তা পাঠান, আমরা ইমেইলে উত্তর দেব।",
+              "Tell us what takes too much time in your business. We’ll discuss where AI automation can help and recommend a practical next step.",
+              "আপনার ব্যবসায় কোন কাজ বেশি সময় নেয় তা আমাদের জানান। কোথায় AI অটোমেশন সহায়তা করতে পারে তা নিয়ে আলোচনা করে বাস্তবসম্মত পরবর্তী পদক্ষেপ সাজাব।",
             )}
           </p>
           <ul className="relative mt-8 space-y-4">
             {[
               {
                 icon: Clock,
-                title: t("Reply within 1 business day", "১ কর্মদিবসের মধ্যে উত্তর"),
+                title: t("A personal response", "ব্যক্তিগত উত্তর"),
                 body: t(
-                  "A real person reads every message.",
-                  "প্রতিটি বার্তা আমাদের একজন কর্মী পড়েন।",
+                  "A member of the Autumic team reviews every enquiry.",
+                  "Autumic টিমের একজন সদস্য প্রতিটি অনুরোধ পর্যালোচনা করেন।",
                 ),
               },
               {
                 icon: Sparkles,
                 title: t("Free automation advice", "বিনামূল্যে অটোমেশন পরামর্শ"),
                 body: t(
-                  "Tell us where leads slip — we'll suggest the smallest fix.",
+                  "Share the repetitive work or customer bottleneck you want to improve.",
                   "কোথায় সম্ভাব্য গ্রাহক হারাচ্ছেন জানান—আমরা ন্যূনতম প্রয়োজনীয় সমাধান দেব।",
                 ),
               },
@@ -140,9 +138,21 @@ function ContactPage() {
               </li>
             ))}
           </ul>
-          <p className="mt-8 inline-flex items-center gap-2 text-sm text-muted-foreground">
-            <Mail className="h-4 w-4" /> antheticplusstudios@gmail.com
-          </p>
+          <div className="relative mt-8 space-y-2 text-sm text-muted-foreground">
+            <p className="inline-flex items-center gap-2">
+              <Mail className="h-4 w-4" /> info@autumic.com
+            </p>
+            <p>+880 1915-349394</p>
+            <p>Baridhara, Dhaka-1212, Bangladesh</p>
+            <p>
+              <a
+                className="text-primary underline"
+                href="https://api.whatsapp.com/send/?phone=8801915349394&text=Hello+Autumic%2C+I%27d+like+to+learn+more+about+your+AI+automation+solutions.&type=phone_number&app_absent=0"
+              >
+                Chat with Autumic on WhatsApp
+              </a>
+            </p>
+          </div>
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">

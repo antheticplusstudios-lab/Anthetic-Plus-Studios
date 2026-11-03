@@ -5,6 +5,7 @@ import { AuthDialog } from "@/components/auth-dialog";
 import { HomeBrand } from "@/components/home-brand";
 import { AnimatePresence, motion, useReducedMotion, glide } from "@/components/motion";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useCurrentUser } from "@/hooks/use-portal";
 import { cn } from "@/lib/utils";
 import { useLang, useT, type Lang } from "@/lib/i18n";
@@ -22,6 +23,7 @@ const NAV = [
   { to: "/checkout", en: "Pricing", bn: "মূল্য", exact: false },
   { to: "/docs", en: "Docs", bn: "ডকস", exact: false },
   { to: "/about", en: "About", bn: "আমাদের কথা", exact: false },
+  { to: "/contact", en: "Contact", bn: "যোগাযোগ", exact: false },
 ] as const;
 
 const LANGS: { code: Lang; short: string; label: string }[] = [
@@ -126,6 +128,7 @@ export function SiteHeader() {
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <LanguagePicker />
+            <ThemeToggle />
             {!isLoading &&
               (signedIn ? (
                 <Button

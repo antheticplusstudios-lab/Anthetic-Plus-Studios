@@ -9,7 +9,7 @@ export const livePricingQueryOptions = queryOptions({
   staleTime: 60_000,
 });
 
-/** Browser copy of the price matrix; the catalog price is the offline fallback. */
+/** Authenticated checkout price matrix. Public product pages do not load this data. */
 export function useLivePricing() {
   return useQuery(livePricingQueryOptions);
 }
@@ -64,7 +64,11 @@ export function withLivePricing(plans: LivePlan[] | undefined): PricedAutomation
 }
 
 export function findPriced(slug: string, plans: LivePlan[] | undefined) {
-  return withLivePricing(plans).find((item) => item.slug === slug);
+  const livePlan = plans?.find(
+    (plan) => plan.slug === slug && plan.active && plan.listed !== false,
+  );
+  if (!livePlan) return undefined;
+  return withLivePricing([livePlan]).find((item) => item.slug === slug);
 }
 
 /** Apply an approved promo percentage to a total. */
@@ -74,7 +78,7 @@ export function withDiscount(amount: number, percentOff: number | null) {
   return { amount: next, saved: amount - next };
 }
 
-/** Automations visitors see in public lists (owner toggles "Show on website" in the admin catalog). */
+/** The four canonical Autumic products shown in the public catalog. */
 export function storefrontItems(plans: LivePlan[] | undefined) {
   return withLivePricing(plans).filter((i) => i.listed);
 }

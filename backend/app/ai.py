@@ -18,9 +18,10 @@ PROVIDERS = {
 
 
 def decrypt(payload: str) -> str:
-    if not settings.antheticplus_db3_master_key:
+    master_key = settings.autumic_db3_master_key or settings.antheticplus_db3_master_key
+    if not master_key:
         raise RuntimeError('AI encryption key not configured')
-    key = base64.b64decode(settings.antheticplus_db3_master_key)
+    key = base64.b64decode(master_key)
     if len(key) != 32:
         raise RuntimeError('AI encryption key must decode to 32 bytes')
     raw = base64.b64decode(payload)

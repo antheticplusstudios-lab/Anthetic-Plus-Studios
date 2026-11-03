@@ -76,3 +76,14 @@ def test_empty_allowlist_fails_closed():
 def test_invalid_config_rejected(bad):
     with pytest.raises(ValueError):
         normalize_origin(bad)
+
+
+def test_webhook_signature_headers_are_allowed_for_preflight():
+    c = make()
+    r = pre(
+        c,
+        '/v1/workflows/webhook/example',
+        'https://app.example.com',
+        headers='content-type, x-antheticplus-timestamp, x-antheticplus-signature, x-antheticplus-event-id',
+    )
+    assert r.status_code == 200

@@ -15,7 +15,7 @@ from .ai import completion, embedding
 from .security import current_user, assert_automation_access, assert_conversation_access
 from .config import settings as _cors_settings
 
-app = FastAPI(title='AntheticPlus FastAPI', version='1.2.0')
+app = FastAPI(title='Autumic API', version='1.2.0')
 app.add_middleware(ExplicitOriginCORSMiddleware, policy=CorsPolicy.from_settings(
     environment=_cors_settings.environment,
     allowed=_cors_settings.cors_allowed_origins,
@@ -30,7 +30,7 @@ except Exception:
     pass
 
 async def _rate_limit(key: str, limit: int = 60, window: int = 60) -> bool:
-    bucket = f"antheticplus:ratelimit:{hashlib.sha256(key.encode()).hexdigest()}"
+    bucket = f"autumic:ratelimit:{hashlib.sha256(key.encode()).hexdigest()}"
     try:
         count = await _rate_redis.incr(bucket)
         if count == 1:
@@ -84,10 +84,11 @@ class KnowledgeDocument(BaseModel):
     content: str = Field(min_length=1, max_length=2_000_000)
 
 def _decrypt_server_secret(payload: str) -> str:
-    if not _settings.antheticplus_db3_master_key:
+    master_key = _settings.autumic_db3_master_key or _settings.antheticplus_db3_master_key
+    if not master_key:
         raise HTTPException(503, 'Webhook signing is not configured')
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-    key = base64.b64decode(_settings.antheticplus_db3_master_key)
+    key = base64.b64decode(master_key)
     raw = base64.b64decode(payload)
     if len(key) != 32 or len(raw) < 28:
         raise HTTPException(500, 'Invalid webhook secret configuration')
@@ -161,7 +162,12 @@ async def widget_resolve(token: str = Query(..., min_length=32, max_length=128),
     state = await eligibility(str(inst['automation_id']))
     if state.get('state') != 'active':
         raise HTTPException(403, 'Assistant is not available')
-    return inst
+    return {
+        'product': inst.get('automation_type'),
+        'name': inst.get('name'),
+        'domain': inst.get('domain_url'),
+        'config': canonical_widget_config(inst.get('widget_config') or {}),
+    }
 
 @app.post('/v1/widget/chat')
 async def widget_chat(payload: WidgetChat, origin: str | None = Header(default=None)):
@@ -183,6 +189,8 @@ async def widget_chat(payload: WidgetChat, origin: str | None = Header(default=N
     automation_id = str(inst['automation_id'])
     client_id = str(inst['client_id'])
     existing = await db4.table('conversations', select='id,status', filters=[('automation_id',f'eq.{automation_id}'),('visitor_session',f'eq.{payload.session_id}')], single=True)
+    if existing and str(existing.get('status') or '') != 'active':
+        raise HTTPException(409, 'Conversation is no longer active')
     if existing:
         conversation_id = str(existing['id'])
     else:
@@ -277,6 +285,11 @@ async def workflow_webhook(endpoint_key: str, request: Request, x_antheticplus_t
 @app.post('/v1/knowledge/documents')
 async def knowledge_document(payload: KnowledgeDocument, user: dict = Depends(current_user)):
     ctx = await assert_automation_access(user, payload.automation_id)
+    state = await eligibility(payload.automation_id)
+    if state.get('state') != 'active' or not await _subscription_active(ctx['client_id']):
+        raise HTTPException(403, 'Automation is not active')
+    if not await _rate_limit(f"knowledge:{payload.automation_id}", limit=10, window=60):
+        raise HTTPException(429, 'Too many knowledge uploads, try again shortly')
     kb = await db3.table('knowledge_bases', select='id,client_id,automation_id', filters=[('automation_id',f'eq.{payload.automation_id}')], single=True)
     if not kb:
         created = await db3.table('knowledge_bases', insert={'client_id':ctx['client_id'],'automation_id':payload.automation_id,'name':'Default Knowledge Base'}, select='id,client_id,automation_id')
@@ -315,7 +328,7 @@ async def websocket_chat(ws: WebSocket, conversation_id: str, token: str | None 
         await ws.close(code=1008, reason='invalid_token')
         return
     conversation = await db4.table('conversations', select='automation_id,client_id,status', filters=[('id',f'eq.{conversation_id}')], single=True)
-    if not conversation or str(conversation['automation_id']) != str(inst['automation_id']):
+    if not conversation or str(conversation['automation_id']) != str(inst['automation_id']) or str(conversation.get('client_id')) != str(inst.get('client_id')):
         await ws.close(code=1008, reason='conversation_not_found')
         return
     if str(conversation.get('status') or '') != 'active':

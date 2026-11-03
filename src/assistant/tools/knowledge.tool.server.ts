@@ -1,30 +1,28 @@
-import { z } from "zod";
 import { db2Admin } from "@/server/db/clients.server";
+import { z } from "zod";
 import { retrieveKnowledge } from "@/lib/rag.server";
 import { defineTool } from "../assistant.registry.server";
 
 export const getPricingTool = defineTool({
   name: "get_pricing",
-  label: "Pricing",
+  label: "Custom packages",
   description:
-    "Get the live, publicly listed automation plans and prices. Use for any pricing or plan question.",
+    "Explain that Autumic scopes each package to the business and does not publish fixed public prices. Offer a free consultation at /contact.",
   inputDoc: "{}",
   access: "public",
   sideEffect: false,
   input: z.object({}).passthrough(),
   async execute() {
-    const { data, error } = await db2Admin
-      .from("pricing_plans")
-      .select("slug,name,description,monthly_price,yearly_price,currency")
-      .eq("active", true)
-      .eq("listed", true)
-      .order("slug", { ascending: true })
-      .limit(50);
-    if (error) {
-      console.error("assistant pricing read failed", error.message);
-      return { ok: false, code: "failed", message: "I couldn't load pricing right now." };
-    }
-    return { ok: true, summary: `Loaded ${data?.length ?? 0} listed plan(s).`, data: data ?? [] };
+    return {
+      ok: true,
+      summary: "Autumic packages are custom-scoped; there is no public fixed-price list.",
+      data: {
+        pricing: "Custom proposal after a free consultation",
+        consultation: "/contact",
+        email: "info@autumic.com",
+        phone: "+880 1915-349394",
+      },
+    };
   },
 });
 

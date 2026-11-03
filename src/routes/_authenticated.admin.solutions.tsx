@@ -32,16 +32,16 @@ export const Route = createFileRoute("/_authenticated/admin/solutions")({
     meta: [
       {
         name: "description",
-        content: "Edit the Solutions cards shown on the AntheticPlus Products page.",
+        content: "Edit the Solutions cards shown on the Autumic Products page.",
       },
-      { property: "og:title", content: "Solutions — AntheticPlus Studios" },
+      { property: "og:title", content: "Solutions — Autumic" },
       {
         property: "og:description",
-        content: "Edit the Solutions cards shown on the AntheticPlus Products page.",
+        content: "Edit the Solutions cards shown on the Autumic Products page.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "Solutions — AntheticPlus Control Center" },
+      { title: "Solutions — Autumic Control Center" },
     ],
   }),
   component: SolutionsAdminPage,

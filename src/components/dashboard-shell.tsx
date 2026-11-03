@@ -77,7 +77,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         )}
       </nav>
       <div className="absolute inset-x-4 bottom-4 rounded-xl border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-        <strong className="block text-foreground">Need help?</strong>antheticplusstudios@gmail.com
+        <strong className="block text-foreground">Need help?</strong>info@autumic.com
       </div>
     </>
   );

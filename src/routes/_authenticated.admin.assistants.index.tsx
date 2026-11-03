@@ -15,16 +15,16 @@ export const Route = createFileRoute("/_authenticated/admin/assistants/")({
     meta: [
       {
         name: "description",
-        content: "Admin Assistants in the AntheticPlus AI automation platform.",
+        content: "Admin Assistants in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Assistants — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Assistants — Autumic" },
       {
         property: "og:description",
-        content: "Admin Assistants in the AntheticPlus AI automation platform.",
+        content: "Admin Assistants in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "AI Assistants — AntheticPlus Control Center" },
+      { title: "AI Assistants — Autumic Control Center" },
     ],
   }),
   component: AssistantsOverview,

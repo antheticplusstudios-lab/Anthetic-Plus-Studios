@@ -4,15 +4,15 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 export const Route = createFileRoute("/_authenticated/admin/automations/workflow")({
   head: () => ({
     meta: [
-      { title: "Admin Automations Workflow — AntheticPlus Studios" },
+      { title: "Admin Automations Workflow — Autumic" },
       {
         name: "description",
-        content: "Admin Automations Workflow in the AntheticPlus AI automation platform.",
+        content: "Admin Automations Workflow in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Automations Workflow — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Automations Workflow — Autumic" },
       {
         property: "og:description",
-        content: "Admin Automations Workflow in the AntheticPlus AI automation platform.",
+        content: "Admin Automations Workflow in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

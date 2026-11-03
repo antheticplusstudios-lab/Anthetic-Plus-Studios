@@ -24,7 +24,7 @@ export function HomeBrand({
     <Link
       to="/"
       onClick={handle}
-      aria-label="AntheticPlus Studios — home"
+      aria-label="Autumic — home"
       className={cn(
         "min-w-0 rounded-xl transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className,

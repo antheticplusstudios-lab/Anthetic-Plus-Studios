@@ -11,12 +11,12 @@ import { useCurrentUser, useProfile } from "@/hooks/use-portal";
 export const Route = createFileRoute("/_authenticated/dashboard/profile")({
   head: () => ({
     meta: [
-      { title: "Profile Settings — AntheticPlus Studios" },
+      { title: "Profile Settings — Autumic" },
       {
         name: "description",
-        content: "Update your AntheticPlus company profile and target domain.",
+        content: "Update your Autumic company profile and target domain.",
       },
-      { property: "og:title", content: "AntheticPlus Profile Settings" },
+      { property: "og:title", content: "Autumic Profile Settings" },
       { property: "og:description", content: "Manage company details used by your automations." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

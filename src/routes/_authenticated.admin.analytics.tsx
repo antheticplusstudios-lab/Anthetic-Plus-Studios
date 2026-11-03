@@ -23,16 +23,16 @@ export const Route = createFileRoute("/_authenticated/admin/analytics")({
     meta: [
       {
         name: "description",
-        content: "Admin Analytics in the AntheticPlus AI automation platform.",
+        content: "Admin Analytics in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Analytics — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Analytics — Autumic" },
       {
         property: "og:description",
-        content: "Admin Analytics in the AntheticPlus AI automation platform.",
+        content: "Admin Analytics in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "Analytics — AntheticPlus Control Center" },
+      { title: "Analytics — Autumic Control Center" },
     ],
   }),
   component: AnalyticsPage,

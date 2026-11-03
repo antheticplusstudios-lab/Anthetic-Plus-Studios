@@ -40,12 +40,12 @@ export const Route = createFileRoute("/_authenticated/checkout/$slug")({
   }),
   head: () => ({
     meta: [
-      { title: "Complete Your Order — AntheticPlus Studios" },
+      { title: "Complete Your Order — Autumic" },
       {
         name: "description",
-        content: "Configure and submit payment for your AntheticPlus automation.",
+        content: "Configure and submit payment for your Autumic automation.",
       },
-      { property: "og:title", content: "AntheticPlus Automation Checkout" },
+      { property: "og:title", content: "Autumic Automation Checkout" },
       {
         property: "og:description",
         content: "Set up your automation and submit manual payment details.",

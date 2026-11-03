@@ -14,16 +14,16 @@ export const Route = createFileRoute("/_authenticated/admin/payment-methods")({
     meta: [
       {
         name: "description",
-        content: "Admin Payment Methods in the AntheticPlus AI automation platform.",
+        content: "Admin Payment Methods in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Payment Methods — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Payment Methods — Autumic" },
       {
         property: "og:description",
-        content: "Admin Payment Methods in the AntheticPlus AI automation platform.",
+        content: "Admin Payment Methods in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "Payment Methods — AntheticPlus" },
+      { title: "Payment Methods — Autumic" },
     ],
   }),
   component: PaymentMethodsPage,

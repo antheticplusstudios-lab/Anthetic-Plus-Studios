@@ -1,4 +1,4 @@
-/** Client-safe registry for the AntheticPlus Web Assistant. */
+/** Client-safe registry for the Autumic Web Assistant. */
 export const SITE_IDS = ["antheticplus", "ny-partners"] as const;
 export type SiteId = (typeof SITE_IDS)[number];
 
@@ -12,7 +12,7 @@ export type SiteDefinition = {
 };
 
 export const SITES: Record<SiteId, SiteDefinition> = {
-  antheticplus: { id: "antheticplus", name: "AntheticPlus", domains: [], firstParty: true },
+  antheticplus: { id: "antheticplus", name: "Autumic", domains: [], firstParty: true },
   // The partner site is intentionally domain-configured in its own site settings.
   // Do not guess a production hostname here: admins must register the exact allowed domain.
   "ny-partners": { id: "ny-partners", name: "NY Partners", domains: [], firstParty: false },
@@ -37,9 +37,9 @@ export const SITE_TOOL_CATALOG: Array<{
   },
   {
     name: "get_pricing",
-    label: "AntheticPlus pricing",
+    label: "Autumic pricing",
     firstPartyOnly: true,
-    description: "Live AntheticPlus plan prices.",
+    description: "Live Autumic automation prices.",
   },
   {
     name: "get_account",

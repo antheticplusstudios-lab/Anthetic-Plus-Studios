@@ -20,7 +20,7 @@ export async function crawl(domain: string) {
   const url = /^https?:\/\//.test(domain) ? domain : `https://${domain}`;
   try {
     const fetched = await safeFetch(url, {
-      headers: { "User-Agent": "AntheticPlusBot/2.0" },
+      headers: { "User-Agent": "AutumicBot/2.0" },
       signal: AbortSignal.timeout(10000),
     });
     const res = fetched.response;
@@ -201,7 +201,7 @@ export async function runProvisioningPipeline(
       ? (metadata["pricing_snapshot"] as Record<string, unknown>)
       : {};
   const planCode = String(pricing["plan"] ?? "monthly");
-  const company = orderDetails.company_name || orderDetails.full_name || "AntheticPlus Automation";
+  const company = orderDetails.company_name || orderDetails.full_name || "Autumic Automation";
   const targetDomain = orderDetails.target_domain_url;
 
   const initialAutomation = await db2Admin

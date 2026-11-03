@@ -8,13 +8,13 @@ import { useLang, useT } from "@/lib/i18n";
 export const Route = createFileRoute("/docs")({
   head: () => ({
     meta: [
-      { title: "Documentation — AntheticPlus Studios" },
+      { title: "Documentation — Autumic" },
       {
         name: "description",
         content:
-          "How to choose, order, pay for, install and run AntheticPlus AI systems: embed script, domain lock, payments, renewals and the multilingual assistant.",
+          "How to choose, order, pay for, install and run Autumic AI systems: embed script, domain lock, payments, renewals and the multilingual assistant.",
       },
-      { property: "og:title", content: "AntheticPlus Documentation" },
+      { property: "og:title", content: "Autumic Documentation" },
       {
         property: "og:description",
         content:
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/docs")({
 
 type Doc = { id: string; en: [string, string[]]; bn: [string, string[]]; code?: string };
 
-const EMBED = `<script src="https://YOUR-ANTHETICPLUS-HOST/assistant.js" data-site-id="YOUR_SITE_ID" defer></script>`;
+const EMBED = `<script src="https://YOUR-AUTUMIC-HOST/assistant.js" data-site-id="YOUR_SITE_ID" defer></script>`;
 
 const DOCS: Doc[] = [
   {
@@ -38,7 +38,7 @@ const DOCS: Doc[] = [
       "Getting started",
       [
         "Create a client account from Get Started. Your account holds your orders, active automations, payments and profile.",
-        "Each AntheticPlus system is sold separately. Start with the one covering the moment you lose the most customers, and add more later from your dashboard.",
+        "Each Autumic system is sold separately. Start with the one covering the moment you lose the most customers, and add more later from your dashboard.",
       ],
     ],
     bn: [

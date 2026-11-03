@@ -17,15 +17,15 @@ import { adminListAutomations } from "@/lib/admin-data.functions";
 export const Route = createFileRoute("/_authenticated/admin/transcripts")({
   head: () => ({
     meta: [
-      { title: "Admin Transcripts — AntheticPlus Studios" },
+      { title: "Admin Transcripts — Autumic" },
       {
         name: "description",
-        content: "Admin Transcripts in the AntheticPlus AI automation platform.",
+        content: "Admin Transcripts in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Transcripts — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Transcripts — Autumic" },
       {
         property: "og:description",
-        content: "Admin Transcripts in the AntheticPlus AI automation platform.",
+        content: "Admin Transcripts in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

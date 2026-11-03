@@ -4,15 +4,15 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 export const Route = createFileRoute("/_authenticated/admin/llm-keys")({
   head: () => ({
     meta: [
-      { title: "Admin Llm Keys — AntheticPlus Studios" },
+      { title: "Admin Llm Keys — Autumic" },
       {
         name: "description",
-        content: "Admin Llm Keys in the AntheticPlus AI automation platform.",
+        content: "Admin Llm Keys in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Llm Keys — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Llm Keys — Autumic" },
       {
         property: "og:description",
-        content: "Admin Llm Keys in the AntheticPlus AI automation platform.",
+        content: "Admin Llm Keys in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -24,16 +24,16 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
     meta: [
       {
         name: "description",
-        content: "Admin Settings in the AntheticPlus AI automation platform.",
+        content: "Admin Settings in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Settings — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Settings — Autumic" },
       {
         property: "og:description",
-        content: "Admin Settings in the AntheticPlus AI automation platform.",
+        content: "Admin Settings in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "System Settings — AntheticPlus Control Center" },
+      { title: "System Settings — Autumic Control Center" },
     ],
   }),
   component: SettingsPage,

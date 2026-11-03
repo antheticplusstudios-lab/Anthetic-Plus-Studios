@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', case_sensitive=False, extra='ignore')
     environment: str = 'production'
-    cors_allowed_origins: str = 'https://anthetic-plus-studios.vercel.app'
+    cors_allowed_origins: str = 'https://autumic.com,https://www.autumic.com,https://anthetic-plus-studios.vercel.app'
     cors_dev_origins: str = ''
     cors_allow_credentials: bool = False
     fastapi_port: int = 8000
@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     db4_service_key: str
     redis_url: str = 'redis://localhost:6379/0'
     allowed_widget_hosts: str = ''
+    autumic_db3_master_key: str | None = None
+    # Backward-compatible alias for existing encrypted provider-key deployments.
     antheticplus_db3_master_key: str | None = None
 
 settings = Settings()

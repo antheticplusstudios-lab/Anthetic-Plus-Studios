@@ -15,16 +15,16 @@ export const Route = createFileRoute("/_authenticated/admin/emergency")({
     meta: [
       {
         name: "description",
-        content: "Admin Emergency in the AntheticPlus AI automation platform.",
+        content: "Admin Emergency in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Emergency — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Emergency — Autumic" },
       {
         property: "og:description",
-        content: "Admin Emergency in the AntheticPlus AI automation platform.",
+        content: "Admin Emergency in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "Emergency Controls — AntheticPlus Control Center" },
+      { title: "Emergency Controls — Autumic Control Center" },
     ],
   }),
   component: EmergencyPage,

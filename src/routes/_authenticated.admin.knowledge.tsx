@@ -16,15 +16,15 @@ import { scrapeUrl } from "@/lib/improvements.functions";
 export const Route = createFileRoute("/_authenticated/admin/knowledge")({
   head: () => ({
     meta: [
-      { property: "og:title", content: "Admin Knowledge — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Knowledge — Autumic" },
       {
         property: "og:description",
-        content: "Admin Knowledge in the AntheticPlus AI automation platform.",
+        content: "Admin Knowledge in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
 
-      { title: "Knowledge Drafts — AntheticPlus Control Center" },
+      { title: "Knowledge Drafts — Autumic Control Center" },
       {
         name: "description",
         content: "Turn client website content into an AI receptionist knowledge base.",

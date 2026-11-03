@@ -17,12 +17,12 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/pricing")({
   head: () => ({
     meta: [
-      { title: "Admin Pricing — AntheticPlus Studios" },
-      { name: "description", content: "Admin Pricing in the AntheticPlus AI automation platform." },
-      { property: "og:title", content: "Admin Pricing — AntheticPlus Studios" },
+      { title: "Admin Pricing — Autumic" },
+      { name: "description", content: "Admin Pricing in the Autumic AI automation platform." },
+      { property: "og:title", content: "Admin Pricing — Autumic" },
       {
         property: "og:description",
-        content: "Admin Pricing in the AntheticPlus AI automation platform.",
+        content: "Admin Pricing in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

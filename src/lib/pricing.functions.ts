@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { db2Admin } from "@/server/db/clients.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type LivePlan = {
   slug: string;
@@ -10,9 +11,10 @@ export type LivePlan = {
   listed?: boolean;
 };
 
-export const getLivePricing = createServerFn({ method: "GET" }).handler(
-  async (): Promise<LivePlan[]> => {
-    // Public storefront: if the billing database is unreachable or unconfigured, fall back to catalog prices instead of crashing the page.
+export const getLivePricing = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async (): Promise<LivePlan[]> => {
+    // Authenticated checkout only: public pages never receive private plan prices.
     try {
       const { data, error } = await db2Admin
         .from("pricing_plans")
@@ -28,10 +30,9 @@ export const getLivePricing = createServerFn({ method: "GET" }).handler(
       }));
     } catch (err) {
       console.warn(
-        "[pricing] live pricing unavailable, using catalog fallback:",
+        "[pricing] live pricing unavailable; checkout requires an active database plan:",
         err instanceof Error ? err.message : err,
       );
       return [];
     }
-  },
-);
+  });

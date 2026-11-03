@@ -6,17 +6,16 @@ export const Route = createFileRoute("/_authenticated/admin/automations/lead-cap
     meta: [
       {
         property: "og:title",
-        content: "Admin Automations Lead Capture Qualifier — AntheticPlus Studios",
+        content: "Admin Automations Lead Capture Qualifier — Autumic",
       },
       {
         property: "og:description",
-        content:
-          "Admin Automations Lead Capture Qualifier in the AntheticPlus AI automation platform.",
+        content: "Admin Automations Lead Capture Qualifier in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
 
-      { title: "lead-capture-qualifier control room — AntheticPlus" },
+      { title: "lead-capture-qualifier control room — Autumic" },
       {
         name: "description",
         content: "Deployments, configuration, provider pool, executions and health.",

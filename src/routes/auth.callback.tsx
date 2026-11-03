@@ -5,12 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/auth/callback")({
   head: () => ({
     meta: [
-      { title: "Auth Callback — AntheticPlus Studios" },
-      { name: "description", content: "Auth Callback in the AntheticPlus AI automation platform." },
-      { property: "og:title", content: "Auth Callback — AntheticPlus Studios" },
+      { title: "Auth Callback — Autumic" },
+      { name: "description", content: "Auth Callback in the Autumic AI automation platform." },
+      { property: "og:title", content: "Auth Callback — Autumic" },
       {
         property: "og:description",
-        content: "Auth Callback in the AntheticPlus AI automation platform.",
+        content: "Auth Callback in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

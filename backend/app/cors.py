@@ -18,7 +18,7 @@ from starlette.responses import PlainTextResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 ALLOWED_METHODS = ('GET', 'POST', 'OPTIONS')
-ALLOWED_HEADERS = ('authorization', 'content-type', 'x-request-id', 'x-widget-token')
+ALLOWED_HEADERS = ('authorization', 'content-type', 'x-request-id', 'x-widget-token', 'x-antheticplus-timestamp', 'x-antheticplus-signature', 'x-antheticplus-event-id')
 EXPOSE_HEADERS = ('X-Request-ID',)
 WIDGET_PREFIX = '/v1/widget/'
 MAX_AGE = '600'

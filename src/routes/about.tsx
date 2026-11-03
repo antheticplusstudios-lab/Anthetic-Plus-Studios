@@ -16,13 +16,13 @@ import { useT } from "@/lib/i18n";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — AntheticPlus Studios" },
+      { title: "About — Autumic" },
       {
         name: "description",
         content:
-          "AntheticPlus Studios builds focused AI systems that answer, qualify, support and route — monitored, domain-locked and handed to a person when needed.",
+          "Autumic builds focused AI systems that answer, qualify, support and route — monitored, domain-locked and handed to a person when needed.",
       },
-      { property: "og:title", content: "About AntheticPlus Studios" },
+      { property: "og:title", content: "About Autumic" },
       {
         property: "og:description",
         content: "Why we build AI front-office systems, and the principles every system follows.",
@@ -96,8 +96,8 @@ function About() {
           "আমরা এমন AI বানাই যা সত্যিই আপনার ব্যবসার একটি অংশ চালায়।",
         )}
         lead={t(
-          "AntheticPlus Studios was founded by Smyight to give growing businesses a front office that never sleeps. Instead of a generic chatbot, we install focused systems — each configured for one job, monitored while it runs, and handing off to your team when a person is needed.",
-          "AntheticPlus Studios প্রতিষ্ঠা করেছেন Smyight, যাতে বাড়তে থাকা ব্যবসাগুলো এমন একটি ফ্রন্ট অফিস পায় যা কখনো ঘুমায় না। সাধারণ চ্যাটবটের বদলে আমরা নির্দিষ্ট সিস্টেম ইনস্টল করি — প্রতিটি একটি কাজের জন্য কনফিগার করা, চলার সময় মনিটর করা এবং প্রয়োজনে আপনার টিমে হস্তান্তর করা।",
+          "Autumic is an AI automation company helping businesses automate customer communication, sales and repetitive workflows. We work closely with local businesses, deliver practical solutions quickly, and build custom automations when a business needs something specific.",
+          "Autumic একটি AI অটোমেশন কোম্পানি, যা ব্যবসার গ্রাহক যোগাযোগ, বিক্রয় এবং পুনরাবৃত্ত কাজ স্বয়ংক্রিয় করতে সহায়তা করে। আমরা স্থানীয় ব্যবসার সঙ্গে ঘনিষ্ঠভাবে কাজ করি, দ্রুত বাস্তবসম্মত সমাধান দিই এবং প্রয়োজনে কাস্টম অটোমেশন তৈরি করি।",
         )}
       />
 
@@ -105,9 +105,12 @@ function About() {
         <div className="container-page grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
           <SectionHead
             eyebrow={t("Mission", "লক্ষ্য")}
-            title={t("No customer left waiting.", "কোনো গ্রাহককে অপেক্ষা করতে হবে না।")}
+            title={t(
+              "Make every enquiry easier to handle.",
+              "প্রতিটি গ্রাহক-জিজ্ঞাসা সামলানো সহজ করুন।",
+            )}
             lead={t(
-              "Missed calls, unanswered DMs and slow support replies quietly cost businesses every day. Our mission is to make sure every customer gets a fast, accurate answer — in their own language — while your team focuses on the work only people can do.",
+              "Missed calls, unanswered messages and repetitive support tasks can slow a business down. Our mission is to help teams handle common enquiries more consistently, connect everyday workflows and give people more time for work that needs a human touch.",
               "মিস কল, অনুত্তরিত ডিএম আর ধীর সাপোর্ট প্রতিদিন নীরবে ব্যবসার ক্ষতি করে। আমাদের লক্ষ্য — প্রতিটি গ্রাহক যেন নিজের ভাষায় দ্রুত ও সঠিক উত্তর পান, আর আপনার টিম সেই কাজে মন দিতে পারে যা শুধু মানুষই পারে।",
             )}
           />
@@ -129,8 +132,8 @@ function About() {
             [
               t("What we build", "আমরা কী বানাই"),
               t(
-                "Voice & SMS reception, lead qualification, knowledge-base support and social messaging assistants.",
-                "ভয়েস ও এসএমএস রিসেপশন, লিড যাচাই, নলেজ-বেস সাপোর্ট এবং সোশ্যাল মেসেজিং অ্যাসিস্ট্যান্ট।",
+                "AI Receptionist, Workflow Automation, AI Sales Agent and AI Chatbot — plus custom WhatsApp, lead follow-up and business workflows.",
+                "AI রিসেপশনিস্ট, ওয়ার্কফ্লো অটোমেশন, AI সেলস এজেন্ট ও AI চ্যাটবট — সাথে কাস্টম WhatsApp, লিড ফলো-আপ ও ব্যবসায়িক ওয়ার্কফ্লো।",
               ),
             ],
             [
@@ -143,8 +146,8 @@ function About() {
             [
               t("Who we serve", "আমরা কাদের সেবা দিই"),
               t(
-                "Clinics, home services, agencies, SaaS teams, ecommerce and hospitality businesses.",
-                "ক্লিনিক, হোম সার্ভিস, এজেন্সি, SaaS টিম, ইকমার্স ও হসপিটালিটি ব্যবসা।",
+                "Real estate, healthcare, ecommerce, education, hotels, finance and professional services.",
+                "রিয়েল এস্টেট, স্বাস্থ্যসেবা, ই-কমার্স, শিক্ষা, হোটেল, অর্থনীতি ও পেশাদার সেবা খাত।",
               ),
             ],
           ].map(([h, b]) => (
@@ -169,11 +172,11 @@ function About() {
             <div className="flex flex-wrap gap-3">
               <Button variant="hero" size="xl" asChild>
                 <Link to="/contact">
-                  {t("Contact us", "যোগাযোগ করুন")} <ArrowRight />
+                  {t("Book a free consultation", "বিনামূল্যে পরামর্শ নিন")} <ArrowRight />
                 </Link>
               </Button>
               <Button variant="pill" size="xl" asChild>
-                <a href="mailto:antheticplusstudios@gmail.com">
+                <a href="mailto:info@autumic.com">
                   <Mail /> {t("Email", "ইমেইল")}
                 </a>
               </Button>

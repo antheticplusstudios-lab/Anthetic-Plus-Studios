@@ -6,17 +6,16 @@ export const Route = createFileRoute("/_authenticated/admin/automations/knowledg
     meta: [
       {
         property: "og:title",
-        content: "Admin Automations Knowledge Base Support — AntheticPlus Studios",
+        content: "Admin Automations Knowledge Base Support — Autumic",
       },
       {
         property: "og:description",
-        content:
-          "Admin Automations Knowledge Base Support in the AntheticPlus AI automation platform.",
+        content: "Admin Automations Knowledge Base Support in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
 
-      { title: "knowledge-base-support control room — AntheticPlus" },
+      { title: "knowledge-base-support control room — Autumic" },
       {
         name: "description",
         content: "Deployments, configuration, provider pool, executions and health.",

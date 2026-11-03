@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated")({
   head: () => ({
     meta: [
-      { title: "Route — AntheticPlus Studios" },
-      { name: "description", content: "Route in the AntheticPlus AI automation platform." },
-      { property: "og:title", content: "Route — AntheticPlus Studios" },
-      { property: "og:description", content: "Route in the AntheticPlus AI automation platform." },
+      { title: "Route — Autumic" },
+      { name: "description", content: "Route in the Autumic AI automation platform." },
+      { property: "og:title", content: "Route — Autumic" },
+      { property: "og:description", content: "Route in the Autumic AI automation platform." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

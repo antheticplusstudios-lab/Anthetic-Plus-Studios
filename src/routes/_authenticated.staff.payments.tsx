@@ -7,9 +7,9 @@ import { demoPayments } from "@/lib/automations";
 export const Route = createFileRoute("/_authenticated/staff/payments")({
   head: () => ({
     meta: [
-      { title: "Payment Verifier — AntheticPlus Studios" },
+      { title: "Payment Verifier — Autumic" },
       { name: "description", content: "Review pending manual payment submissions." },
-      { property: "og:title", content: "AntheticPlus Payment Verifier" },
+      { property: "og:title", content: "Autumic Payment Verifier" },
       { property: "og:description", content: "Staff workspace for payment approvals." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

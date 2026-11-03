@@ -3,12 +3,12 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 export const Route = createFileRoute("/_authenticated/admin/suite/")({
   head: () => ({
     meta: [
-      { title: "Admin Suite — AntheticPlus Studios" },
-      { name: "description", content: "Admin Suite in the AntheticPlus AI automation platform." },
-      { property: "og:title", content: "Admin Suite — AntheticPlus Studios" },
+      { title: "Admin Suite — Autumic" },
+      { name: "description", content: "Admin Suite in the Autumic AI automation platform." },
+      { property: "og:title", content: "Admin Suite — Autumic" },
       {
         property: "og:description",
-        content: "Admin Suite in the AntheticPlus AI automation platform.",
+        content: "Admin Suite in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -18,16 +18,16 @@ export const Route = createFileRoute("/_authenticated/admin/diagnostics")({
     meta: [
       {
         name: "description",
-        content: "Admin Diagnostics in the AntheticPlus AI automation platform.",
+        content: "Admin Diagnostics in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Diagnostics — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Diagnostics — Autumic" },
       {
         property: "og:description",
-        content: "Admin Diagnostics in the AntheticPlus AI automation platform.",
+        content: "Admin Diagnostics in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "Conversation Diagnostics — AntheticPlus" },
+      { title: "Conversation Diagnostics — Autumic" },
     ],
   }),
   component: DiagnosticsPage,

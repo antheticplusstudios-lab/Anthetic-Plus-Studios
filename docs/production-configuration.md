@@ -1,4 +1,4 @@
-# AntheticPlus Studios — Production Configuration Recovery
+# Autumic — Production Configuration Reference
 
 This runbook separates code fixes from deployment-secret configuration. Never commit a real `.env` file or place a Supabase service-role/secret key in any `VITE_*` variable.
 
@@ -6,12 +6,12 @@ This runbook separates code fixes from deployment-secret configuration. Never co
 
 The connected Supabase accounts previously exposed the four expected production projects:
 
-| App database | Supabase project | Project ref | Region |
-|---|---|---|---|
-| DB1 / `app_auth` | `antheticplus-auth-prod` | `dedmsffcvpchzywiggmg` | Tokyo (`ap-northeast-1`) |
+| App database        | Supabase project            | Project ref            | Region                   |
+| ------------------- | --------------------------- | ---------------------- | ------------------------ |
+| DB1 / `app_auth`    | `antheticplus-auth-prod`    | `dedmsffcvpchzywiggmg` | Tokyo (`ap-northeast-1`) |
 | DB2 / `app_billing` | `antheticplus-billing-prod` | `zecusgollvmtzufzmehv` | Tokyo (`ap-northeast-1`) |
-| DB3 / `app_ai` | `antheticplus-ai-prod` | `lktejvslktfazbqitoaq` | Mumbai (`ap-south-1`) |
-| DB4 / `app_crm` | `antheticplus-crm-prod` | `iztbylxqvvrhsyislqlk` | Tokyo (`ap-northeast-1`) |
+| DB3 / `app_ai`      | `antheticplus-ai-prod`      | `lktejvslktfazbqitoaq` | Mumbai (`ap-south-1`)    |
+| DB4 / `app_crm`     | `antheticplus-crm-prod`     | `iztbylxqvvrhsyislqlk` | Tokyo (`ap-northeast-1`) |
 
 The DB4 project already existed and had the CRM/workflow schema when inspected. Do not create a duplicate project or blindly rerun bootstrap SQL. Project/schema existence does not prove the deployed app has correct environment variables or that every worker has been exercised end-to-end.
 
@@ -21,7 +21,7 @@ Configure these in the hosting platform's server/build environment according to 
 
 - `DB1_URL`, `DB1_SERVICE_KEY`, `DB1_ANON_KEY`
 - `DB2_URL`, `DB2_SERVICE_KEY`
-- `DB3_URL`, `DB3_SERVICE_KEY`, `ANTHETICPLUS_DB3_MASTER_KEY`
+- `DB3_URL`, `DB3_SERVICE_KEY`, `AUTUMIC_DB3_MASTER_KEY` (legacy `ANTHETICPLUS_DB3_MASTER_KEY` remains supported during migration)
 - `DB4_URL`, `DB4_SERVICE_KEY`
 
 Retrieve service-role/secret keys from the matching Supabase project dashboard. Keep them server-only. Never paste them into chat, source code, issues, or `VITE_*` variables.

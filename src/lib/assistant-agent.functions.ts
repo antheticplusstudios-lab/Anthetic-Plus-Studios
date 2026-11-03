@@ -1,6 +1,6 @@
 /**
  * Server entry points for the unified assistant (text + voice) on this app.
- * First-party pages always use the AntheticPlus site context; the browser
+ * First-party pages always use the Autumic site context; the browser
  * cannot choose another site here.
  */
 import { createServerFn } from "@tanstack/react-start";

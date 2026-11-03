@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   BadgeCheck,
@@ -13,7 +12,6 @@ import {
   Timer,
   Wallet,
 } from "lucide-react";
-import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
@@ -23,8 +21,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { livePricingQueryOptions, storefrontItems } from "@/lib/pricing";
-import { money } from "@/components/admin-ui";
 import { Reveal } from "@/components/motion";
 import { HomeHero } from "@/components/home/home-hero";
 import { useT } from "@/lib/i18n";
@@ -36,20 +32,19 @@ import {
 } from "@/components/home/front-office";
 
 export const Route = createFileRoute("/")({
-  loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(livePricingQueryOptions),
   head: () => ({
     meta: [
-      { title: "AntheticPlus Studios — Build. Automate. Grow." },
+      { title: "Autumic — Build To Automate." },
       {
         name: "description",
         content:
-          "AI assistants, multilingual voice experiences and workflow automation that help teams work smarter and scale with confidence.",
+          "AI Receptionist, Workflow Automation, AI Sales Agent and AI Chatbot solutions that help businesses serve customers, grow sales and automate operations.",
       },
-      { property: "og:title", content: "AntheticPlus Studios — Build. Automate. Grow." },
+      { property: "og:title", content: "Autumic — Build. Automate. Grow." },
       {
         property: "og:description",
         content:
-          "Intelligent AI assistants, multilingual voice and workflow automation — on your domain, monitored, with human handoff.",
+          "Practical AI automation for customer communication, sales and business operations — built around your workflows.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -155,10 +150,6 @@ function Index() {
     },
   ];
 
-  const { data: plans } = useSuspenseQuery(livePricingQueryOptions);
-  const items = storefrontItems(plans);
-  const [yearly, setYearly] = useState(false);
-
   // Facts only: each value is a property of the platform itself, not a customer count.
   const metrics = [
     {
@@ -173,7 +164,7 @@ function Index() {
     },
     {
       icon: Layers,
-      value: String(items.length),
+      value: "4",
       label: t("Systems available now", "এখন উপলব্ধ সিস্টেম"),
     },
     {
@@ -208,99 +199,31 @@ function Index() {
         <JourneySection />
         <WhyAnthetic />
 
-        {/* Pricing preview */}
+        {/* Product discovery CTA: product pages lead to authenticated, live-price checkout. */}
         <section id="automations" className="glow-blend py-20 sm:py-28">
           <div className="container-page">
-            <Reveal className="flex flex-wrap items-end justify-between gap-6">
+            <Reveal className="flex flex-col items-start justify-between gap-6 rounded-3xl border border-border bg-card p-8 shadow-soft sm:flex-row sm:items-center sm:p-10">
               <div className="max-w-2xl">
-                <span className="eyebrow">{t("Pricing", "মূল্য")}</span>
+                <span className="eyebrow">{t("Choose your system", "আপনার সিস্টেম বেছে নিন")}</span>
                 <h2 className="h-section mt-4">
-                  {t("Pick the moment you want covered.", "কোন মুহূর্তটি কভার করতে চান বেছে নিন।")}
+                  {t(
+                    "Four focused automations. Each with its own product page and checkout.",
+                    "চারটি নির্দিষ্ট অটোমেশন। প্রতিটির আলাদা প্রোডাক্ট পেজ ও চেকআউট রয়েছে।",
+                  )}
                 </h2>
                 <p className="lead mt-4">
                   {t(
-                    "Each system runs on its own subscription, so you start with the one costing you the most today.",
-                    "প্রতিটি সিস্টেম আলাদা সাবস্ক্রিপশনে চলে, তাই আজ যেটিতে সবচেয়ে বেশি ক্ষতি হচ্ছে সেটি দিয়েই শুরু করুন।",
+                    "Explore each solution, review what it handles, then continue to secure checkout. Live pricing is shown after sign-in.",
+                    "প্রতিটি সমাধান দেখুন, কী কী কাজ করে জানুন, তারপর নিরাপদ চেকআউটে যান। সাইন ইন করার পর লাইভ মূল্য দেখানো হবে।",
                   )}
                 </p>
               </div>
-              <div
-                className="grid grid-cols-2 rounded-full border border-border bg-card p-1 shadow-soft"
-                role="group"
-                aria-label={t("Billing interval", "বিলিং সময়কাল")}
-              >
-                <Button
-                  variant={!yearly ? "hero" : "ghost"}
-                  size="sm"
-                  className="rounded-full"
-                  aria-pressed={!yearly}
-                  onClick={() => setYearly(false)}
-                >
-                  {t("Monthly", "মাসিক")}
-                </Button>
-                <Button
-                  variant={yearly ? "hero" : "ghost"}
-                  size="sm"
-                  className="rounded-full"
-                  aria-pressed={yearly}
-                  onClick={() => setYearly(true)}
-                >
-                  {t("Yearly · save more", "বার্ষিক · বেশি সাশ্রয়")}
-                </Button>
-              </div>
+              <Button size="lg" className="shrink-0" asChild>
+                <Link to="/automations">
+                  {t("Explore all products", "সব প্রোডাক্ট দেখুন")} <ArrowRight />
+                </Link>
+              </Button>
             </Reveal>
-
-            <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {items.map((item) => (
-                <article key={item.slug} className="surface-card lift flex flex-col p-6">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-accent text-primary">
-                      <item.icon className="h-6 w-6" />
-                    </div>
-                    <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-secondary-foreground">
-                      {item.badge}
-                    </span>
-                  </div>
-                  <h3 className="mt-6 text-xl font-extrabold tracking-tight">{item.name}</h3>
-                  <p className="mt-2 text-sm leading-6 text-body">{item.description}</p>
-                  <ul className="mt-5 space-y-2 text-sm text-body">
-                    {item.features.slice(0, 3).map((feature) => (
-                      <li key={feature} className="flex gap-2">
-                        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-auto flex items-end justify-between gap-3 border-t border-border pt-5">
-                    <div>
-                      <span className="text-2xl font-extrabold tabular-nums text-foreground">
-                        {money(item.monthlyOf(yearly))}
-                      </span>
-                      <span className="text-sm text-muted-foreground">/mo</span>
-                      {yearly && (
-                        <p className="text-xs text-muted-foreground">
-                          {money(item.yearlyPrice)} {t("billed yearly", "বার্ষিক বিল")}
-                        </p>
-                      )}
-                    </div>
-                    <Button variant="outline" asChild>
-                      <Link to="/automations/$slug" params={{ slug: item.slug }}>
-                        {t("Details", "বিস্তারিত")} <ArrowRight />
-                      </Link>
-                    </Button>
-                  </div>
-                </article>
-              ))}
-            </div>
-            <p className="mt-6 text-sm text-muted-foreground">
-              {t(
-                "Prices are read live from the AntheticPlus price matrix — the same table our team edits, so what you see is what you are billed.",
-                "মূল্য সরাসরি AntheticPlus প্রাইস ম্যাট্রিক্স থেকে আসে — আমাদের টিম যে টেবিল সম্পাদনা করে, তাই যা দেখছেন তা-ই বিল হবে।",
-              )}{" "}
-              <Link to="/checkout" className="font-semibold text-primary hover:underline">
-                {t("See full pricing", "সম্পূর্ণ মূল্য দেখুন")}
-              </Link>
-            </p>
           </div>
         </section>
 
@@ -337,7 +260,7 @@ function Index() {
         <section className="py-20 sm:py-28">
           <div className="container-page grid gap-12 lg:grid-cols-[.9fr_1.1fr]">
             <Reveal>
-              <span className="eyebrow">{t("Why AntheticPlus", "কেন AntheticPlus")}</span>
+              <span className="eyebrow">{t("Why Autumic", "কেন Autumic")}</span>
               <h2 className="h-section mt-4">
                 {t("Automation you can actually audit.", "এমন অটোমেশন যা সত্যিই যাচাই করা যায়।")}
               </h2>

@@ -18,7 +18,7 @@ type Job = {
 };
 
 const SITES = [
-  { id: "site:antheticplus", label: "AntheticPlus website assistant" },
+  { id: "site:antheticplus", label: "Autumic website assistant" },
   { id: "site:ny-partners", label: "Partner (Autumic) website assistant" },
 ];
 

@@ -10,16 +10,16 @@ export const Route = createFileRoute("/_authenticated/dashboard/orders")({
     meta: [
       {
         name: "description",
-        content: "Dashboard Orders in the AntheticPlus AI automation platform.",
+        content: "Dashboard Orders in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Dashboard Orders — AntheticPlus Studios" },
+      { property: "og:title", content: "Dashboard Orders — Autumic" },
       {
         property: "og:description",
-        content: "Dashboard Orders in the AntheticPlus AI automation platform.",
+        content: "Dashboard Orders in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { title: "My Orders — AntheticPlus" },
+      { title: "My Orders — Autumic" },
     ],
   }),
   component: OrdersPage,

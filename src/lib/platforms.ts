@@ -2,7 +2,7 @@
 export type Platform = "antheticplus" | "autumic" | "other";
 
 export const PLATFORM_LABEL: Record<Platform, string> = {
-  antheticplus: "AntheticPlus",
+  antheticplus: "Autumic",
   autumic: "Autumic",
   other: "Other",
 };

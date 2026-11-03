@@ -11,15 +11,15 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/lifecycle")({
   head: () => ({
     meta: [
-      { title: "Admin Lifecycle — AntheticPlus Studios" },
+      { title: "Admin Lifecycle — Autumic" },
       {
         name: "description",
-        content: "Admin Lifecycle in the AntheticPlus AI automation platform.",
+        content: "Admin Lifecycle in the Autumic AI automation platform.",
       },
-      { property: "og:title", content: "Admin Lifecycle — AntheticPlus Studios" },
+      { property: "og:title", content: "Admin Lifecycle — Autumic" },
       {
         property: "og:description",
-        content: "Admin Lifecycle in the AntheticPlus AI automation platform.",
+        content: "Admin Lifecycle in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
