@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { StatusPill, money, shortDate } from "@/components/admin-ui";
 import { useMyPayments, useInstances } from "@/hooks/use-portal";
-import { AUTOMATION_LABEL } from "@/lib/catalog-v2";
+import { automations } from "@/lib/automations";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
   head: () => ({
@@ -48,26 +49,7 @@ function OrdersPage() {
             Track payment verification and open your live automations.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link
-              to="/checkout/$slug"
-              params={{ slug: "social-dm-assistant" }}
-              search={{ plan: "monthly" }}
-            >
-              Order Social DM Assistant
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link
-              to="/checkout/$slug"
-              params={{ slug: "voice-sms-receptionist" }}
-              search={{ plan: "monthly" }}
-            >
-              Order Voice Receptionist
-            </Link>
-          </Button>
-        </div>
+        <Button asChild><Link to="/automations">Explore all solutions <ArrowRight /></Link></Button>
       </div>
       <div className="grid gap-3">
         {orders.map((o) => {
