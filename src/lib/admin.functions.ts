@@ -47,7 +47,6 @@ export const reviewPayment = createServerFn({ method: "POST" })
         .update({
           status: "verified",
           verified_by: context.userId,
-          verified_by_user_id: context.userId,
           verified_at: new Date().toISOString(),
         })
         .eq("id", order.id);
