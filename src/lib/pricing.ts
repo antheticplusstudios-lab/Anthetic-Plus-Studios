@@ -64,7 +64,9 @@ export function withLivePricing(plans: LivePlan[] | undefined): PricedAutomation
 }
 
 export function findPriced(slug: string, plans: LivePlan[] | undefined) {
-  const livePlan = plans?.find((plan) => plan.slug === slug && plan.active && plan.listed !== false);
+  const livePlan = plans?.find(
+    (plan) => plan.slug === slug && plan.active && plan.listed !== false,
+  );
   if (!livePlan) return undefined;
   return withLivePricing([livePlan]).find((item) => item.slug === slug);
 }

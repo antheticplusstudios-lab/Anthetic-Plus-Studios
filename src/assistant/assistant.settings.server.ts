@@ -46,15 +46,30 @@ export async function loadAssistantSettings(): Promise<AssistantSettings> {
     voiceEnabled: v["voiceEnabled"] !== false,
     accountContextEnabled: v["accountContextEnabled"] !== false,
     emailActionsEnabled: v["emailActionsEnabled"] !== false,
-    welcomeMessage: String(v["welcomeMessage"] ?? DEFAULT_WELCOME).replace(/AntheticPlus/gi, "Autumic").replace(/antheticplusstudios@gmail.com/gi, "info@autumic.com")
-      .replace(/AI Voice & SMS Receptionist/gi, "AI Receptionist")
-      .replace(/AI Lead Capture & Smart Qualifier/gi, "AI Sales Agent")
-      .replace(/AI Knowledge Base Support Agent/gi, "AI Customer Support Agent")
-      .replace(/AI Social DM & Messaging Assistant/gi, "AI Chatbot").slice(0, 600) || DEFAULT_WELCOME,
-    persona: String(v["systemPrompt"] ?? "").replace(/AntheticPlus/gi, "Autumic").replace(/antheticplusstudios@gmail.com/gi, "info@autumic.com").slice(0, 8000),
-    publicContext: String(v["publicContext"] ?? DEFAULT_PUBLIC_CONTEXT).replace(/AntheticPlus/gi, "Autumic").replace(/antheticplusstudios@gmail.com/gi, "info@autumic.com")
-      .replace(/Autumic Studios builds focused AI workforce systems for growing businesses\./gi, "Autumic is an AI automation company serving Bangladesh and international markets.")
-      .replace(/Visitors can explore automation products, create an account and order an automation; payment is manually verified\./gi, "Packages are custom-scoped; public fixed pricing is not available. Visitors can book a free consultation at /contact.")
+    welcomeMessage:
+      String(v["welcomeMessage"] ?? DEFAULT_WELCOME)
+        .replace(/AntheticPlus/gi, "Autumic")
+        .replace(/antheticplusstudios@gmail.com/gi, "info@autumic.com")
+        .replace(/AI Voice & SMS Receptionist/gi, "AI Receptionist")
+        .replace(/AI Lead Capture & Smart Qualifier/gi, "AI Sales Agent")
+        .replace(/AI Knowledge Base Support Agent/gi, "AI Customer Support Agent")
+        .replace(/AI Social DM & Messaging Assistant/gi, "AI Chatbot")
+        .slice(0, 600) || DEFAULT_WELCOME,
+    persona: String(v["systemPrompt"] ?? "")
+      .replace(/AntheticPlus/gi, "Autumic")
+      .replace(/antheticplusstudios@gmail.com/gi, "info@autumic.com")
+      .slice(0, 8000),
+    publicContext: String(v["publicContext"] ?? DEFAULT_PUBLIC_CONTEXT)
+      .replace(/AntheticPlus/gi, "Autumic")
+      .replace(/antheticplusstudios@gmail.com/gi, "info@autumic.com")
+      .replace(
+        /Autumic Studios builds focused AI workforce systems for growing businesses\./gi,
+        "Autumic is an AI automation company serving Bangladesh and international markets.",
+      )
+      .replace(
+        /Visitors can explore automation products, create an account and order an automation; payment is manually verified\./gi,
+        "Packages are custom-scoped; public fixed pricing is not available. Visitors can book a free consultation at /contact.",
+      )
       .slice(0, 24000),
     announcement: String(v["announcement"] ?? "").slice(0, 4000),
     temperature: num(v["temperature"], 0.05, 1, 0.2),

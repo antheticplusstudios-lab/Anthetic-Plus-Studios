@@ -6,10 +6,14 @@ export const contributorSchema = z.object({
   title: z.string().trim().min(2).max(80),
   badge: z.string().trim().max(40).default(""),
   description: z.string().trim().min(10).max(800),
-  imageUrl: z.string().url().max(1000).refine(
-    (value) => /^https:\/\/i\.ibb\.co\//i.test(value),
-    "Use a direct imgbb image URL from i.ibb.co.",
-  ),
+  imageUrl: z
+    .string()
+    .url()
+    .max(1000)
+    .refine(
+      (value) => /^https:\/\/i\.ibb\.co\//i.test(value),
+      "Use a direct imgbb image URL from i.ibb.co.",
+    ),
   sortOrder: z.number().int().min(0).max(10000).default(0),
   published: z.boolean().default(true),
 });

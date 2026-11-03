@@ -46,12 +46,16 @@ describe("product solutions rules", () => {
     ).toBe(false);
   });
   it("keeps all four automation products visible when the pricing database is offline", () => {
-    expect([...new Set(availableSolutions(DEFAULT_SOLUTIONS).map((item) => item.slug))].sort()).toEqual([
-      "voice-sms-receptionist",
-      "lead-capture-qualifier",
-      "knowledge-base-support",
-      "social-dm-assistant",
-    ].sort());
+    expect(
+      [...new Set(availableSolutions(DEFAULT_SOLUTIONS).map((item) => item.slug))].sort(),
+    ).toEqual(
+      [
+        "voice-sms-receptionist",
+        "lead-capture-qualifier",
+        "knowledge-base-support",
+        "social-dm-assistant",
+      ].sort(),
+    );
   });
   it("keeps all four catalog products visible regardless of pricing-plan flags", () => {
     const plans = [
@@ -60,11 +64,15 @@ describe("product solutions rules", () => {
       { slug: "lead-capture-qualifier", active: true, listed: true },
       { slug: "knowledge-base-support", active: false, listed: false },
     ];
-    expect([...new Set(availableSolutions(DEFAULT_SOLUTIONS, plans).map((item) => item.slug))].sort()).toEqual([
-      "voice-sms-receptionist",
-      "lead-capture-qualifier",
-      "knowledge-base-support",
-      "social-dm-assistant",
-    ].sort());
+    expect(
+      [...new Set(availableSolutions(DEFAULT_SOLUTIONS, plans).map((item) => item.slug))].sort(),
+    ).toEqual(
+      [
+        "voice-sms-receptionist",
+        "lead-capture-qualifier",
+        "knowledge-base-support",
+        "social-dm-assistant",
+      ].sort(),
+    );
   });
 });

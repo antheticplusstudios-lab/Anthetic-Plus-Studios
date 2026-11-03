@@ -6,12 +6,12 @@ This runbook separates code fixes from deployment-secret configuration. Never co
 
 The connected Supabase accounts previously exposed the four expected production projects:
 
-| App database | Supabase project | Project ref | Region |
-|---|---|---|---|
-| DB1 / `app_auth` | `antheticplus-auth-prod` | `dedmsffcvpchzywiggmg` | Tokyo (`ap-northeast-1`) |
+| App database        | Supabase project            | Project ref            | Region                   |
+| ------------------- | --------------------------- | ---------------------- | ------------------------ |
+| DB1 / `app_auth`    | `antheticplus-auth-prod`    | `dedmsffcvpchzywiggmg` | Tokyo (`ap-northeast-1`) |
 | DB2 / `app_billing` | `antheticplus-billing-prod` | `zecusgollvmtzufzmehv` | Tokyo (`ap-northeast-1`) |
-| DB3 / `app_ai` | `antheticplus-ai-prod` | `lktejvslktfazbqitoaq` | Mumbai (`ap-south-1`) |
-| DB4 / `app_crm` | `antheticplus-crm-prod` | `iztbylxqvvrhsyislqlk` | Tokyo (`ap-northeast-1`) |
+| DB3 / `app_ai`      | `antheticplus-ai-prod`      | `lktejvslktfazbqitoaq` | Mumbai (`ap-south-1`)    |
+| DB4 / `app_crm`     | `antheticplus-crm-prod`     | `iztbylxqvvrhsyislqlk` | Tokyo (`ap-northeast-1`) |
 
 The DB4 project already existed and had the CRM/workflow schema when inspected. Do not create a duplicate project or blindly rerun bootstrap SQL. Project/schema existence does not prove the deployed app has correct environment variables or that every worker has been exercised end-to-end.
 

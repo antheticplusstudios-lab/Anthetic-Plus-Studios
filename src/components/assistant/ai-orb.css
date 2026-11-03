@@ -44,7 +44,11 @@
   width: 50%;
   height: 7%;
   border-radius: 50%;
-  background: radial-gradient(closest-side, color-mix(in oklab, var(--primary), transparent 55%), transparent);
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--primary), transparent 55%),
+    transparent
+  );
   filter: blur(6px);
   transform: scaleX(calc(1 + var(--orb-level) * 0.08));
 }
@@ -95,7 +99,11 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--primary), white 35%), var(--primary));
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in oklab, var(--primary), white 35%),
+    var(--primary)
+  );
   box-shadow: 0 0 14px color-mix(in oklab, var(--primary), transparent 30%);
   transform: scaleY(3.4);
 }
@@ -105,7 +113,11 @@
   width: 10px;
   height: 10px;
   left: calc(50% - 5px);
-  background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--primary-foreground), white 20%), var(--primary-foreground));
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in oklab, var(--primary-foreground), white 20%),
+    var(--primary-foreground)
+  );
 }
 .ai-orb[data-state="success"] .ai-orb__spin {
   border-color: oklch(0.72 0.14 165 / 70%);
@@ -156,7 +168,11 @@
   inset: 0;
   border-radius: 50%;
   background:
-    radial-gradient(60% 60% at 30% 25%, color-mix(in oklab, var(--primary-foreground), transparent 30%), transparent 60%),
+    radial-gradient(
+      60% 60% at 30% 25%,
+      color-mix(in oklab, var(--primary-foreground), transparent 30%),
+      transparent 60%
+    ),
     radial-gradient(120% 120% at 35% 30%, var(--core-a) 0%, var(--core-b) 45%, var(--core-c) 100%);
   box-shadow:
     inset -14px -22px 40px color-mix(in oklab, var(--primary), black 65%),

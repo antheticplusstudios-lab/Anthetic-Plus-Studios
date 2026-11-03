@@ -25,7 +25,8 @@ export const Route = createFileRoute("/automations/$slug")({
       { property: "og:title", content: "AI Automation Solutions — Autumic" },
       {
         property: "og:description",
-        content: "Practical automation for customer communication, sales and repetitive business workflows.",
+        content:
+          "Practical automation for customer communication, sales and repetitive business workflows.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -152,16 +153,38 @@ function AutomationDetail() {
             {/* Custom proposal card */}
             <aside className="lg:sticky lg:top-24 lg:self-start">
               <div className="rounded-3xl border border-primary/20 bg-card p-6 shadow-xl">
-                <p className="text-sm font-bold text-primary">{t("Configured for your business", "আপনার ব্যবসার জন্য কনফিগার করা")}</p>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight">{t("A solution shaped around your workflow.", "আপনার কাজের ধরন অনুযায়ী সমাধান।")}</h2>
-                <p className="mt-3 text-sm leading-7 text-muted-foreground">{t("Autumic offers custom packages rather than a public fixed-price list. Tell us about your team, tools and goals, and we’ll prepare a proposal for your requirements.", "Autumic প্রকাশ্য নির্দিষ্ট মূল্যতালিকার বদলে কাস্টম প্যাকেজ দেয়। আপনার টিম, ব্যবহৃত টুল ও লক্ষ্য সম্পর্কে জানান, আমরা আপনার প্রয়োজন অনুযায়ী প্রস্তাব তৈরি করব।")}</p>
+                <p className="text-sm font-bold text-primary">
+                  {t("Configured for your business", "আপনার ব্যবসার জন্য কনফিগার করা")}
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+                  {t("A solution shaped around your workflow.", "আপনার কাজের ধরন অনুযায়ী সমাধান।")}
+                </h2>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                  {t(
+                    "Autumic offers custom packages rather than a public fixed-price list. Tell us about your team, tools and goals, and we’ll prepare a proposal for your requirements.",
+                    "Autumic প্রকাশ্য নির্দিষ্ট মূল্যতালিকার বদলে কাস্টম প্যাকেজ দেয়। আপনার টিম, ব্যবহৃত টুল ও লক্ষ্য সম্পর্কে জানান, আমরা আপনার প্রয়োজন অনুযায়ী প্রস্তাব তৈরি করব।",
+                  )}
+                </p>
                 <Button size="lg" className="mt-7 w-full" asChild>
-                  <Link to="/contact">{t("Request a free consultation", "বিনামূল্যে পরামর্শ নিন")} <ArrowRight /></Link>
+                  <Link to="/contact">
+                    {t("Request a free consultation", "বিনামূল্যে পরামর্শ নিন")} <ArrowRight />
+                  </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="mt-3 w-full" asChild>
-                  <Link to="/checkout/$slug" params={{ slug: item.slug }} search={{ plan: "monthly" }}>{t("Continue to secure checkout", "নিরাপদ চেকআউটে এগিয়ে যান")}</Link>
+                  <Link
+                    to="/checkout/$slug"
+                    params={{ slug: item.slug }}
+                    search={{ plan: "monthly" }}
+                  >
+                    {t("Continue to secure checkout", "নিরাপদ চেকআউটে এগিয়ে যান")}
+                  </Link>
                 </Button>
-                <p className="mt-4 text-xs leading-5 text-muted-foreground">{t("Custom integrations and implementation can be discussed when needed.", "প্রয়োজন হলে কাস্টম ইন্টিগ্রেশন ও বাস্তবায়ন নিয়েও আলোচনা করা যাবে।")}</p>
+                <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                  {t(
+                    "Custom integrations and implementation can be discussed when needed.",
+                    "প্রয়োজন হলে কাস্টম ইন্টিগ্রেশন ও বাস্তবায়ন নিয়েও আলোচনা করা যাবে।",
+                  )}
+                </p>
               </div>
             </aside>
           </div>

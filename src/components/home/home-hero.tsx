@@ -171,9 +171,7 @@ export function HomeHero() {
             <span className="h-1.5 w-1.5 rounded-full bg-success" />{" "}
             {t("AI automation company", "AI অটোমেশন কোম্পানি")}
           </span>
-          <h1 className="h-display mt-5">
-            {t("Build To Automate", "অটোমেশনের জন্য তৈরি")}
-          </h1>
+          <h1 className="h-display mt-5">{t("Build To Automate", "অটোমেশনের জন্য তৈরি")}</h1>
           <p className="lead mx-auto mt-5 max-w-lg lg:mx-0">
             {t(
               "We build AI employees that answer customers, generate sales and automate your operations 24/7.",
@@ -188,8 +186,7 @@ export function HomeHero() {
             </Button>
             <Button variant="pill" size="xl" asChild>
               <Link to="/automations">
-                <PlayCircle className="text-primary" />{" "}
-                {t("Explore solutions", "সমাধানগুলো দেখুন")}
+                <PlayCircle className="text-primary" /> {t("Explore solutions", "সমাধানগুলো দেখুন")}
               </Link>
             </Button>
           </div>

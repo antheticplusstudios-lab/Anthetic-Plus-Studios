@@ -19,14 +19,12 @@ export const Route = createFileRoute("/contact")({
       { title: "Contact — Autumic" },
       {
         name: "description",
-        content:
-          "Book a free consultation about AI automation for your business.",
+        content: "Book a free consultation about AI automation for your business.",
       },
       { property: "og:title", content: "Contact — Autumic" },
       {
         property: "og:description",
-        content:
-          "Talk to Autumic about AI automations, support, billing or partnerships.",
+        content: "Talk to Autumic about AI automations, support, billing or partnerships.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -141,10 +139,19 @@ function ContactPage() {
             ))}
           </ul>
           <div className="relative mt-8 space-y-2 text-sm text-muted-foreground">
-            <p className="inline-flex items-center gap-2"><Mail className="h-4 w-4" /> info@autumic.com</p>
+            <p className="inline-flex items-center gap-2">
+              <Mail className="h-4 w-4" /> info@autumic.com
+            </p>
             <p>+880 1915-349394</p>
             <p>Baridhara, Dhaka-1212, Bangladesh</p>
-            <p><a className="text-primary underline" href="https://api.whatsapp.com/send/?phone=8801915349394&text=Hello+Autumic%2C+I%27d+like+to+learn+more+about+your+AI+automation+solutions.&type=phone_number&app_absent=0">Chat with Autumic on WhatsApp</a></p>
+            <p>
+              <a
+                className="text-primary underline"
+                href="https://api.whatsapp.com/send/?phone=8801915349394&text=Hello+Autumic%2C+I%27d+like+to+learn+more+about+your+AI+automation+solutions.&type=phone_number&app_absent=0"
+              >
+                Chat with Autumic on WhatsApp
+              </a>
+            </p>
           </div>
         </section>
 

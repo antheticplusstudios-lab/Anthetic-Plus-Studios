@@ -10,8 +10,7 @@ export const Route = createFileRoute("/_authenticated/admin/automations/knowledg
       },
       {
         property: "og:description",
-        content:
-          "Admin Automations Knowledge Base Support in the Autumic AI automation platform.",
+        content: "Admin Automations Knowledge Base Support in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

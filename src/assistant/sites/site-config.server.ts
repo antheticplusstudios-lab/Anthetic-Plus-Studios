@@ -142,23 +142,62 @@ export function normalizeConfig(id: SiteId, raw: unknown): SiteConfig {
       .replace(/AI Lead Capture & Smart Qualifier/gi, "AI Sales Agent")
       .replace(/AI Knowledge Base Support Agent/gi, "AI Customer Support Agent")
       .replace(/AI Social DM & Messaging Assistant/gi, "AI Chatbot")
-      .replace(/Autumic Studios builds focused AI workforce systems for growing businesses\./gi, "Autumic is an AI automation company serving Bangladesh and international markets.")
-      .replace(/Visitors can explore automation products, create an account and order an automation; payment is manually verified\./gi, "Packages are custom-scoped; public fixed pricing is not available. Visitors can book a free consultation at /contact.");
+      .replace(
+        /Autumic Studios builds focused AI workforce systems for growing businesses\./gi,
+        "Autumic is an AI automation company serving Bangladesh and international markets.",
+      )
+      .replace(
+        /Visitors can explore automation products, create an account and order an automation; payment is manually verified\./gi,
+        "Packages are custom-scoped; public fixed pricing is not available. Visitors can book a free consultation at /contact.",
+      );
   return {
     enabled: bool(v["enabled"], d["enabled"]),
     voiceEnabled: bool(v["voiceEnabled"], d["voiceEnabled"]),
-    displayName: id === "antheticplus" ? siteText(v["displayName"], d["displayName"], 80) || d["displayName"] : str(v["displayName"], d["displayName"], 80) || d["displayName"],
-    persona: id === "antheticplus" ? siteText(v["persona"], d["persona"], 2000) : str(v["persona"], d["persona"], 2000),
-    tone: id === "antheticplus" ? siteText(v["tone"], d["tone"], 1000) : str(v["tone"], d["tone"], 1000),
-    welcomeMessage: id === "antheticplus" ? siteText(v["welcomeMessage"], d["welcomeMessage"], 600) || d["welcomeMessage"] : str(v["welcomeMessage"], d["welcomeMessage"], 600) || d["welcomeMessage"],
-    instructions: id === "antheticplus" ? siteText(v["instructions"], d["instructions"], 6000) : str(v["instructions"], d["instructions"], 6000),
-    businessInfo: id === "antheticplus" ? siteText(v["businessInfo"], d["businessInfo"], 8000) : str(v["businessInfo"], d["businessInfo"], 8000),
-    services: id === "antheticplus" ? siteText(v["services"], d["services"], 8000) : str(v["services"], d["services"], 8000),
+    displayName:
+      id === "antheticplus"
+        ? siteText(v["displayName"], d["displayName"], 80) || d["displayName"]
+        : str(v["displayName"], d["displayName"], 80) || d["displayName"],
+    persona:
+      id === "antheticplus"
+        ? siteText(v["persona"], d["persona"], 2000)
+        : str(v["persona"], d["persona"], 2000),
+    tone:
+      id === "antheticplus"
+        ? siteText(v["tone"], d["tone"], 1000)
+        : str(v["tone"], d["tone"], 1000),
+    welcomeMessage:
+      id === "antheticplus"
+        ? siteText(v["welcomeMessage"], d["welcomeMessage"], 600) || d["welcomeMessage"]
+        : str(v["welcomeMessage"], d["welcomeMessage"], 600) || d["welcomeMessage"],
+    instructions:
+      id === "antheticplus"
+        ? siteText(v["instructions"], d["instructions"], 6000)
+        : str(v["instructions"], d["instructions"], 6000),
+    businessInfo:
+      id === "antheticplus"
+        ? siteText(v["businessInfo"], d["businessInfo"], 8000)
+        : str(v["businessInfo"], d["businessInfo"], 8000),
+    services:
+      id === "antheticplus"
+        ? siteText(v["services"], d["services"], 8000)
+        : str(v["services"], d["services"], 8000),
     products: str(v["products"], d["products"], 8000),
-    faqs: id === "antheticplus" ? siteText(v["faqs"], d["faqs"], 12000) : str(v["faqs"], d["faqs"], 12000),
-    terminology: id === "antheticplus" ? siteText(v["terminology"], d["terminology"], 4000) : str(v["terminology"], d["terminology"], 4000),
-    policies: id === "antheticplus" ? siteText(v["policies"], d["policies"], 8000) : str(v["policies"], d["policies"], 8000),
-    contact: id === "antheticplus" ? siteText(v["contact"], d["contact"], 2000) : str(v["contact"], d["contact"], 2000),
+    faqs:
+      id === "antheticplus"
+        ? siteText(v["faqs"], d["faqs"], 12000)
+        : str(v["faqs"], d["faqs"], 12000),
+    terminology:
+      id === "antheticplus"
+        ? siteText(v["terminology"], d["terminology"], 4000)
+        : str(v["terminology"], d["terminology"], 4000),
+    policies:
+      id === "antheticplus"
+        ? siteText(v["policies"], d["policies"], 8000)
+        : str(v["policies"], d["policies"], 8000),
+    contact:
+      id === "antheticplus"
+        ? siteText(v["contact"], d["contact"], 2000)
+        : str(v["contact"], d["contact"], 2000),
     hours: str(v["hours"], d["hours"], 1000),
     branding: {
       primary: color(b["primary"], d.branding["primary"]),

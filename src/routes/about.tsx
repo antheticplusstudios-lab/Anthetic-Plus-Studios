@@ -105,7 +105,10 @@ function About() {
         <div className="container-page grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
           <SectionHead
             eyebrow={t("Mission", "লক্ষ্য")}
-            title={t("Make every enquiry easier to handle.", "প্রতিটি গ্রাহক-জিজ্ঞাসা সামলানো সহজ করুন।")}
+            title={t(
+              "Make every enquiry easier to handle.",
+              "প্রতিটি গ্রাহক-জিজ্ঞাসা সামলানো সহজ করুন।",
+            )}
             lead={t(
               "Missed calls, unanswered messages and repetitive support tasks can slow a business down. Our mission is to help teams handle common enquiries more consistently, connect everyday workflows and give people more time for work that needs a human touch.",
               "মিস কল, অনুত্তরিত ডিএম আর ধীর সাপোর্ট প্রতিদিন নীরবে ব্যবসার ক্ষতি করে। আমাদের লক্ষ্য — প্রতিটি গ্রাহক যেন নিজের ভাষায় দ্রুত ও সঠিক উত্তর পান, আর আপনার টিম সেই কাজে মন দিতে পারে যা শুধু মানুষই পারে।",

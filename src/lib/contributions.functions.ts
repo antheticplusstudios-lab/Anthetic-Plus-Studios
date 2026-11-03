@@ -6,19 +6,34 @@ import { contributionsSchema, type Contributor } from "@/lib/contributions";
 
 const KEY = "autumic_contributions";
 
-export const getContributions = createServerFn({ method: "GET" }).handler(async (): Promise<Contributor[]> => {
-  const { db1Admin } = await import("@/server/db/clients.server");
-  const { data, error } = await db1Admin.from("platform_settings").select("value").eq("key", KEY).maybeSingle();
-  if (error) throw new Error("Contributions are temporarily unavailable.");
-  return data ? contributionsSchema.parse(data.value).filter((person) => person.published).sort((a, b) => a.sortOrder - b.sortOrder) : [];
-});
+export const getContributions = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Contributor[]> => {
+    const { db1Admin } = await import("@/server/db/clients.server");
+    const { data, error } = await db1Admin
+      .from("platform_settings")
+      .select("value")
+      .eq("key", KEY)
+      .maybeSingle();
+    if (error) throw new Error("Contributions are temporarily unavailable.");
+    return data
+      ? contributionsSchema
+          .parse(data.value)
+          .filter((person) => person.published)
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+      : [];
+  },
+);
 
 export const getAdminContributions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<Contributor[]> => {
     assertAdmin(context);
     const { db1Admin } = await import("@/server/db/clients.server");
-    const { data, error } = await db1Admin.from("platform_settings").select("value").eq("key", KEY).maybeSingle();
+    const { data, error } = await db1Admin
+      .from("platform_settings")
+      .select("value")
+      .eq("key", KEY)
+      .maybeSingle();
     if (error) throw new Error("Saved contributors could not be loaded.");
     return data ? contributionsSchema.parse(data.value) : [];
   });
@@ -36,11 +51,21 @@ export const saveContributions = createServerFn({ method: "POST" })
     }
     const { db1Admin } = await import("@/server/db/clients.server");
     const { auditMutation } = await import("@/lib/platform-access.server");
-    const { error } = await db1Admin.from("platform_settings").upsert(
-      { key: KEY, value: clean, updated_at: new Date().toISOString() },
-      { onConflict: "key" },
-    );
+    const { error } = await db1Admin
+      .from("platform_settings")
+      .upsert(
+        { key: KEY, value: clean, updated_at: new Date().toISOString() },
+        { onConflict: "key" },
+      );
     if (error) throw new Error("Contributions could not be saved.");
-    try { await auditMutation(context, { action: "settings.updated", targetType: KEY, after: { count: clean.length } }); } catch (auditError) { console.error("[contributions] audit log failed after save", auditError); }
+    try {
+      await auditMutation(context, {
+        action: "settings.updated",
+        targetType: KEY,
+        after: { count: clean.length },
+      });
+    } catch (auditError) {
+      console.error("[contributions] audit log failed after save", auditError);
+    }
     return { ok: true };
   });

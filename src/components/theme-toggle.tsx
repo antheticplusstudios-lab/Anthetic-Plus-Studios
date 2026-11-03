@@ -6,9 +6,7 @@ export function ThemeToggle() {
   const [dark, setDark] = useState(false);
   useEffect(() => {
     const saved = localStorage.getItem("ap-theme");
-    const next = saved
-      ? saved === "dark"
-      : true;
+    const next = saved ? saved === "dark" : true;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
   }, []);

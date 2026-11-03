@@ -206,10 +206,16 @@ function Index() {
               <div className="max-w-2xl">
                 <span className="eyebrow">{t("Choose your system", "আপনার সিস্টেম বেছে নিন")}</span>
                 <h2 className="h-section mt-4">
-                  {t("Four focused automations. Each with its own product page and checkout.", "চারটি নির্দিষ্ট অটোমেশন। প্রতিটির আলাদা প্রোডাক্ট পেজ ও চেকআউট রয়েছে।")}
+                  {t(
+                    "Four focused automations. Each with its own product page and checkout.",
+                    "চারটি নির্দিষ্ট অটোমেশন। প্রতিটির আলাদা প্রোডাক্ট পেজ ও চেকআউট রয়েছে।",
+                  )}
                 </h2>
                 <p className="lead mt-4">
-                  {t("Explore each solution, review what it handles, then continue to secure checkout. Live pricing is shown after sign-in.", "প্রতিটি সমাধান দেখুন, কী কী কাজ করে জানুন, তারপর নিরাপদ চেকআউটে যান। সাইন ইন করার পর লাইভ মূল্য দেখানো হবে।")}
+                  {t(
+                    "Explore each solution, review what it handles, then continue to secure checkout. Live pricing is shown after sign-in.",
+                    "প্রতিটি সমাধান দেখুন, কী কী কাজ করে জানুন, তারপর নিরাপদ চেকআউটে যান। সাইন ইন করার পর লাইভ মূল্য দেখানো হবে।",
+                  )}
                 </p>
               </div>
               <Button size="lg" className="shrink-0" asChild>

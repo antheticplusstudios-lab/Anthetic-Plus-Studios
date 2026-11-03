@@ -37,7 +37,11 @@ export const automations = [
       "Contact capture and CRM routing",
       "Follow-up and hot-lead notifications",
     ],
-    useCases: ["Professional services", "Finance and education businesses", "Real estate and ecommerce businesses"],
+    useCases: [
+      "Professional services",
+      "Finance and education businesses",
+      "Real estate and ecommerce businesses",
+    ],
   },
   {
     slug: "knowledge-base-support",
@@ -75,15 +79,34 @@ export const automations = [
       "Lead capture inside chat",
       "Team hand-off and escalation",
     ],
-    useCases: ["Ecommerce brands", "Hotels and hospitality", "Real estate and professional services"],
+    useCases: [
+      "Ecommerce brands",
+      "Hotels and hospitality",
+      "Real estate and professional services",
+    ],
   },
 ] as const;
 
 export type Automation = (typeof automations)[number];
 export const getAutomation = (slug: string) => automations.find((item) => item.slug === slug);
 
-export const demoInstances: Array<{ id: string; slug: string; name: string; domain: string; status: string; expires: string }> = [];
-export const demoPayments: Array<{ id: string; client: string; automation: string; amount: string; method: string; transaction: string; submitted: string }> = [];
+export const demoInstances: Array<{
+  id: string;
+  slug: string;
+  name: string;
+  domain: string;
+  status: string;
+  expires: string;
+}> = [];
+export const demoPayments: Array<{
+  id: string;
+  client: string;
+  automation: string;
+  amount: string;
+  method: string;
+  transaction: string;
+  submitted: string;
+}> = [];
 
 /** Canonical product slug → DB2 automation type / DB4 engine kind. Never rename. */
 export const ENGINE_KIND_BY_SLUG = {

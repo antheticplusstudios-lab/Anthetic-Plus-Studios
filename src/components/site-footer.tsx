@@ -144,10 +144,7 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
-              <a
-                href="mailto:info@autumic.com?subject=Security%20disclosure"
-                className={linkCls}
-              >
+              <a href="mailto:info@autumic.com?subject=Security%20disclosure" className={linkCls}>
                 {t("Vulnerability disclosure", "দুর্বলতা রিপোর্ট")}
               </a>
             </li>
@@ -165,14 +162,21 @@ export function SiteFooter() {
               {t("Server time", "সার্ভার সময়")} <UtcClock />
             </span>
             <span>Baridhara, Dhaka-1212, Bangladesh</span>
-            <a className="inline-flex items-center gap-1 font-semibold text-primary" href="mailto:info@autumic.com">
+            <a
+              className="inline-flex items-center gap-1 font-semibold text-primary"
+              href="mailto:info@autumic.com"
+            >
               <Mail className="h-3.5 w-3.5" /> info@autumic.com
             </a>
           </p>
           <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-5 text-xs text-muted-foreground">
-            <a href="https://www.youtube.com/channel/UC0vT8TOozzm4pTHAhdYESYg" target="_blank" rel="noreferrer">YouTube</a>
-            <a href="https://www.facebook.com/profile.php?id=61594363408424&rdid=s35JYQRvfs4X1m27&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F19f32W6RZQ%2F#" target="_blank" rel="noreferrer">Facebook</a>
-            <a href="https://www.instagram.com/tryautumic" target="_blank" rel="noreferrer">Instagram</a>
+            <a
+              href="https://www.youtube.com/channel/UC0vT8TOozzm4pTHAhdYESYg"
+              target="_blank"
+              rel="noreferrer"
+            >
+              YouTube
+            </a>
             <a
               href="https://www.facebook.com/profile.php?id=61594363408424&rdid=s35JYQRvfs4X1m27&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F19f32W6RZQ%2F#"
               target="_blank"
@@ -180,8 +184,30 @@ export function SiteFooter() {
             >
               Facebook
             </a>
-            <a href="https://www.youtube.com/channel/UC0vT8TOozzm4pTHAhdYESYg" target="_blank" rel="noreferrer">YouTube</a>
-            <a href="https://api.whatsapp.com/send/?phone=8801915349394&text=Hello+Autumic%2C+I%27d+like+to+learn+more+about+your+AI+automation+solutions.&type=phone_number&app_absent=0" target="_blank" rel="noreferrer">WhatsApp</a>
+            <a href="https://www.instagram.com/tryautumic" target="_blank" rel="noreferrer">
+              Instagram
+            </a>
+            <a
+              href="https://www.facebook.com/profile.php?id=61594363408424&rdid=s35JYQRvfs4X1m27&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F19f32W6RZQ%2F#"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Facebook
+            </a>
+            <a
+              href="https://www.youtube.com/channel/UC0vT8TOozzm4pTHAhdYESYg"
+              target="_blank"
+              rel="noreferrer"
+            >
+              YouTube
+            </a>
+            <a
+              href="https://api.whatsapp.com/send/?phone=8801915349394&text=Hello+Autumic%2C+I%27d+like+to+learn+more+about+your+AI+automation+solutions.&type=phone_number&app_absent=0"
+              target="_blank"
+              rel="noreferrer"
+            >
+              WhatsApp
+            </a>
             <span>+880 1915-349394</span>
           </div>
         </div>

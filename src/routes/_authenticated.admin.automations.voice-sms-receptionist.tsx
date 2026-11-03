@@ -10,8 +10,7 @@ export const Route = createFileRoute("/_authenticated/admin/automations/voice-sm
       },
       {
         property: "og:description",
-        content:
-          "Admin Automations Voice Sms Receptionist in the Autumic AI automation platform.",
+        content: "Admin Automations Voice Sms Receptionist in the Autumic AI automation platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
