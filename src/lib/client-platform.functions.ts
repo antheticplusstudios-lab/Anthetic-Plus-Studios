@@ -129,7 +129,9 @@ export const getActivePaymentMethods = createServerFn({ method: "GET" })
       .filter(
         (row) =>
           row.method_type !== "card" &&
-          !["stripe", "paypal"].includes((row.provider_name ?? "").toLowerCase()),
+          !["stripe", "paypal"].includes((row.provider_name ?? "").toLowerCase()) &&
+          Boolean(row.account_identifier?.trim()) &&
+          !row.account_identifier!.toLowerCase().includes("configure in control center"),
       )
       .map((row) => {
         const meta =
@@ -922,12 +924,14 @@ export const submitRenewalPayment = createServerFn({ method: "POST" })
     if (!subscription?.order_id) throw new Error("Original order not found.");
     const { data: method, error: methodError } = await db2Admin
       .from("payment_methods")
-      .select("id,is_active,method_type,provider_name")
+      .select("id,is_active,method_type,provider_name,account_identifier")
       .eq("id", data.paymentMethod)
       .maybeSingle();
     if (methodError) throw new Error(methodError.message);
     if (
       !method?.is_active ||
+      !method.account_identifier?.trim() ||
+      method.account_identifier.toLowerCase().includes("configure in control center") ||
       method.method_type === "card" ||
       ["stripe", "paypal"].includes((method.provider_name ?? "").toLowerCase())
     ) {
@@ -992,6 +996,8 @@ export const submitOrder = createServerFn({ method: "POST" })
       throw new Error(`Could not verify the selected payment method: ${methodError.message}`);
     if (
       !method?.is_active ||
+      !method.account_identifier?.trim() ||
+      method.account_identifier.toLowerCase().includes("configure in control center") ||
       method.method_type === "card" ||
       ["stripe", "paypal"].includes((method.provider_name ?? "").toLowerCase())
     )
