@@ -432,6 +432,12 @@ function Checkout() {
         {[...prodStep.fields, ...(prodStep.optional ?? [])].map((key) => {
           const f = fieldDef(kind, key);
           const required = prodStep.fields.includes(key);
+          const value = config[key] ?? "";
+          const invalidEmail = key === "notify_email" && !!value.trim() && !emailOk(value);
+          const invalidScore =
+            ["hot_threshold", "warm_threshold"].includes(key) &&
+            !!value.trim() &&
+            (Number(value) < 0 || Number(value) > 100);
           return (
             <div key={key}>
               <Label>
@@ -514,10 +520,10 @@ function Checkout() {
               {required && touched && !(config[key] ?? "").trim() && (
                 <p className="mt-1 text-xs text-destructive">Required</p>
               )}
-              {touched && key === "notify_email" && (config[key] ?? "").trim() && !emailOk(config[key] ?? "") && (
+              {touched && invalidEmail && (
                 <p className="mt-1 text-xs text-destructive">Enter a valid notification email.</p>
               )}
-              {touched && ["hot_threshold", "warm_threshold"].includes(key) && (config[key] ?? "").trim() && (Number(config[key]) < 0 || Number(config[key]) > 100) && (
+              {touched && invalidScore && (
                 <p className="mt-1 text-xs text-destructive">Enter a score between 0 and 100.</p>
               )}
             </div>
