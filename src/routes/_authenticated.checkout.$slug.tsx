@@ -219,11 +219,13 @@ function Checkout() {
     setError("");
     if (!user) {
       setError("Your session expired. Please sign in again.");
+      submittingRef.current = false;
       setBusy(false);
       return;
     }
     if (!domain) {
       setError("Add a valid website address before submitting.");
+      submittingRef.current = false;
       setBusy(false);
       return;
     }
