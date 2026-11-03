@@ -196,6 +196,7 @@ export const getMyOrders = createServerFn({ method: "GET" })
           : {};
       return {
         ...order,
+        order_db_id: order.id,
         automation_id: null,
         submitted_at: order.submitted_at ?? order.created_at,
         order_id: normalized.order_id,
