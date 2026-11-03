@@ -23,7 +23,8 @@ import {
   updateMyTicketStatus,
   updateMyAppointmentStatus,
 } from "@/lib/client-platform.functions";
-import { CONFIG_FIELDS, engineKindOf, type EngineKind } from "@/lib/automation-config";
+import { CONFIG_FIELDS, engineKindOf } from "@/lib/automation-config";
+import type { EngineKind } from "@/lib/automations";
 
 export const Route = createFileRoute("/_authenticated/dashboard/portal/$id")({
   head: () => ({
@@ -75,7 +76,7 @@ function PortalPage() {
     );
   const refresh = () => void qc.invalidateQueries({ queryKey: ["automation-portal", id] });
   const kind = engineKindOf(a);
-  const tabs = kind ? TABS_BY_KIND[kind] : ["Overview", "Installation"];
+  const tabs = kind ? (TABS_BY_KIND[kind] ?? ["Overview"]) : ["Overview", "Installation"];
 
   return (
     <div className="grid gap-6">
@@ -165,7 +166,7 @@ function Overview({ portal, kind }: { portal: PortalData; kind: EngineKind | nul
   const openTickets = portal.tickets.filter((ticket) => !["resolved", "closed"].includes(ticket.status)).length;
   const hotLeads = leads.filter((lead) => lead.lead_score >= Number(portal.automation.settings?.["hot_threshold"] ?? 60)).length;
   const connected = portal.integrations.filter((item) => item.status === "connected").length;
-  const cards =
+  const cards: [string, string | number, string][] =
     kind === "ai_receptionist"
       ? [
           ["Calls & conversations", portal.conversations.length, "Recent caller activity"],
