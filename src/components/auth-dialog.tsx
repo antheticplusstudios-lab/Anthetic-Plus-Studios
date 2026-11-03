@@ -11,11 +11,10 @@ import { AnimatePresence, motion } from "@/components/motion";
 import { supabase } from "@/integrations/supabase/client";
 
 function getAuthRedirectUrl() {
-  // Production uses the canonical Vercel origin. Local development falls back
-  // to the current browser origin when VITE_APP_URL is not configured.
-  const configured = import.meta.env["VITE_APP_URL"]?.trim().replace(/\/$/, "");
-  const origin = configured || window.location.origin;
-  return `${origin}/auth/callback`;
+  // Keep OAuth and email-confirmation flows on the exact origin where the
+  // visitor started. This avoids preview builds sending users to production
+  // and supports the canonical custom domain once Supabase allows it.
+  return new URL("/auth/callback", window.location.origin).toString();
 }
 
 export function AuthPanel({
@@ -39,34 +38,51 @@ export function AuthPanel({
     event.preventDefault();
     setBusy(true);
     setMessage("");
-    const result =
-      mode === "signin"
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({
-            email,
-            password,
-            options: { emailRedirectTo: getAuthRedirectUrl() },
-          });
-    setBusy(false);
-    if (result.error) {
-      setMessage(result.error.message);
-      return;
+    try {
+      const result =
+        mode === "signin"
+          ? await supabase.auth.signInWithPassword({ email: email.trim(), password })
+          : await supabase.auth.signUp({
+              email: email.trim(),
+              password,
+              options: { emailRedirectTo: getAuthRedirectUrl() },
+            });
+      if (result.error) {
+        setMessage(result.error.message);
+        return;
+      }
+      if (mode === "signup" && !result.data.session) {
+        setSent(true);
+        return;
+      }
+      await queryClient.invalidateQueries();
+      onDone?.();
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : t("Authentication failed. Please try again.", "সাইন ইন করা যায়নি। আবার চেষ্টা করুন।"),
+      );
+    } finally {
+      setBusy(false);
     }
-    if (mode === "signup" && !result.data.session) {
-      setSent(true);
-      return;
-    }
-    await queryClient.invalidateQueries();
-    onDone?.();
   };
 
   const oauth = async (provider: "google" | "discord") => {
     setMessage("");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: getAuthRedirectUrl() },
-    });
-    if (error) setMessage(error.message);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: getAuthRedirectUrl() },
+      });
+      if (error) setMessage(error.message);
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : t("Could not start authentication. Please try again.", "অথেন্টিকেশন শুরু করা যায়নি। আবার চেষ্টা করুন।"),
+      );
+    }
   };
 
   const google = () => oauth("google");
