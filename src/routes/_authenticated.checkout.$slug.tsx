@@ -80,7 +80,14 @@ function Checkout() {
     "Payment",
   ];
   const last = steps.length;
-  const [config, setConfig] = useState<Record<string, string>>({});
+  const [config, setConfig] = useState<Record<string, string>>(() => {
+    if (kind === "lead_capture")
+      return { required_fields: "email|phone", hot_threshold: "60", warm_threshold: "35" };
+    if (kind === "kb_support") return { citation_mode: "inline" };
+    if (kind === "messaging_ai")
+      return { channels: "whatsapp,instagram,messenger" };
+    return {};
+  });
 
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState<1 | -1>(1);
