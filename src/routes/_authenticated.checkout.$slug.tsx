@@ -510,11 +510,19 @@ function Checkout() {
               ) : (
                 <Input
                   className="mt-2"
-                  type={key === "notify_email" ? "email" : f.kind === "number" ? "number" : "text"}
+                  type={
+                    key === "notify_email"
+                      ? "email"
+                      : f.kind === "number"
+                        ? "number"
+                        : "text"
+                  }
                   min={f.kind === "number" ? 0 : undefined}
                   max={["hot_threshold", "warm_threshold"].includes(key) ? 100 : undefined}
-                  value={config[key] ?? ""}
-                  onChange={(e) => setConfig((current) => ({ ...current, [key]: e.target.value }))}
+                  value={value}
+                  onChange={(e) =>
+                    setConfig((current) => ({ ...current, [key]: e.target.value }))
+                  }
                 />
               )}
               {required && touched && !(config[key] ?? "").trim() && (
