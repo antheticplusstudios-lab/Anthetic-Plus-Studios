@@ -139,7 +139,7 @@ function PortalPage() {
         <Integrations automationId={id} connections={pd.integrations} providers={["twilio", "google_calendar"]} refresh={refresh} />
       )}
       {tab === "Channels" && kind === "messaging_ai" && (
-        <Integrations automationId={id} clientId={a.client_id} connections={pd.integrations} providers={["whatsapp", "meta_page", "messenger", "instagram"]} />
+        <Integrations automationId={id} connections={pd.integrations} providers={["whatsapp", "meta_page", "messenger", "instagram"]} refresh={refresh} />
       )}
       {tab === "Widget" && <WidgetCustomizer automationId={id} initial={a.widget_config} onSaved={refresh} />}
       {tab === "Installation" && <Installation automationId={id} domain={a.domain_url} refresh={refresh} />}
