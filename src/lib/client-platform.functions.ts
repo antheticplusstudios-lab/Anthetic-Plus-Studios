@@ -112,35 +112,47 @@ export const updateMyProfile = createServerFn({ method: "POST" })
     return { ok: true, profile_completed: true };
   });
 
-export const getActivePaymentMethods = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await db2Admin
-    .from("payment_methods")
-    .select("*")
-    .eq("is_active", true)
-    .order("created_at", { ascending: true });
-  if (error) throw new Error(error.message);
-  return (data ?? []).map((row) => {
-    const meta =
-      row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
-        ? row.metadata
-        : {};
-    const instructions =
-      "instructions" in meta && typeof meta["instructions"] === "string"
-        ? meta["instructions"]
-        : "";
-    const fields =
-      "required_fields" in meta && Array.isArray(meta["required_fields"])
-        ? meta["required_fields"].filter((field): field is string => typeof field === "string")
-        : [];
-    return {
-      ...row,
-      method_name: row.account_name ?? row.provider_name ?? row.method_type,
-      instructions,
-      required_fields: fields,
-      is_card: row.method_type === "card",
-    };
+export const getActivePaymentMethods = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { data, error } = await db2Admin
+      .from("payment_methods")
+      .select(
+        "id,client_id,method_type,provider_name,account_name,account_identifier,is_active,is_default,metadata",
+      )
+      .eq("is_active", true)
+      .neq("method_type", "card")
+      .order("is_default", { ascending: false })
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? [])
+      .filter(
+        (row) =>
+          row.method_type !== "card" &&
+          !["stripe", "paypal"].includes((row.provider_name ?? "").toLowerCase()),
+      )
+      .map((row) => {
+        const meta =
+          row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+            ? row.metadata
+            : {};
+        const instructions =
+          "instructions" in meta && typeof meta["instructions"] === "string"
+            ? meta["instructions"]
+            : "";
+        const fields =
+          "required_fields" in meta && Array.isArray(meta["required_fields"])
+            ? meta["required_fields"].filter((field): field is string => typeof field === "string")
+            : [];
+        return {
+          ...row,
+          method_name: row.account_name ?? row.provider_name ?? row.method_type,
+          instructions,
+          required_fields: fields,
+          is_card: row.method_type === "card",
+        };
+      });
   });
-});
 
 export const getMyOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -891,7 +903,7 @@ export const submitRenewalPayment = createServerFn({ method: "POST" })
     z
       .object({
         automationId: z.string().uuid(),
-        paymentMethod: z.string().min(1).max(120),
+        paymentMethod: z.string().uuid(),
         transactionId: z.string().trim().min(3).max(200),
         senderName: z.string().trim().min(2).max(160),
         amount: z.number().min(0).max(100000),
@@ -908,38 +920,21 @@ export const submitRenewalPayment = createServerFn({ method: "POST" })
       .maybeSingle();
     if (subscriptionError) throw new Error(subscriptionError.message);
     if (!subscription?.order_id) throw new Error("Original order not found.");
-    const { data: method } = await db2Admin
+    const { data: method, error: methodError } = await db2Admin
       .from("payment_methods")
-      .select("id,account_name,is_active")
+      .select("id,is_active,method_type,provider_name")
       .eq("id", data.paymentMethod)
       .maybeSingle();
-    if (!method) {
-      const { data: namedMethod } = await db2Admin
-        .from("payment_methods")
-        .select("id,account_name,is_active")
-        .eq("account_name", data.paymentMethod)
-        .maybeSingle();
-      if (!namedMethod?.is_active) throw new Error("Selected payment method is unavailable.");
-      const { error } = await db2Admin.from("payment_verifications").insert({
-        order_id: subscription.order_id,
-        client_id: context.tenant.clientId,
-        submitted_by_user_id: context.userId,
-        payment_method_id: namedMethod.id,
-        sender_phone: null,
-        transaction_id: data.transactionId,
-        trx_id: data.transactionId,
-        sender_name: data.senderName,
-        amount: data.amount,
-        currency: "USD",
-        status: "pending",
-        proof_data: { sender_name: data.senderName, source: "renewal" },
-        notes: data.senderName,
-        metadata: { sender_name: data.senderName, source: "renewal" },
-      });
-      if (error) throw new Error(error.message);
-      return { ok: true };
+    if (methodError) throw new Error(methodError.message);
+    if (
+      !method?.is_active ||
+      method.method_type === "card" ||
+      ["stripe", "paypal"].includes((method.provider_name ?? "").toLowerCase())
+    ) {
+      throw new Error(
+        "Selected payment method is unavailable. Choose an active method and try again.",
+      );
     }
-    if (!method.is_active) throw new Error("Selected payment method is unavailable.");
     const { error } = await db2Admin.from("payment_verifications").insert({
       order_id: subscription.order_id,
       client_id: context.tenant.clientId,
@@ -989,12 +984,21 @@ export const submitOrder = createServerFn({ method: "POST" })
     ).hostname
       .toLowerCase()
       .replace(/^www\./, "");
-    const { data: method } = await db2Admin
+    const { data: method, error: methodError } = await db2Admin
       .from("payment_methods")
       .select("id,method_type,provider_name,account_name,account_identifier,is_active,metadata")
       .eq("id", data.paymentMethodId)
       .maybeSingle();
-    if (!method?.is_active) throw new Error("Selected payment method is unavailable.");
+    if (methodError)
+      throw new Error(`Could not verify the selected payment method: ${methodError.message}`);
+    if (
+      !method?.is_active ||
+      method.method_type === "card" ||
+      ["stripe", "paypal"].includes((method.provider_name ?? "").toLowerCase())
+    )
+      throw new Error(
+        "This payment method is no longer available. Choose an active payment method and try again.",
+      );
     // Server-side duplicate guard: the same transaction ID cannot be submitted twice for verification.
     const { data: dupe } = await db2Admin
       .from("payment_verifications")

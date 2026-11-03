@@ -1,11 +1,11 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CircleAlert } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { submitRenewalPayment } from "@/lib/client-platform.functions";
-import { paymentMethods, type Instance } from "@/lib/portal";
+import { getActivePaymentMethods, submitRenewalPayment } from "@/lib/client-platform.functions";
+import { type Instance } from "@/lib/portal";
 import { automations } from "@/lib/automations";
 
 export function ReactivationModal({
@@ -18,7 +18,19 @@ export function ReactivationModal({
   const meta = automations.find((a) => a.slug === instance.automation_slug);
   const amount = meta?.price ?? 0;
   const queryClient = useQueryClient();
-  const [method, setMethod] = useState<string>(paymentMethods[1]);
+  const methodsQuery = useQuery({
+    queryKey: ["payment-methods-active"],
+    queryFn: () => getActivePaymentMethods(),
+    staleTime: 30_000,
+  });
+  const [method, setMethod] = useState("");
+  const selectedMethod = methodsQuery.data?.find((item) => item.id === method);
+  useEffect(() => {
+    const methods = methodsQuery.data ?? [];
+    if (methods.length && !methods.some((item) => item.id === method)) {
+      setMethod(methods[0]!.id);
+    }
+  }, [methodsQuery.data, method]);
   const [transaction, setTransaction] = useState("");
   const [sender, setSender] = useState("");
   const [busy, setBusy] = useState(false);
@@ -72,18 +84,64 @@ export function ReactivationModal({
         <div className="mt-5 grid gap-4">
           <div>
             <Label>Payment method</Label>
-            <div className="mt-2 grid gap-2 sm:grid-cols-3">
-              {paymentMethods.map((m) => (
-                <button
-                  key={m}
+            {methodsQuery.isLoading ? (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Loading available payment methods…
+              </p>
+            ) : methodsQuery.isError ? (
+              <div className="mt-2 text-sm text-destructive">
+                <p>Payment methods couldn't be loaded.</p>
+                <Button
                   type="button"
-                  onClick={() => setMethod(m)}
-                  className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition-colors ${method === m ? "border-primary bg-primary/8 text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                  size="sm"
+                  variant="outline"
+                  className="mt-2"
+                  onClick={() => void methodsQuery.refetch()}
                 >
-                  {m}
-                </button>
-              ))}
-            </div>
+                  Try again
+                </Button>
+              </div>
+            ) : methodsQuery.data?.length ? (
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                {methodsQuery.data.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    aria-pressed={method === item.id}
+                    onClick={() => setMethod(item.id)}
+                    className={
+                      method === item.id
+                        ? "rounded-xl border border-primary bg-primary/8 px-3 py-2.5 text-left text-xs font-bold text-primary"
+                        : "rounded-xl border border-border px-3 py-2.5 text-left text-xs font-bold text-muted-foreground"
+                    }
+                  >
+                    {item.method_name}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-muted-foreground">
+                No active payment methods are available.
+              </p>
+            )}
+            {selectedMethod && (
+              <div className="mt-3 rounded-xl border border-primary/25 bg-primary/5 p-3 text-sm">
+                <p className="font-bold">{selectedMethod.method_name}</p>
+                {selectedMethod.account_identifier &&
+                  !selectedMethod.account_identifier
+                    .toLowerCase()
+                    .includes("configure in control center") && (
+                    <p className="mt-1 break-all font-semibold">
+                      {selectedMethod.account_identifier}
+                    </p>
+                  )}
+                {selectedMethod.instructions && (
+                  <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
+                    {selectedMethod.instructions}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           <div>
             <Label>Transaction ID</Label>
@@ -110,7 +168,7 @@ export function ReactivationModal({
           <Button variant="ghost" onClick={onClose}>
             Later
           </Button>
-          <Button disabled={busy || !transaction || !sender} onClick={submit}>
+          <Button disabled={busy || !method || !transaction || !sender} onClick={submit}>
             {busy ? "Submitting…" : "Submit renewal"}
           </Button>
         </div>

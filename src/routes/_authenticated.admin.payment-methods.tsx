@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { adminListPaymentMethods, adminSavePaymentMethod } from "@/lib/admin-data.functions";
+import {
+  adminDeletePaymentMethod,
+  adminListPaymentMethods,
+  adminSavePaymentMethod,
+} from "@/lib/admin-data.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/payment-methods")({
   head: () => ({
@@ -37,7 +41,13 @@ function PaymentMethodsPage() {
       return adminListPaymentMethods();
     },
   });
-  const [n, setN] = useState({ method_name: "", instructions: "", fields: "sender_phone, trx_id" });
+  const [n, setN] = useState({
+    method_name: "",
+    provider_name: "Manual",
+    account_identifier: "",
+    instructions: "",
+    fields: "sender_phone, trx_id",
+  });
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ["admin-pm"] });
     void qc.invalidateQueries({ queryKey: ["payment-methods-active"] });
@@ -54,7 +64,11 @@ function PaymentMethodsPage() {
       await adminSavePaymentMethod({
         data: {
           id,
-          method_name: String(current?.method_name ?? "Payment method"),
+          method_name: String(patch["method_name"] ?? current?.method_name ?? "Payment method"),
+          provider_name: String(patch["provider_name"] ?? current?.provider_name ?? "Manual"),
+          account_identifier: String(
+            patch["account_identifier"] ?? current?.account_identifier ?? "",
+          ),
           instructions: String(patch["instructions"] ?? current?.instructions ?? ""),
           required_fields: (patch["required_fields"] as string[]) ?? current?.required_fields ?? [],
           is_active: Boolean(patch["is_active"] ?? current?.is_active ?? true),
@@ -72,15 +86,38 @@ function PaymentMethodsPage() {
         data: {
           id: null,
           method_name: n.method_name,
+          provider_name: n.provider_name,
+          account_identifier: n.account_identifier,
           instructions: n.instructions,
           required_fields: parse(n.fields),
           is_active: true,
         },
       });
-      setN({ method_name: "", instructions: "", fields: "sender_phone, trx_id" });
+      setN({
+        method_name: "",
+        provider_name: "Manual",
+        account_identifier: "",
+        instructions: "",
+        fields: "sender_phone, trx_id",
+      });
+      toast.success("Payment method added");
       refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Add failed");
+    }
+  }
+  async function remove(id: string, name: string) {
+    if (!window.confirm("Remove " + name + " from checkout?")) return;
+    try {
+      const result = await adminDeletePaymentMethod({ data: { id } });
+      toast.success(
+        result.archived
+          ? "Method has payment history, so it was safely disabled."
+          : "Payment method deleted",
+      );
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed");
     }
   }
 
@@ -91,7 +128,13 @@ function PaymentMethodsPage() {
     >
       <div className="grid gap-4">
         {(list.data ?? []).map((m) => (
-          <MethodCard key={m.id} m={m} onSave={save} parse={parse} />
+          <MethodCard
+            key={m.id}
+            m={m}
+            onSave={save}
+            parse={parse}
+            onDelete={() => void remove(m.id, m.method_name)}
+          />
         ))}
         <Panel title="Add a payment method">
           <div className="grid gap-3">
@@ -99,6 +142,16 @@ function PaymentMethodsPage() {
               placeholder="Name, e.g. Rocket"
               value={n.method_name}
               onChange={(e) => setN({ ...n, method_name: e.target.value })}
+            />
+            <Input
+              placeholder="Provider / bank name"
+              value={n.provider_name}
+              onChange={(e) => setN({ ...n, provider_name: e.target.value })}
+            />
+            <Input
+              placeholder="Account number, wallet address or payment destination"
+              value={n.account_identifier}
+              onChange={(e) => setN({ ...n, account_identifier: e.target.value })}
             />
             <Textarea
               placeholder="Instructions shown to the customer"
@@ -127,17 +180,24 @@ type M = {
   required_fields: unknown;
   is_active: boolean;
   is_card: boolean;
+  provider_name?: string | null;
+  account_identifier?: string | null;
 };
 function MethodCard({
   m,
   onSave,
   parse,
+  onDelete,
 }: {
   m: M;
   onSave: (id: string, p: Record<string, unknown>) => Promise<unknown>;
   parse: (s: string) => string[];
+  onDelete: () => void;
 }) {
   const [s, setS] = useState({
+    method_name: m.method_name,
+    provider_name: m.provider_name ?? "Manual",
+    account_identifier: m.account_identifier ?? "",
     instructions: m.instructions,
     fields: ((m.required_fields as string[]) ?? []).join(", "),
   });
@@ -154,6 +214,21 @@ function MethodCard({
       }
     >
       <div className="grid gap-2">
+        <Input
+          aria-label="Payment method name"
+          value={s.method_name}
+          onChange={(e) => setS({ ...s, method_name: e.target.value })}
+        />
+        <Input
+          aria-label="Provider / bank name"
+          value={s.provider_name}
+          onChange={(e) => setS({ ...s, provider_name: e.target.value })}
+        />
+        <Input
+          aria-label="Payment destination"
+          value={s.account_identifier}
+          onChange={(e) => setS({ ...s, account_identifier: e.target.value })}
+        />
         <Textarea
           value={s.instructions}
           onChange={(e) => setS({ ...s, instructions: e.target.value })}
@@ -163,10 +238,19 @@ function MethodCard({
           size="sm"
           variant="outline"
           onClick={() =>
-            void onSave(m.id, { instructions: s.instructions, required_fields: parse(s.fields) })
+            void onSave(m.id, {
+              method_name: s.method_name,
+              provider_name: s.provider_name,
+              account_identifier: s.account_identifier,
+              instructions: s.instructions,
+              required_fields: parse(s.fields),
+            })
           }
         >
-          Save
+          Save changes
+        </Button>
+        <Button size="sm" variant="destructive" onClick={onDelete}>
+          Delete method
         </Button>
       </div>
     </Panel>

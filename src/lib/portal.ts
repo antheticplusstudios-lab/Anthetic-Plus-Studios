@@ -119,8 +119,6 @@ export function statusClass(status: string) {
   }
 }
 
-export const paymentMethods = ["Crypto (USDT / BTC)", "Bank transfer", "Mobile money"] as const;
-
 export function hostFromUrl(value: string) {
   return value
     .trim()
