@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BadgeCheck,
   Check,
@@ -22,8 +22,8 @@ import { SETUP_STEPS, fieldDef } from "@/lib/automation-config";
 import { SlideCommit } from "@/components/slide-commit";
 
 import { useCurrentUser, useProfile } from "@/hooks/use-portal";
-import { hostFromUrl, paymentMethods } from "@/lib/portal";
-import { submitOrder } from "@/lib/client-platform.functions";
+import { hostFromUrl } from "@/lib/portal";
+import { getActivePaymentMethods, submitOrder } from "@/lib/client-platform.functions";
 import { findPriced, livePricingQueryOptions, useLivePricing, withDiscount } from "@/lib/pricing";
 import { validatePromo } from "@/lib/admin.functions";
 import { money } from "@/components/admin-ui";
@@ -68,6 +68,11 @@ function Checkout() {
   const { data: user } = useCurrentUser();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: plans } = useLivePricing();
+  const paymentMethodsQuery = useQuery({
+    queryKey: ["payment-methods-active"],
+    queryFn: () => getActivePaymentMethods(),
+    staleTime: 30_000,
+  });
   const priced = findPriced(slug, plans);
   const kind = isAutomationSlug(slug) ? ENGINE_KIND_BY_SLUG[slug] : null;
   // Product-specific configuration steps; their answers become the deployment configuration.
@@ -107,7 +112,7 @@ function Checkout() {
     category: "",
     context: "",
     instructions: "",
-    method: paymentMethods[1] as string,
+    methodId: "",
     transaction: "",
     sender: "",
   });
@@ -122,6 +127,16 @@ function Checkout() {
       category: f.category || profile.category,
     }));
   }, [profile]);
+
+  useEffect(() => {
+    const methods = paymentMethodsQuery.data ?? [];
+    if (!methods.length) return;
+    setForm((current) =>
+      methods.some((method) => method.id === current.methodId)
+        ? current
+        : { ...current, methodId: methods[0]!.id },
+    );
+  }, [paymentMethodsQuery.data]);
 
   // Resume an incomplete order after refresh / return (drafts never include payment proof).
   const [draftLoaded, setDraftLoaded] = useState(false);
@@ -162,6 +177,9 @@ function Checkout() {
   const { amount: total, saved } = withDiscount(setupFee, promoPct);
   const set = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
   const domain = hostFromUrl(form.website);
+  const selectedPaymentMethod = paymentMethodsQuery.data?.find(
+    (method) => method.id === form.methodId,
+  );
 
   const applyPromo = async () => {
     const code = promo.trim();
@@ -229,11 +247,9 @@ function Checkout() {
       return;
     }
     try {
-      const method = await import("@/lib/client-platform.functions").then(
-        ({ getActivePaymentMethods }) => getActivePaymentMethods(),
-      );
-      const selected = method.find((m) => m.method_name === form.method);
-      if (!selected) throw new Error("Selected payment method is unavailable.");
+      if (!selectedPaymentMethod) {
+        throw new Error("Choose an available payment method before submitting your order.");
+      }
       await submitOrder({
         data: {
           product: kind!,
@@ -250,7 +266,7 @@ function Checkout() {
           country: "Unspecified",
           target: form.website,
           plan,
-          paymentMethodId: selected.id,
+          paymentMethodId: selectedPaymentMethod.id,
           transactionId: form.transaction.trim(),
           senderName: form.sender.trim(),
           proof: { transaction_id: form.transaction.trim(), sender_name: form.sender.trim() },
@@ -287,7 +303,8 @@ function Checkout() {
       return true;
     });
   const canContinue = step === 1 ? step1Ok : step === 2 ? step2Ok : prodOk;
-  const canSubmit = !!form.transaction.trim() && !!form.sender.trim();
+  const canSubmit =
+    !!selectedPaymentMethod && !!form.transaction.trim() && !!form.sender.trim();
 
   const go = (next: number) => {
     setDirection(next > step ? 1 : -1);
@@ -575,18 +592,69 @@ function Checkout() {
         </div>
         <div className="mt-5">
           <Label>Payment method</Label>
-          <div className="mt-2 grid gap-2 sm:grid-cols-3">
-            {paymentMethods.map((m) => (
-              <button
-                key={m}
+          {paymentMethodsQuery.isLoading ? (
+            <p className="mt-2 rounded-xl border border-border p-4 text-sm text-muted-foreground">
+              Loading available payment methods…
+            </p>
+          ) : paymentMethodsQuery.isError ? (
+            <div className="mt-2 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm">
+              <p className="font-semibold text-destructive">Payment methods couldn't be loaded.</p>
+              <p className="mt-1 text-muted-foreground">
+                {paymentMethodsQuery.error instanceof Error
+                  ? paymentMethodsQuery.error.message
+                  : "Please try again."}
+              </p>
+              <Button
                 type="button"
-                onClick={() => set("method", m)}
-                className={`rounded-xl border px-3 py-3 text-sm font-bold transition-colors ${form.method === m ? "border-primary bg-primary/8 text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                size="sm"
+                variant="outline"
+                className="mt-3"
+                onClick={() => void paymentMethodsQuery.refetch()}
               >
-                {m}
-              </button>
-            ))}
-          </div>
+                Try again
+              </Button>
+            </div>
+          ) : paymentMethodsQuery.data?.length ? (
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {paymentMethodsQuery.data.map((method) => (
+                <button
+                  key={method.id}
+                  type="button"
+                  aria-pressed={form.methodId === method.id}
+                  onClick={() => set("methodId", method.id)}
+                  className={`rounded-xl border px-4 py-3 text-left text-sm transition-colors ${form.methodId === method.id ? "border-primary bg-primary/8 text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                >
+                  <span className="block font-bold">{method.method_name}</span>
+                  {method.provider_name && method.provider_name !== method.method_name && (
+                    <span className="mt-0.5 block text-xs opacity-75">{method.provider_name}</span>
+                  )}
+                  {form.methodId === method.id && (
+                    <span className="mt-1 block text-xs font-semibold">Selected</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 rounded-xl border border-border p-4 text-sm text-muted-foreground">
+              No payment methods are available right now. Please contact support before submitting.
+            </p>
+          )}
+          {selectedPaymentMethod && (
+            <div className="mt-3 rounded-2xl border border-primary/25 bg-primary/5 p-4">
+              <p className="text-sm font-bold">{selectedPaymentMethod.method_name} payment details</p>
+              {selectedPaymentMethod.account_identifier &&
+                !selectedPaymentMethod.account_identifier.toLowerCase().includes("configure in control center") && (
+                  <p className="mt-2 break-all text-sm font-semibold">
+                    {selectedPaymentMethod.account_identifier}
+                  </p>
+                )}
+              {selectedPaymentMethod.instructions && (
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+                  {selectedPaymentMethod.instructions}
+                </p>
+              )}
+            </div>
+          )}
         </div>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <Field
