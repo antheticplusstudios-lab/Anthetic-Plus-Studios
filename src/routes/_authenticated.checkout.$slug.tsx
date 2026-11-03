@@ -243,7 +243,7 @@ function Checkout() {
             system_prompt: config["system_prompt"] || form.instructions.trim(),
           },
           deliveryChannel: "web",
-          features: [form.context.slice(0, 500), form.instructions.slice(0, 500)].filter(Boolean),
+          features: [],
           fullName: user.user_metadata?.["full_name"] || user.email?.split("@")[0] || "Customer",
           company: form.company,
           email: form.email,
