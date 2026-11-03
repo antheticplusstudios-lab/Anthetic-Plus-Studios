@@ -427,7 +427,6 @@ function Checkout() {
             )}
           </fieldset>
         )}
-
       </div>
     ) : prodStep && kind ? (
       <div className="grid gap-4">
