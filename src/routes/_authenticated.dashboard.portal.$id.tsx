@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Copy, Trash2, TriangleAlert, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { StatusPill, timeAgo } from "@/components/admin-ui";
 import { WidgetCustomizer } from "@/components/widget-customizer";
@@ -19,7 +20,12 @@ import {
   saveAutomationIntegration,
   removeAutomationIntegration,
   generateMyInstallScript,
+  saveMyAutomationSettings,
+  updateMyLeadStatus,
+  updateMyTicketStatus,
+  updateMyAppointmentStatus,
 } from "@/lib/client-platform.functions";
+import { CONFIG_FIELDS, engineKindOf, type EngineKind } from "@/lib/automation-config";
 
 export const Route = createFileRoute("/_authenticated/dashboard/portal/$id")({
   head: () => ({
@@ -41,14 +47,12 @@ export const Route = createFileRoute("/_authenticated/dashboard/portal/$id")({
   component: PortalPage,
 });
 
-const TABS = [
-  "Overview",
-  "Inbox & CRM",
-  "Knowledge Base",
-  "Features",
-  "Widget",
-  "Integrations",
-] as const;
+const TABS_BY_KIND: Record<EngineKind, string[]> = {
+  ai_receptionist: ["Overview", "Calls & Bookings", "Settings", "Phone & Calendar", "Installation"],
+  lead_capture: ["Overview", "Leads CRM", "Settings", "Installation"],
+  kb_support: ["Overview", "Support Desk", "Knowledge Base", "Settings", "Installation"],
+  messaging_ai: ["Overview", "Conversations", "Channels", "Settings", "Widget", "Installation"],
+};
 
 function copy(text: string) {
   void navigator.clipboard.writeText(text);
@@ -57,7 +61,7 @@ function copy(text: string) {
 
 function PortalPage() {
   const { id } = Route.useParams();
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
+  const [tab, setTab] = useState("Overview");
   const portal = useQuery({
     queryKey: ["automation-portal", id],
     queryFn: () => getMyAutomationPortal({ data: { automationId: id } }),
@@ -72,16 +76,27 @@ function PortalPage() {
       </p>
     );
   const refresh = () => void qc.invalidateQueries({ queryKey: ["automation-portal", id] });
+  const kind = engineKindOf(a);
+  const tabs = kind ? TABS_BY_KIND[kind] : ["Overview", "Installation"];
 
   return (
     <div className="grid gap-6">
-      <div>
-        <h1 className="text-2xl font-extrabold">
-          {AUTOMATION_LABEL[a.automation_type ?? ""] ?? a.name ?? a.automation_type}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {a.domain_url} · {a.client_id} · {a.order_id ?? "—"}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
+            {kind === "ai_receptionist" ? "Voice operations" :
+              kind === "lead_capture" ? "Sales pipeline" :
+                kind === "kb_support" ? "Customer support" :
+                  kind === "messaging_ai" ? "Social messaging" : "Automation workspace"}
+          </p>
+          <h1 className="mt-1 text-2xl font-extrabold">
+            {AUTOMATION_LABEL[a.automation_type ?? ""] ?? a.name ?? a.automation_type}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {a.domain_url} · Order {a.order_id ?? "—"}
+          </p>
+        </div>
+        <StatusPill status={a.run_state ?? a.status} />
       </div>
       {a.requires_reinstallation && (
         <div className="flex items-center gap-2 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
@@ -90,7 +105,7 @@ function PortalPage() {
         </div>
       )}
       <div className="flex flex-wrap gap-2">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <Button
             key={t}
             size="sm"
@@ -101,26 +116,35 @@ function PortalPage() {
           </Button>
         ))}
       </div>
-      {tab === "Overview" && <Overview portal={pd} refresh={refresh} />}
-      {tab === "Inbox & CRM" && <Inbox automationId={id} conversations={pd.conversations} />}
+      {tab === "Overview" && <Overview portal={pd} kind={kind} refresh={refresh} />}
+      {tab === "Calls & Bookings" && (
+        <div className="grid gap-6">
+          <Appointments automationId={id} rows={pd.appointments} refresh={refresh} />
+          <Inbox automationId={id} conversations={pd.conversations} />
+        </div>
+      )}
+      {tab === "Leads CRM" && <Leads automationId={id} rows={pd.leads} refresh={refresh} />}
+      {tab === "Support Desk" && (
+        <div className="grid gap-6">
+          <Tickets automationId={id} rows={pd.tickets} refresh={refresh} />
+          <Inbox automationId={id} conversations={pd.conversations} />
+        </div>
+      )}
+      {tab === "Conversations" && <Inbox automationId={id} conversations={pd.conversations} />}
       {tab === "Knowledge Base" && (
-        <Knowledge
-          automationId={id}
-          clientId={a.client_id}
-          documents={pd.knowledge}
-          crawlJobs={pd.crawlJobs}
-          refresh={refresh}
-        />
+        <Knowledge automationId={id} clientId={a.client_id} documents={pd.knowledge} crawlJobs={pd.crawlJobs} refresh={refresh} />
       )}
-      {tab === "Features" && (
-        <Features automationId={id} type={a.automation_type} tasks={pd.tasks} refresh={refresh} />
+      {tab === "Settings" && kind && (
+        <AutomationSettings automationId={id} kind={kind} initial={a.settings ?? {}} refresh={refresh} />
       )}
-      {tab === "Widget" && (
-        <WidgetCustomizer automationId={id} initial={a.widget_config} onSaved={refresh} />
+      {tab === "Phone & Calendar" && kind === "ai_receptionist" && (
+        <Integrations automationId={id} clientId={a.client_id} connections={pd.integrations} providers={["twilio", "google_calendar"]} />
       )}
-      {tab === "Integrations" && (
-        <Integrations automationId={id} clientId={a.client_id} connections={pd.integrations} />
+      {tab === "Channels" && kind === "messaging_ai" && (
+        <Integrations automationId={id} clientId={a.client_id} connections={pd.integrations} providers={["whatsapp", "meta_page", "messenger", "instagram"]} />
       )}
+      {tab === "Widget" && <WidgetCustomizer automationId={id} initial={a.widget_config} onSaved={refresh} />}
+      {tab === "Installation" && <Installation automationId={id} domain={a.domain_url} refresh={refresh} />}
     </div>
   );
 }
