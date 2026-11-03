@@ -23,6 +23,7 @@ const NAV = [
   { to: "/checkout", en: "Pricing", bn: "মূল্য", exact: false },
   { to: "/docs", en: "Docs", bn: "ডকস", exact: false },
   { to: "/about", en: "About", bn: "আমাদের কথা", exact: false },
+  { to: "/contact", en: "Contact", bn: "যোগাযোগ", exact: false },
 ] as const;
 
 const LANGS: { code: Lang; short: string; label: string }[] = [
