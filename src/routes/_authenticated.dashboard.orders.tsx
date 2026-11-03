@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { StatusPill, money, shortDate } from "@/components/admin-ui";
@@ -49,7 +48,12 @@ function OrdersPage() {
             Track payment verification and open your live automations.
           </p>
         </div>
-        <Button asChild><Link to="/automations">Explore all solutions <ArrowRight /></Link></Button>
+        <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-2">
+          <Button asChild size="sm"><Link to="/checkout/$slug" params={{ slug: "voice-sms-receptionist" }} search={{ plan: "monthly" }}>Order AI Receptionist</Link></Button>
+          <Button asChild size="sm"><Link to="/checkout/$slug" params={{ slug: "social-dm-assistant" }} search={{ plan: "monthly" }}>Order AI Chatbot</Link></Button>
+          <Button asChild size="sm" variant="outline"><Link to="/checkout/$slug" params={{ slug: "lead-capture-qualifier" }} search={{ plan: "monthly" }}>Order AI Sales Agent</Link></Button>
+          <Button asChild size="sm" variant="outline"><Link to="/checkout/$slug" params={{ slug: "knowledge-base-support" }} search={{ plan: "monthly" }}>Order AI Support Agent</Link></Button>
+        </div>
       </div>
       <div className="grid gap-3">
         {orders.map((o) => {
@@ -61,7 +65,7 @@ function OrdersPage() {
             >
               <div className="flex-1">
                 <div className="font-bold">
-                  {AUTOMATION_LABEL[o.automation_type ?? ""] ?? o.automation_slug}{" "}
+                  {automations.find((item) => item.slug === o.automation_slug)?.name ?? o.automation_slug}{" "}
                   <span className="text-xs text-muted-foreground">{o.order_id}</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -85,7 +89,7 @@ function OrdersPage() {
         })}
         {orders.length === 0 && (
           <p className="rounded-2xl border border-dashed border-border p-8 text-center text-muted-foreground">
-            No orders yet.
+            No orders yet. Use an order button above to get started.
           </p>
         )}
       </div>
