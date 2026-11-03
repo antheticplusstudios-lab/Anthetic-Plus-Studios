@@ -47,8 +47,8 @@ export const Route = createFileRoute("/_authenticated/dashboard/portal/$id")({
 
 const TABS_BY_KIND: Record<EngineKind, string[]> = {
   ai_receptionist: ["Overview", "Calls & Bookings", "Settings", "Phone & Calendar", "Installation"],
-  lead_capture: ["Overview", "Leads CRM", "Settings", "Installation"],
-  kb_support: ["Overview", "Support Desk", "Knowledge Base", "Settings", "Installation"],
+  lead_capture: ["Overview", "Leads CRM", "Settings", "Widget", "Installation"],
+  kb_support: ["Overview", "Support Desk", "Knowledge Base", "Settings", "Widget", "Installation"],
   messaging_ai: ["Overview", "Conversations", "Channels", "Settings", "Widget", "Installation"],
 };
 
@@ -136,7 +136,7 @@ function PortalPage() {
         <AutomationSettings automationId={id} kind={kind} initial={a.settings ?? {}} refresh={refresh} />
       )}
       {tab === "Phone & Calendar" && kind === "ai_receptionist" && (
-        <Integrations automationId={id} connections={pd.integrations} providers={["twilio", "google_calendar"]} />
+        <Integrations automationId={id} connections={pd.integrations} providers={["twilio", "google_calendar"]} refresh={refresh} />
       )}
       {tab === "Channels" && kind === "messaging_ai" && (
         <Integrations automationId={id} clientId={a.client_id} connections={pd.integrations} providers={["whatsapp", "meta_page", "messenger", "instagram"]} />
@@ -641,10 +641,12 @@ function Integrations({
   automationId,
   connections,
   providers,
+  refresh,
 }: {
   automationId: string;
   connections: Awaited<ReturnType<typeof getMyAutomationPortal>>["integrations"];
   providers: string[];
+  refresh: () => void;
 }) {
   const connected = new Map(
     connections.filter((s) => s.status === "connected").map((s) => [s.provider, s]),
@@ -703,7 +705,7 @@ function Integrations({
       toast.success(`${labels[provider]} connected`);
       setProvider(null);
       setFields({});
-      window.location.reload();
+      refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not connect integration");
     } finally {
