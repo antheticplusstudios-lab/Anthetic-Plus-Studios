@@ -128,3 +128,7 @@ Test all of these before switching customer traffic:
 ## 9. Cutover
 
 Keep the old single-Supabase project disconnected from the new runtime once the smoke tests pass. Do not run the files in `docs/legacy-single-db/` against the new production projects.
+
+## Release verification
+
+Before promoting an Autumic release, require both GitHub quality workflows to pass on the exact PR head, verify frontend-to-FastAPI runtime calls and webhook callbacks with a real test tenant, and confirm the production app and API domains are attached and present in the corresponding CORS and widget-host allowlists. A healthy API `/health` response alone does not prove customer checkout, runtime eligibility, or widget chat end-to-end.
