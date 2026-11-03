@@ -1,8 +1,8 @@
 .pulse-orb {
   --orb-size: 160px;
   --orb-speed: 1;
-  --orb-color-from: #818cf8;
-  --orb-color-to: #22d3ee;
+  --orb-color-from: color-mix(in oklab, var(--primary), white 34%);
+  --orb-color-to: var(--primary);
   --orb-level: 0;
   --pf: var(--orb-color-from);
   --pt: var(--orb-color-to);

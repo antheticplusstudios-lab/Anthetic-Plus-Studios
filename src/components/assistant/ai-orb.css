@@ -10,7 +10,7 @@
   --core-b: var(--primary);
   --core-c: color-mix(in oklab, var(--primary), black 72%);
   --halo: color-mix(in oklab, var(--primary), transparent 42%);
-  --eye: var(--primary-foreground);
+  --eye: var(--background);
   position: relative;
   width: var(--size);
   height: var(--size);
