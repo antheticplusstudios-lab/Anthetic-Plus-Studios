@@ -50,7 +50,15 @@ const TABS_BY_KIND: Record<EngineKind, string[]> = {
   ai_receptionist: ["Overview", "Calls & Bookings", "Settings", "Phone & Calendar", "Installation"],
   lead_capture: ["Overview", "Leads CRM", "Settings", "Widget", "Installation"],
   kb_support: ["Overview", "Support Desk", "Knowledge Base", "Settings", "Widget", "Installation"],
-  messaging_ai: ["Overview", "Conversations", "Channels", "Knowledge Base", "Settings", "Widget", "Installation"],
+  messaging_ai: [
+    "Overview",
+    "Conversations",
+    "Channels",
+    "Knowledge Base",
+    "Settings",
+    "Widget",
+    "Installation",
+  ],
 };
 
 function copy(text: string) {
