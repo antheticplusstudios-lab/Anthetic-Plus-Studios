@@ -34,7 +34,8 @@ export function ReactivationModal({
   const [transaction, setTransaction] = useState("");
   const [sender, setSender] = useState("");
   const [senderPhone, setSenderPhone] = useState("");
-  const requiresSenderPhone = selectedMethod?.required_fields.includes("sender_phone") ?? false;
+  const requiresSenderPhone =
+    selectedMethod?.required_fields.includes("sender_phone") ?? false;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -184,7 +185,9 @@ export function ReactivationModal({
             Later
           </Button>
           <Button
-            disabled={busy || !method || !transaction || !sender || (requiresSenderPhone && !senderPhone.trim())}
+            disabled={
+              busy || !method || !transaction || !sender || (requiresSenderPhone && !senderPhone.trim())
+            }
             onClick={submit}
           >
             {busy ? "Submitting…" : "Submit renewal"}
