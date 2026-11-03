@@ -64,10 +64,10 @@ REDIS_URL
 FASTAPI_BACKEND_URL
 FASTAPI_WS_URL
 NITRO_PRESET=vercel
-ALLOWED_WIDGET_HOSTS=your Autumic Vercel hostname,autumic.com
+ALLOWED_WIDGET_HOSTS=YOUR-AUTUMIC-APP-HOST,autumic.com,www.autumic.com
 ```
 
-`ALLOWED_WIDGET_HOSTS` is a comma-separated list of trusted root hosts. Each configured root automatically allows that host and its subdomains. For example, `autumic.com` covers `www.autumic.com` and `client.autumic.com`. Browser `Origin` does not include URL paths, so `/anything` does not require another entry. Do not configure a broad host such as `vercel.app`; add your specific Vercel hostname now and add `autumic.com` when the custom domain is purchased.
+`ALLOWED_WIDGET_HOSTS` is a comma-separated list of trusted root hosts. Each configured root automatically allows that host and its subdomains. For example, `autumic.com` covers `www.autumic.com` and `client.autumic.com`. Browser `Origin` does not include URL paths, so `/anything` does not require another entry. Do not configure a broad host such as `vercel.app`; add the exact Vercel app hostname and the verified Autumic custom domains when they are attached to the project.
 
 Never place a service-role key, provider API key, encryption key, or Redis credential in Git or a `VITE_*` variable.
 
@@ -90,7 +90,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Expose the service as `https://your configured Autumic API hostname`.
+Expose the service using the backend hostname configured for this deployment; do not assume an `api.autumic.com` DNS record exists until it is configured and verified.
 
 ## 6. Start workers
 
