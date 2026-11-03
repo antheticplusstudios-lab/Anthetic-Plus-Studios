@@ -135,7 +135,7 @@ Here is your current Autumic account update:
   },
 };
 
-const DEFAULT_PUBLIC_CONTEXT = `Autumic builds focused AI workforce systems for growing businesses. Visitors can explore automation products, create an account and order an automation; payment is manually verified. Public information includes security, tenant-isolation, data-handling and audit practices at /security. General support is available at info@autumic.com. Do not invent policy, pricing, availability, legal advice or product capabilities; use the live pricing catalog and administrator-supplied context when answering.`;
+const DEFAULT_PUBLIC_CONTEXT = `Autumic is an AI automation company serving Bangladesh and international markets. Its flagship services are AI Receptionist, Workflow Automation, AI Sales Agent and AI Chatbot. Additional services include AI Customer Support Agent, WhatsApp AI Automation, AI Lead Follow-up, Appointment Booking, Email Automation and custom business workflows. Autumic helps businesses reduce repetitive manual work, respond to customers around the clock, recover more leads and operate more efficiently. The company works with real estate, healthcare, ecommerce, education, hotels, finance and professional services. Packages are custom-scoped; public fixed pricing is not available. Offer a free consultation at /contact as the primary next step. Contact: info@autumic.com, +880 1915-349394, Baridhara, Dhaka-1212, Bangladesh. Public security and data-handling information is available at /security. Never invent pricing, policies, availability, results or capabilities.`;
 
 const defaultSettings: VoiceAgentSettings = {
   enabled: true,
@@ -206,9 +206,18 @@ function asSettings(value: unknown): VoiceAgentSettings {
         .slice(0, 160) || DEFAULT_MODEL,
     temperature: clampNumber(value["temperature"], 0.05, 1, 0.2),
     maxTokens: Math.round(clampNumber(value["maxTokens"], 300, 2400, 1200)),
-    welcomeMessage: String(value["welcomeMessage"] ?? defaultSettings.welcomeMessage).slice(0, 600),
-    systemPrompt: String(value["systemPrompt"] ?? defaultSettings.systemPrompt).slice(0, 12000),
-    publicContext: String(value["publicContext"] ?? DEFAULT_PUBLIC_CONTEXT).slice(0, MAX_CONTEXT),
+    welcomeMessage: String(value["welcomeMessage"] ?? defaultSettings.welcomeMessage)
+      .replace(/AntheticPlus/gi, "Autumic")
+      .replace(/antheticplusstudios@gmail.com/gi, "info@autumic.com")
+      .slice(0, 600),
+    systemPrompt: String(value["systemPrompt"] ?? defaultSettings.systemPrompt)
+      .replace(/AntheticPlus/gi, "Autumic")
+      .replace(/antheticplusstudios@gmail.com/gi, "info@autumic.com")
+      .slice(0, 12000),
+    publicContext: String(value["publicContext"] ?? DEFAULT_PUBLIC_CONTEXT)
+      .replace(/AntheticPlus/gi, "Autumic")
+      .replace(/antheticplusstudios@gmail.com/gi, "info@autumic.com")
+      .slice(0, MAX_CONTEXT),
     announcement: String(value["announcement"] ?? "").slice(0, 12000),
     emailFromName: String(value["emailFromName"] ?? defaultSettings.emailFromName).slice(0, 120),
     emailFromAddress: String(value["emailFromAddress"] ?? "")
@@ -290,31 +299,12 @@ async function getGroqSecret(): Promise<{ key: string; hint: string; model: stri
 }
 
 async function livePublicContext(settings: VoiceAgentSettings) {
-  const { data: plans, error } = await db2Admin
-    .from("pricing_plans")
-    .select("slug,name,description,monthly_price,yearly_price,currency")
-    .eq("active", true)
-    .eq("listed", true)
-    .order("slug", { ascending: true })
-    .limit(50);
-  if (error) throw new Error(error.message);
-
-  const pricing = (plans ?? [])
-    .map(
-      (p) =>
-        `- ${String(p.name ?? p.slug)} (${p.slug}): ${String(p.currency ?? "USD")} ${Number(p.monthly_price ?? 0)}/month${p.yearly_price != null ? `; yearly ${Number(p.yearly_price)}` : ""}. ${String(p.description ?? "")}`,
-    )
-    .join("\n");
   const announcement = settings.announcement.trim()
-    ? `
-
-CURRENT PUBLIC ANNOUNCEMENT:
-${settings.announcement.trim()}`
+    ? `\n\nCURRENT PUBLIC ANNOUNCEMENT:\n${settings.announcement.trim()}`
     : "";
-  return `${settings.publicContext}${announcement}
-
-LIVE LISTED PRICING:
-${pricing || "No public pricing records are currently listed."}`;
+  // Public assistant context deliberately excludes the private pricing matrix.
+  // Authenticated customers receive live plan pricing only inside secure checkout.
+  return `${settings.publicContext}${announcement}`;
 }
 
 type VerificationSummary = {
