@@ -265,7 +265,19 @@ function Checkout() {
     !!form.company.trim() && emailOk(form.email) && !!domain && !!form.category.trim();
   const step2Ok = form.context.trim().length > 20;
   const prodStep = step > 2 && step < last - 1 ? prodSteps[step - 3] : null;
-  const prodOk = !prodStep || prodStep.fields.every((f) => (config[f] ?? "").trim().length > 0);
+  const prodOk =
+    !prodStep ||
+    prodStep.fields.every((key) => {
+      const value = (config[key] ?? "").trim();
+      if (!value) return false;
+      if (key === "notify_email" && !emailOk(value)) return false;
+      if (["hot_threshold", "warm_threshold"].includes(key)) {
+        const score = Number(value);
+        return Number.isFinite(score) && score >= 0 && score <= 100;
+      }
+      if (key === "channels") return value.split(",").some(Boolean);
+      return true;
+    });
   const canContinue = step === 1 ? step1Ok : step === 2 ? step2Ok : prodOk;
   const canSubmit = !!form.transaction.trim() && !!form.sender.trim();
 
@@ -420,22 +432,84 @@ function Checkout() {
                 )}
               </Label>
               {f.help && <p className="mt-1 text-xs text-muted-foreground">{f.help}</p>}
-              {f.long ? (
+              {key === "channels" ? (
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  {[
+                    { value: "whatsapp", label: "WhatsApp" },
+                    { value: "instagram", label: "Instagram" },
+                    { value: "messenger", label: "Messenger" },
+                  ].map((channel) => {
+                    const selected = (config[key] ?? "").split(",").filter(Boolean);
+                    const checked = selected.includes(channel.value);
+                    return (
+                      <label
+                        key={channel.value}
+                        className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-3 text-sm font-semibold transition ${checked ? "border-primary bg-primary/8 text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() =>
+                            setConfig((current) => ({
+                              ...current,
+                              [key]: [
+                                ...selected.filter((value) => value !== channel.value),
+                                ...(checked ? [] : [channel.value]),
+                              ].join(","),
+                            }))
+                          }
+                          className="accent-primary"
+                        />
+                        {channel.label}
+                      </label>
+                    );
+                  })}
+                </div>
+              ) : key === "required_fields" ? (
+                <select
+                  className="mt-2 h-12 w-full rounded-xl border border-border bg-background px-3 text-sm"
+                  value={config[key] ?? "email|phone"}
+                  onChange={(e) => setConfig((current) => ({ ...current, [key]: e.target.value }))}
+                >
+                  <option value="email|phone">Email or phone (recommended)</option>
+                  <option value="email">Email only</option>
+                  <option value="phone">Phone only</option>
+                  <option value="email,phone">Email and phone</option>
+                  <option value="email,phone,company">Email, phone and company</option>
+                </select>
+              ) : key === "citation_mode" ? (
+                <select
+                  className="mt-2 h-12 w-full rounded-xl border border-border bg-background px-3 text-sm"
+                  value={config[key] ?? "inline"}
+                  onChange={(e) => setConfig((current) => ({ ...current, [key]: e.target.value }))}
+                >
+                  <option value="inline">Show source citations</option>
+                  <option value="none">Answer without citations</option>
+                </select>
+              ) : f.long ? (
                 <Textarea
                   className="mt-2 min-h-28 rounded-xl"
                   value={config[key] ?? ""}
-                  onChange={(e) => setConfig((c) => ({ ...c, [key]: e.target.value }))}
+                  onChange={(e) => setConfig((current) => ({ ...current, [key]: e.target.value }))}
                 />
               ) : (
                 <Input
                   className="mt-2"
-                  type={f.kind === "number" ? "number" : "text"}
+                  type={key === "notify_email" ? "email" : f.kind === "number" ? "number" : "text"}
+                  min={f.kind === "number" ? 0 : undefined}
+                  max={["hot_threshold", "warm_threshold"].includes(key) ? 100 : undefined}
                   value={config[key] ?? ""}
-                  onChange={(e) => setConfig((c) => ({ ...c, [key]: e.target.value }))}
+                  onChange={(e) => setConfig((current) => ({ ...current, [key]: e.target.value }))}
                 />
               )}
               {required && touched && !(config[key] ?? "").trim() && (
                 <p className="mt-1 text-xs text-destructive">Required</p>
+              )}
+              {touched && key === "notify_email" && (config[key] ?? "").trim() && !emailOk(config[key] ?? "") && (
+                <p className="mt-1 text-xs text-destructive">Enter a valid notification email.</p>
+              )}
+              {touched && ["hot_threshold", "warm_threshold"].includes(key) && (config[key] ?? "").trim() && (Number(config[key]) < 0 || Number(config[key]) > 100) && (
+                <p className="mt-1 text-xs text-destructive">Enter a score between 0 and 100.</p>
               )}
             </div>
           );
