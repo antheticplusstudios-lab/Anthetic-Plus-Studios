@@ -303,8 +303,7 @@ function Checkout() {
       return true;
     });
   const canContinue = step === 1 ? step1Ok : step === 2 ? step2Ok : prodOk;
-  const canSubmit =
-    !!selectedPaymentMethod && !!form.transaction.trim() && !!form.sender.trim();
+  const canSubmit = !!selectedPaymentMethod && !!form.transaction.trim() && !!form.sender.trim();
 
   const go = (next: number) => {
     setDirection(next > step ? 1 : -1);
@@ -641,9 +640,13 @@ function Checkout() {
           )}
           {selectedPaymentMethod && (
             <div className="mt-3 rounded-2xl border border-primary/25 bg-primary/5 p-4">
-              <p className="text-sm font-bold">{selectedPaymentMethod.method_name} payment details</p>
+              <p className="text-sm font-bold">
+                {selectedPaymentMethod.method_name} payment details
+              </p>
               {selectedPaymentMethod.account_identifier &&
-                !selectedPaymentMethod.account_identifier.toLowerCase().includes("configure in control center") && (
+                !selectedPaymentMethod.account_identifier
+                  .toLowerCase()
+                  .includes("configure in control center") && (
                   <p className="mt-2 break-all text-sm font-semibold">
                     {selectedPaymentMethod.account_identifier}
                   </p>
