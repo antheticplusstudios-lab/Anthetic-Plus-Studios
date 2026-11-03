@@ -850,7 +850,9 @@ export const adminListPaymentMethods = createServerFn({ method: "GET" })
         method_name: row.account_name ?? row.provider_name ?? row.method_type,
         instructions,
         required_fields: fields,
-        is_card: row.method_type === "card",
+        is_card:
+          row.method_type === "card" ||
+          ["stripe", "paypal"].includes((row.provider_name ?? "").toLowerCase()),
       };
     });
   });
@@ -860,7 +862,9 @@ export const adminSavePaymentMethod = createServerFn({ method: "POST" })
     z
       .object({
         id: z.string().uuid().nullable(),
-        method_name: z.string().min(2).max(120),
+        method_name: z.string().trim().min(2).max(120),
+        provider_name: z.string().trim().max(120).default("Manual"),
+        account_identifier: z.string().trim().max(500).default(""),
         instructions: z.string().max(3000),
         required_fields: z.array(z.string().max(100)).max(20),
         is_active: z.boolean().default(true),
@@ -870,14 +874,15 @@ export const adminSavePaymentMethod = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     assertAdmin(context);
     const row = {
-      method_type: data.method_name.toLowerCase().includes("card")
-        ? "card"
-        : data.method_name.toLowerCase().includes("wallet")
-          ? "mobile_money"
-          : "bank_transfer",
-      provider_name: "Manual",
+      method_type:
+        /card|stripe|paypal/i.test(`${data.method_name} ${data.provider_name}`)
+          ? "card"
+          : /wallet|mobile|bkash|nagad|rocket/i.test(`${data.method_name} ${data.provider_name}`)
+            ? "mobile_money"
+            : "bank_transfer",
+      provider_name: data.provider_name || "Manual",
       account_name: data.method_name,
-      account_identifier: "Configure in Control Center",
+      account_identifier: data.account_identifier || null,
       is_active: data.is_active,
       metadata: { instructions: data.instructions, required_fields: data.required_fields },
     };
@@ -887,7 +892,44 @@ export const adminSavePaymentMethod = createServerFn({ method: "POST" })
           .from("payment_methods")
           .insert({ ...row, client_id: context.tenant.clientId });
     if (error) throw new Error(error.message);
+    await auditMutation(context, {
+      action: data.id ? "payment_method.updated" : "payment_method.created",
+      targetId: data.id,
+      targetType: "payment_method",
+      after: { method_name: data.method_name, is_active: data.is_active },
+    });
     return { ok: true };
+  });
+
+export const adminDeletePaymentMethod = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    assertAdmin(context);
+    const { data: method, error: methodError } = await db2Admin
+      .from("payment_methods")
+      .select("id,account_name")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (methodError) throw new Error(methodError.message);
+    if (!method) throw new Error("Payment method not found.");
+    const { count, error: usageError } = await db2Admin
+      .from("payment_verifications")
+      .select("id", { count: "exact", head: true })
+      .eq("payment_method_id", data.id);
+    if (usageError) throw new Error(usageError.message);
+    const archived = (count ?? 0) > 0;
+    const { error } = archived
+      ? await db2Admin.from("payment_methods").update({ is_active: false }).eq("id", data.id)
+      : await db2Admin.from("payment_methods").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await auditMutation(context, {
+      action: archived ? "payment_method.archived" : "payment_method.deleted",
+      targetId: data.id,
+      targetType: "payment_method",
+      after: { method_name: method.account_name, archived },
+    });
+    return { ok: true, archived };
   });
 
 export const adminRunLifecycle = createServerFn({ method: "POST" })
