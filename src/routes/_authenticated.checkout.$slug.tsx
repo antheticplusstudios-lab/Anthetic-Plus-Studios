@@ -333,6 +333,16 @@ function Checkout() {
             We're verifying your payment for {item.name}. You'll see the status update on your
             payments page in a moment.
           </p>
+          <div className="mt-5 rounded-2xl bg-secondary p-4 text-left text-sm">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">Payment method</span>
+              <span className="font-bold">{selectedPaymentMethod?.method_name ?? "—"}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">Transaction reference</span>
+              <span className="max-w-[60%] break-all text-right font-semibold">{form.transaction}</span>
+            </div>
+          </div>
         </motion.div>
       </div>
     );
