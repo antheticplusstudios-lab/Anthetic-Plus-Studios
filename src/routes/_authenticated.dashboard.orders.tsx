@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { StatusPill, money, shortDate } from "@/components/admin-ui";
 import { useMyPayments, useInstances } from "@/hooks/use-portal";
-import { automations } from "@/lib/automations";
+import { automations, SLUG_BY_ENGINE_KIND, type EngineKind } from "@/lib/automations";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
   head: () => ({
@@ -88,7 +88,7 @@ function OrdersPage() {
       </div>
       <div className="grid gap-3">
         {orders.map((o) => {
-          const aid = o.automation_id ?? autoByOrder.get(o.order_id);
+          const aid = o.automation_id ?? autoByOrder.get(o.order_db_id ?? o.order_id);
           return (
             <div
               key={o.id}
@@ -96,8 +96,11 @@ function OrdersPage() {
             >
               <div className="flex-1">
                 <div className="font-bold">
-                  {automations.find((item) => item.slug === o.automation_slug)?.name ??
-                    o.automation_slug}{" "}
+                  {automations.find(
+                    (item) =>
+                      item.slug === o.automation_slug ||
+                      item.slug === SLUG_BY_ENGINE_KIND[o.automation_slug as EngineKind],
+                  )?.name ?? o.automation_slug}{" "}
                   <span className="text-xs text-muted-foreground">{o.order_id}</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
