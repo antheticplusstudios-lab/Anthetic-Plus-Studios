@@ -5,21 +5,26 @@ import { toast } from "sonner";
 import { Copy, Trash2, TriangleAlert, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { StatusPill, timeAgo } from "@/components/admin-ui";
 import { WidgetCustomizer } from "@/components/widget-customizer";
-import { AUTOMATION_LABEL, MESSAGING_FEATURES, RECEPTIONIST_CAPABILITIES } from "@/lib/catalog-v2";
+import { AUTOMATION_LABEL } from "@/lib/catalog-v2";
 import {
   getMyAutomationPortal,
   getConversationMessages,
-  updateAutomationTask,
   createCrawlJob,
   deleteKnowledgeDocument,
   saveManualKnowledgeDocument,
   saveAutomationIntegration,
   removeAutomationIntegration,
   generateMyInstallScript,
+  saveMyAutomationSettings,
+  updateMyLeadStatus,
+  updateMyTicketStatus,
+  updateMyAppointmentStatus,
 } from "@/lib/client-platform.functions";
+import { CONFIG_FIELDS, engineKindOf } from "@/lib/automation-config";
+import type { EngineKind } from "@/lib/automations";
 
 export const Route = createFileRoute("/_authenticated/dashboard/portal/$id")({
   head: () => ({
@@ -41,14 +46,20 @@ export const Route = createFileRoute("/_authenticated/dashboard/portal/$id")({
   component: PortalPage,
 });
 
-const TABS = [
-  "Overview",
-  "Inbox & CRM",
-  "Knowledge Base",
-  "Features",
-  "Widget",
-  "Integrations",
-] as const;
+const TABS_BY_KIND: Record<EngineKind, string[]> = {
+  ai_receptionist: ["Overview", "Calls & Bookings", "Settings", "Phone & Calendar", "Installation"],
+  lead_capture: ["Overview", "Leads CRM", "Settings", "Widget", "Installation"],
+  kb_support: ["Overview", "Support Desk", "Knowledge Base", "Settings", "Widget", "Installation"],
+  messaging_ai: [
+    "Overview",
+    "Conversations",
+    "Channels",
+    "Knowledge Base",
+    "Settings",
+    "Widget",
+    "Installation",
+  ],
+};
 
 function copy(text: string) {
   void navigator.clipboard.writeText(text);
@@ -57,7 +68,7 @@ function copy(text: string) {
 
 function PortalPage() {
   const { id } = Route.useParams();
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
+  const [tab, setTab] = useState("Overview");
   const portal = useQuery({
     queryKey: ["automation-portal", id],
     queryFn: () => getMyAutomationPortal({ data: { automationId: id } }),
@@ -72,16 +83,32 @@ function PortalPage() {
       </p>
     );
   const refresh = () => void qc.invalidateQueries({ queryKey: ["automation-portal", id] });
+  const kind = engineKindOf(a);
+  const tabs = kind ? (TABS_BY_KIND[kind] ?? ["Overview"]) : ["Overview", "Installation"];
 
   return (
     <div className="grid gap-6">
-      <div>
-        <h1 className="text-2xl font-extrabold">
-          {AUTOMATION_LABEL[a.automation_type ?? ""] ?? a.name ?? a.automation_type}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {a.domain_url} · {a.client_id} · {a.order_id ?? "—"}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
+            {kind === "ai_receptionist"
+              ? "Voice operations"
+              : kind === "lead_capture"
+                ? "Sales pipeline"
+                : kind === "kb_support"
+                  ? "Customer support"
+                  : kind === "messaging_ai"
+                    ? "Social messaging"
+                    : "Automation workspace"}
+          </p>
+          <h1 className="mt-1 text-2xl font-extrabold">
+            {AUTOMATION_LABEL[a.automation_type ?? ""] ?? a.name ?? a.automation_type}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {a.domain_url} · Order {a.order_id ?? "—"}
+          </p>
+        </div>
+        <StatusPill status={a.run_state ?? a.status} />
       </div>
       {a.requires_reinstallation && (
         <div className="flex items-center gap-2 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
@@ -90,7 +117,7 @@ function PortalPage() {
         </div>
       )}
       <div className="flex flex-wrap gap-2">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <Button
             key={t}
             size="sm"
@@ -101,8 +128,21 @@ function PortalPage() {
           </Button>
         ))}
       </div>
-      {tab === "Overview" && <Overview portal={pd} refresh={refresh} />}
-      {tab === "Inbox & CRM" && <Inbox automationId={id} conversations={pd.conversations} />}
+      {tab === "Overview" && <Overview portal={pd} kind={kind} refresh={refresh} />}
+      {tab === "Calls & Bookings" && (
+        <div className="grid gap-6">
+          <Appointments automationId={id} rows={pd.appointments} refresh={refresh} />
+          <Inbox automationId={id} conversations={pd.conversations} />
+        </div>
+      )}
+      {tab === "Leads CRM" && <Leads automationId={id} rows={pd.leads} refresh={refresh} />}
+      {tab === "Support Desk" && (
+        <div className="grid gap-6">
+          <Tickets automationId={id} rows={pd.tickets} refresh={refresh} />
+          <Inbox automationId={id} conversations={pd.conversations} />
+        </div>
+      )}
+      {tab === "Conversations" && <Inbox automationId={id} conversations={pd.conversations} />}
       {tab === "Knowledge Base" && (
         <Knowledge
           automationId={id}
@@ -112,14 +152,35 @@ function PortalPage() {
           refresh={refresh}
         />
       )}
-      {tab === "Features" && (
-        <Features automationId={id} type={a.automation_type} tasks={pd.tasks} refresh={refresh} />
+      {tab === "Settings" && kind && (
+        <AutomationSettings
+          automationId={id}
+          kind={kind}
+          initial={a.settings ?? {}}
+          refresh={refresh}
+        />
+      )}
+      {tab === "Phone & Calendar" && kind === "ai_receptionist" && (
+        <Integrations
+          automationId={id}
+          connections={pd.integrations}
+          providers={["twilio", "google_calendar"]}
+          refresh={refresh}
+        />
+      )}
+      {tab === "Channels" && kind === "messaging_ai" && (
+        <Integrations
+          automationId={id}
+          connections={pd.integrations}
+          providers={["whatsapp", "meta_page", "messenger", "instagram"]}
+          refresh={refresh}
+        />
       )}
       {tab === "Widget" && (
         <WidgetCustomizer automationId={id} initial={a.widget_config} onSaved={refresh} />
       )}
-      {tab === "Integrations" && (
-        <Integrations automationId={id} clientId={a.client_id} connections={pd.integrations} />
+      {tab === "Installation" && (
+        <Installation automationId={id} domain={a.domain_url} refresh={refresh} />
       )}
     </div>
   );
@@ -127,89 +188,572 @@ function PortalPage() {
 
 type PortalData = Awaited<ReturnType<typeof getMyAutomationPortal>>;
 
-function Overview({ portal, refresh }: { portal: PortalData; refresh: () => void }) {
+function Metric({ label, value, note }: { label: string; value: string | number; note?: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-2 text-2xl font-extrabold tabular-nums">{value}</p>
+      {note && <p className="mt-1 text-xs text-muted-foreground">{note}</p>}
+    </div>
+  );
+}
+
+function Overview({
+  portal,
+  kind,
+}: {
+  portal: PortalData;
+  kind: EngineKind | null;
+  refresh: () => void;
+}) {
   const a = portal.automation;
+  const leads = portal.leads;
+  const openTickets = portal.tickets.filter(
+    (ticket) => !["resolved", "closed"].includes(ticket.status),
+  ).length;
+  const hotLeads = leads.filter(
+    (lead) => lead.lead_score >= Number(portal.automation.settings?.["hot_threshold"] ?? 60),
+  ).length;
+  const connected = portal.integrations.filter((item) => item.status === "connected").length;
+  const cards: [string, string | number, string][] =
+    kind === "ai_receptionist"
+      ? [
+          ["Calls & conversations", portal.conversations.length, "Recent caller activity"],
+          ["Appointments", portal.appointments.length, "Bookings recorded by the receptionist"],
+          ["Call minutes", Number(portal.usage?.call_minutes_used ?? 0), "This billing period"],
+          ["Phone line", a.assigned_phone_number ?? "Not assigned", "Provisioning status"],
+        ]
+      : kind === "lead_capture"
+        ? [
+            ["Total leads", leads.length, "Captured by this sales agent"],
+            ["Hot leads", hotLeads, "Based on your saved hot-score threshold"],
+            [
+              "Qualified",
+              leads.filter((lead) => lead.status === "qualified").length,
+              "Ready for follow-up",
+            ],
+            [
+              "Conversion wins",
+              leads.filter((lead) => lead.status === "won").length,
+              "Marked won by your team",
+            ],
+          ]
+        : kind === "kb_support"
+          ? [
+              ["Support conversations", portal.conversations.length, "Recent customer questions"],
+              ["Open escalations", openTickets, "Tickets awaiting your team"],
+              ["Knowledge sources", portal.knowledge.length, "Documents and indexed sources"],
+              ["Crawl jobs", portal.crawlJobs.length, "Recent website ingestion jobs"],
+            ]
+          : [
+              ["Conversations", portal.conversations.length, "Across connected messaging channels"],
+              ["Connected channels", connected, "Verified channel connections"],
+              ["Leads captured", leads.length, "Contacts collected in conversations"],
+              [
+                "Messages sent",
+                Number(portal.usage?.sms_count_used ?? 0),
+                "Usage reported this billing period",
+              ],
+            ];
+  const descriptions: Record<EngineKind, string> = {
+    ai_receptionist:
+      "Monitor caller activity, bookings, phone connectivity and the rules that control call handling.",
+    lead_capture:
+      "Review new prospects, prioritize hot leads, update pipeline stages and tune qualification rules.",
+    kb_support:
+      "Keep answers grounded in approved knowledge, review escalations and resolve customer issues.",
+    messaging_ai:
+      "Manage your connected social channels, monitor conversations and control your brand voice.",
+  };
+  return (
+    <div className="grid gap-5">
+      <section className="rounded-3xl border border-border bg-card p-5">
+        <h2 className="text-lg font-extrabold">Workspace overview</h2>
+        <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
+          {kind ? descriptions[kind] : "Manage your automation and monitor its activity."}
+        </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {cards.map(([label, value, note]) => (
+            <Metric key={String(label)} label={String(label)} value={value} note={String(note)} />
+          ))}
+        </div>
+      </section>
+      <section className="rounded-3xl border border-border bg-card p-5">
+        <h2 className="font-bold">Automation health</h2>
+        <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+          <div>
+            <p className="text-xs text-muted-foreground">Runtime state</p>
+            <p className="mt-1 font-semibold capitalize">
+              {String(a.run_state ?? a.status ?? "unknown").replace(/_/g, " ")}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Last successful activity</p>
+            <p className="mt-1 font-semibold">
+              {a.last_success_at
+                ? new Date(a.last_success_at).toLocaleString()
+                : "No successful run recorded"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Subscription</p>
+            <p className="mt-1 font-semibold capitalize">
+              {String(portal.subscription?.status ?? a.status ?? "unknown").replace(/_/g, " ")}
+            </p>
+          </div>
+        </div>
+        {a.last_error && (
+          <p className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+            {a.last_error}
+          </p>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function Installation({
+  automationId,
+  domain,
+  refresh,
+}: {
+  automationId: string;
+  domain: string;
+  refresh: () => void;
+}) {
   const [snippet, setSnippet] = useState("");
   const [busy, setBusy] = useState(false);
   const generate = async () => {
     setBusy(true);
     try {
-      const result = await generateMyInstallScript({ data: { automationId: a.id } });
+      const result = await generateMyInstallScript({ data: { automationId } });
       setSnippet(result.snippet);
       refresh();
-      toast.success("New installation script generated");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not generate script.");
+      toast.success("A new installation script is ready");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not generate the installation script.",
+      );
     } finally {
       setBusy(false);
     }
   };
   return (
-    <div className="grid gap-4">
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-bold">Install script</h2>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => void generate()} disabled={busy}>
-              {busy ? "Generating…" : "Generate script"}
-            </Button>
-            {snippet && (
-              <Button size="sm" variant="outline" onClick={() => copy(snippet)}>
-                <Copy className="h-4 w-4" /> Copy
-              </Button>
-            )}
-          </div>
-        </div>
-        {snippet ? (
-          <pre className="overflow-auto rounded-xl bg-muted p-3 text-xs">{snippet}</pre>
-        ) : (
-          <p className="rounded-xl bg-muted p-3 text-xs text-muted-foreground">
-            For security, raw installation tokens are not retained. Generate a script when you need
-            to install or reinstall this automation.
-          </p>
-        )}
-        <p className="mt-2 text-xs text-muted-foreground">
-          Paste before the closing body tag. Generating a new script invalidates the previous token.
-        </p>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-4">
-        <Stat
-          label="Phone number"
-          value={a.assigned_phone_number ?? "Not assigned"}
-          action={a.assigned_phone_number ? () => copy(a.assigned_phone_number!) : undefined}
-        />
-        <Stat
-          label="Tokens this month"
-          value={Number(portal.usage?.tokens_used ?? 0).toLocaleString()}
-        />
-        <Stat label="Call minutes" value={String(portal.usage?.call_minutes_used ?? 0)} />
-        <Stat label="SMS sent" value={String(portal.usage?.sms_count_used ?? 0)} />
-      </div>
-    </div>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  action,
-}: {
-  label: string;
-  value: string;
-  action?: (() => void) | undefined;
-}) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 flex items-center justify-between font-bold">
-        {value}
-        {action && (
-          <Button size="icon" variant="ghost" onClick={action}>
-            <Copy className="h-4 w-4" />
+    <section className="rounded-3xl border border-border bg-card p-5">
+      <h2 className="text-lg font-extrabold">Install on your website</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Generate a domain-bound script for {domain || "your registered website"}. Generating a new
+        script rotates the previous token, so replace the old snippet when reinstalling.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button onClick={() => void generate()} disabled={busy}>
+          {busy ? "Generating…" : "Generate new script"}
+        </Button>
+        {snippet && (
+          <Button variant="outline" onClick={() => copy(snippet)}>
+            <Copy className="h-4 w-4" /> Copy script
           </Button>
         )}
       </div>
-    </div>
+      {snippet ? (
+        <pre className="mt-4 overflow-x-auto rounded-xl bg-muted p-4 text-xs">
+          <code>{snippet}</code>
+        </pre>
+      ) : (
+        <p className="mt-4 rounded-xl bg-muted p-4 text-sm text-muted-foreground">
+          For security, the raw token is not stored for later display. Generate a script when you
+          need to install or reinstall.
+        </p>
+      )}
+      <ol className="mt-4 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+        <li>Copy the generated script.</li>
+        <li>Paste it immediately before the closing body tag on your registered domain.</li>
+        <li>Publish your website, then return here to check installation status.</li>
+      </ol>
+    </section>
+  );
+}
+
+function AutomationSettings({
+  automationId,
+  kind,
+  initial,
+  refresh,
+}: {
+  automationId: string;
+  kind: EngineKind;
+  initial: Record<string, unknown>;
+  refresh: () => void;
+}) {
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      CONFIG_FIELDS[kind].map((field) => [field.key, String(initial[field.key] ?? "")]),
+    ),
+  );
+  const [saving, setSaving] = useState(false);
+  const fields = CONFIG_FIELDS[kind];
+  async function save() {
+    setSaving(true);
+    try {
+      await saveMyAutomationSettings({ data: { automationId, settings: values } });
+      toast.success("Automation settings saved");
+      refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save automation settings.");
+    } finally {
+      setSaving(false);
+    }
+  }
+  return (
+    <section className="rounded-3xl border border-border bg-card p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-extrabold">Automation behaviour</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            These settings are applied by the automation runtime. Save changes when finished.
+          </p>
+        </div>
+        <Button onClick={() => void save()} disabled={saving}>
+          {saving ? "Saving…" : "Save settings"}
+        </Button>
+      </div>
+      <div className="mt-5 grid gap-4 md:grid-cols-2">
+        {fields.map((field) => {
+          const value = values[field.key] ?? "";
+          const wide = !!field.long;
+          return (
+            <label key={field.key} className={wide ? "grid gap-1.5 md:col-span-2" : "grid gap-1.5"}>
+              <span className="text-sm font-semibold">{field.label}</span>
+              {field.help && (
+                <span className="text-xs leading-5 text-muted-foreground">{field.help}</span>
+              )}
+              {wide ? (
+                <Textarea
+                  rows={4}
+                  value={value}
+                  maxLength={8000}
+                  onChange={(event) =>
+                    setValues((current) => ({ ...current, [field.key]: event.target.value }))
+                  }
+                />
+              ) : (
+                <Input
+                  type={
+                    field.key === "notify_email"
+                      ? "email"
+                      : field.key === "webhook_url"
+                        ? "url"
+                        : field.kind === "number"
+                          ? "number"
+                          : "text"
+                  }
+                  min={field.kind === "number" ? 0 : undefined}
+                  max={
+                    ["hot_threshold", "warm_threshold"].includes(field.key)
+                      ? 100
+                      : field.key === "confidence_threshold"
+                        ? 1
+                        : field.key === "voice_rate"
+                          ? 2
+                          : undefined
+                  }
+                  step={
+                    field.key === "confidence_threshold" || field.key === "voice_rate"
+                      ? "0.05"
+                      : "1"
+                  }
+                  value={value}
+                  maxLength={8000}
+                  onChange={(event) =>
+                    setValues((current) => ({ ...current, [field.key]: event.target.value }))
+                  }
+                />
+              )}
+            </label>
+          );
+        })}
+      </div>
+      <div className="mt-5 flex justify-end">
+        <Button onClick={() => void save()} disabled={saving}>
+          {saving ? "Saving…" : "Save changes"}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function Leads({
+  automationId,
+  rows,
+  refresh,
+}: {
+  automationId: string;
+  rows: PortalData["leads"];
+  refresh: () => void;
+}) {
+  const [filter, setFilter] = useState("all");
+  const [busyId, setBusyId] = useState("");
+  const filtered = filter === "all" ? rows : rows.filter((lead) => lead.status === filter);
+  async function changeStatus(
+    leadId: string,
+    status: "new" | "qualified" | "contacted" | "won" | "lost" | "archived",
+  ) {
+    setBusyId(leadId);
+    try {
+      await updateMyLeadStatus({ data: { automationId, leadId, status } });
+      toast.success("Lead status updated");
+      refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update lead.");
+    } finally {
+      setBusyId("");
+    }
+  }
+  return (
+    <section className="rounded-3xl border border-border bg-card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-extrabold">Lead pipeline</h2>
+          <p className="text-sm text-muted-foreground">
+            {rows.length} leads captured by this automation
+          </p>
+        </div>
+        <select
+          className="h-10 rounded-xl border border-border bg-background px-3 text-sm"
+          value={filter}
+          onChange={(event) => setFilter(event.target.value)}
+        >
+          {["all", "new", "qualified", "contacted", "won", "lost", "archived"].map((status) => (
+            <option key={status} value={status}>
+              {status === "all" ? "All stages" : status}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[780px] text-left text-sm">
+          <thead className="text-xs uppercase text-muted-foreground">
+            <tr>
+              {["Lead", "Intent / summary", "Source", "Score", "Captured", "Pipeline stage"].map(
+                (label) => (
+                  <th key={label} className="px-3 py-3">
+                    {label}
+                  </th>
+                ),
+              )}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {filtered.map((lead) => (
+              <tr key={lead.id}>
+                <td className="px-3 py-3">
+                  <p className="font-semibold">{lead.name || "Unnamed lead"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {lead.email || lead.phone || "No contact details"}
+                  </p>
+                </td>
+                <td className="max-w-[240px] px-3 py-3">
+                  <p className="font-medium">{lead.intent || "—"}</p>
+                  <p className="line-clamp-2 text-xs text-muted-foreground">{lead.summary}</p>
+                </td>
+                <td className="px-3 py-3 text-muted-foreground">{lead.source || "—"}</td>
+                <td className="px-3 py-3 font-bold tabular-nums">{lead.lead_score}/100</td>
+                <td className="px-3 py-3 text-xs text-muted-foreground">
+                  {new Date(lead.captured_at || lead.created_at).toLocaleDateString()}
+                </td>
+                <td className="px-3 py-3">
+                  <select
+                    aria-label={`Stage for ${lead.name || "lead"}`}
+                    className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
+                    disabled={busyId === lead.id}
+                    value={lead.status}
+                    onChange={(event) =>
+                      void changeStatus(
+                        lead.id,
+                        event.target.value as
+                          "new" | "qualified" | "contacted" | "won" | "lost" | "archived",
+                      )
+                    }
+                  >
+                    {["new", "qualified", "contacted", "won", "lost", "archived"].map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-3 py-12 text-center text-muted-foreground">
+                  No leads in this stage yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function Appointments({
+  automationId,
+  rows,
+  refresh,
+}: {
+  automationId: string;
+  rows: PortalData["appointments"];
+  refresh: () => void;
+}) {
+  const [busyId, setBusyId] = useState("");
+  async function changeStatus(
+    appointmentId: string,
+    status: "booked" | "completed" | "canceled" | "no_show" | "rescheduled",
+  ) {
+    setBusyId(appointmentId);
+    try {
+      await updateMyAppointmentStatus({ data: { automationId, appointmentId, status } });
+      toast.success("Booking status updated");
+      refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update booking.");
+    } finally {
+      setBusyId("");
+    }
+  }
+  return (
+    <section className="rounded-3xl border border-border bg-card p-5">
+      <h2 className="text-lg font-extrabold">Appointments</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Bookings created through this receptionist. Update the status after the customer is served.
+      </p>
+      <div className="mt-4 grid gap-3">
+        {rows.map((row) => (
+          <article
+            key={row.id}
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border p-4"
+          >
+            <div className="min-w-0">
+              <p className="font-semibold">{row.visitor_name || "Customer"}</p>
+              <p className="text-xs text-muted-foreground">
+                {new Date(row.starts_at).toLocaleString()} ·{" "}
+                {row.visitor_phone || row.visitor_email || "No contact"}
+              </p>
+              {row.notes && <p className="mt-1 text-xs text-muted-foreground">{row.notes}</p>}
+            </div>
+            <select
+              aria-label={`Booking status for ${row.visitor_name || "customer"}`}
+              className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
+              disabled={busyId === row.id}
+              value={row.status}
+              onChange={(event) =>
+                void changeStatus(
+                  row.id,
+                  event.target.value as
+                    "booked" | "completed" | "canceled" | "no_show" | "rescheduled",
+                )
+              }
+            >
+              {["booked", "completed", "canceled", "no_show", "rescheduled"].map((status) => (
+                <option key={status} value={status}>
+                  {status.replace("_", " ")}
+                </option>
+              ))}
+            </select>
+          </article>
+        ))}
+        {rows.length === 0 && (
+          <p className="rounded-xl bg-muted/50 p-8 text-center text-sm text-muted-foreground">
+            No appointments have been recorded yet.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function Tickets({
+  automationId,
+  rows,
+  refresh,
+}: {
+  automationId: string;
+  rows: PortalData["tickets"];
+  refresh: () => void;
+}) {
+  const [busyId, setBusyId] = useState("");
+  async function changeStatus(
+    ticketId: string,
+    status: "open" | "assigned" | "resolved" | "closed",
+  ) {
+    setBusyId(ticketId);
+    try {
+      await updateMyTicketStatus({ data: { automationId, ticketId, status } });
+      toast.success("Support ticket updated");
+      refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update ticket.");
+    } finally {
+      setBusyId("");
+    }
+  }
+  return (
+    <section className="rounded-3xl border border-border bg-card p-5">
+      <h2 className="text-lg font-extrabold">Escalations & support tickets</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Questions the AI could not safely resolve, or that matched your handoff rules.
+      </p>
+      <div className="mt-4 grid gap-3">
+        {rows.map((row) => (
+          <article key={row.id} className="rounded-2xl border border-border p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold">{row.visitor_contact || "Customer"}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {row.reason.replace(/_/g, " ")}
+                </p>
+                {row.transcript && (
+                  <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">
+                    {typeof row.transcript === "string"
+                      ? row.transcript
+                      : JSON.stringify(row.transcript)}
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {new Date(row.created_at).toLocaleString()} · Sentiment{" "}
+                  {Number(row.sentiment).toFixed(2)}
+                </p>
+              </div>
+              <select
+                aria-label="Ticket status"
+                className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
+                disabled={busyId === row.id}
+                value={row.status}
+                onChange={(event) =>
+                  void changeStatus(
+                    row.id,
+                    event.target.value as "open" | "assigned" | "resolved" | "closed",
+                  )
+                }
+              >
+                {["open", "assigned", "resolved", "closed"].map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </article>
+        ))}
+        {rows.length === 0 && (
+          <p className="rounded-xl bg-muted/50 p-8 text-center text-sm text-muted-foreground">
+            No escalations waiting for your team.
+          </p>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -408,52 +952,16 @@ function Knowledge({
   );
 }
 
-function Features({
-  automationId,
-  type,
-  tasks,
-  refresh,
-}: {
-  automationId: string;
-  type: string;
-  tasks: PortalData["tasks"];
-  refresh: () => void;
-}) {
-  const list = type === "messaging_ai" ? MESSAGING_FEATURES : RECEPTIONIST_CAPABILITIES;
-  const byKey = new Map(tasks.map((t) => [t.task_key, t]));
-  async function toggle(key: string, enabled: boolean) {
-    try {
-      await updateAutomationTask({ data: { automationId, taskKey: key, enabled } });
-      refresh();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not update feature.");
-    }
-  }
-  return (
-    <div className="grid gap-2 sm:grid-cols-2">
-      {list.map((c) => (
-        <div key={c.key} className="flex items-start gap-3 rounded-xl border border-border p-3">
-          <div className="flex-1">
-            <div className="text-sm font-bold">{c.label}</div>
-            <div className="text-xs text-muted-foreground">{c.desc}</div>
-          </div>
-          <Switch
-            checked={byKey.get(c.key)?.enabled ?? false}
-            onCheckedChange={(v) => void toggle(c.key, v)}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function Integrations({
   automationId,
   connections,
+  providers,
+  refresh,
 }: {
   automationId: string;
-  clientId: string;
   connections: Awaited<ReturnType<typeof getMyAutomationPortal>>["integrations"];
+  providers: string[];
+  refresh: () => void;
 }) {
   const connected = new Map(
     connections.filter((s) => s.status === "connected").map((s) => [s.provider, s]),
@@ -512,7 +1020,7 @@ function Integrations({
       toast.success(`${labels[provider]} connected`);
       setProvider(null);
       setFields({});
-      window.location.reload();
+      refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not connect integration");
     } finally {
@@ -523,14 +1031,14 @@ function Integrations({
     try {
       await removeAutomationIntegration({ data: { automationId, provider: key } });
       toast.success("Integration disconnected");
-      window.location.reload();
+      refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not disconnect integration");
     }
   }
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {Object.keys(labels).map((key) => (
+      {providers.map((key) => (
         <div key={key} className="rounded-2xl border border-border bg-card p-4">
           <div className="font-bold">{labels[key]}</div>
           <div className="my-2">

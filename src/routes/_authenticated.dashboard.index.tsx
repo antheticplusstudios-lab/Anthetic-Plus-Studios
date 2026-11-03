@@ -144,7 +144,7 @@ function DashboardOverview() {
                     {statusLabels[item.status] ?? item.status}
                   </span>
                   <Button size="sm" asChild>
-                    <Link to="/dashboard/automations/$id" params={{ id: item.id }}>
+                    <Link to="/dashboard/portal/$id" params={{ id: item.id }}>
                       Manage
                     </Link>
                   </Button>

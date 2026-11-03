@@ -7,6 +7,7 @@ import {
   LogOut,
   Menu,
   ShieldCheck,
+  ShoppingCart,
   UserRound,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -105,6 +106,13 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             <Menu />
           </Button>
           <div className="ml-auto flex items-center gap-2">
+            <Button asChild size="sm">
+              <Link to="/dashboard/orders">
+                <ShoppingCart className="h-4 w-4" />
+                <span className="hidden sm:inline">New order</span>
+                <span className="sm:hidden">Order</span>
+              </Link>
+            </Button>
             <LanguagePicker />
             <Button
               variant="ghost"

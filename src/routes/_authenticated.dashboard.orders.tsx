@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { StatusPill, money, shortDate } from "@/components/admin-ui";
 import { useMyPayments, useInstances } from "@/hooks/use-portal";
-import { AUTOMATION_LABEL } from "@/lib/catalog-v2";
+import { automations, SLUG_BY_ENGINE_KIND, type EngineKind } from "@/lib/automations";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
   head: () => ({
@@ -48,30 +47,48 @@ function OrdersPage() {
             Track payment verification and open your live automations.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link
-              to="/checkout/$slug"
-              params={{ slug: "social-dm-assistant" }}
-              search={{ plan: "monthly" }}
-            >
-              Order Social DM Assistant
-            </Link>
-          </Button>
-          <Button asChild>
+        <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-2">
+          <Button asChild size="sm">
             <Link
               to="/checkout/$slug"
               params={{ slug: "voice-sms-receptionist" }}
               search={{ plan: "monthly" }}
             >
-              Order Voice Receptionist
+              Order AI Receptionist
+            </Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link
+              to="/checkout/$slug"
+              params={{ slug: "social-dm-assistant" }}
+              search={{ plan: "monthly" }}
+            >
+              Order AI Chatbot
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link
+              to="/checkout/$slug"
+              params={{ slug: "lead-capture-qualifier" }}
+              search={{ plan: "monthly" }}
+            >
+              Order AI Sales Agent
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link
+              to="/checkout/$slug"
+              params={{ slug: "knowledge-base-support" }}
+              search={{ plan: "monthly" }}
+            >
+              Order AI Support Agent
             </Link>
           </Button>
         </div>
       </div>
       <div className="grid gap-3">
         {orders.map((o) => {
-          const aid = o.automation_id ?? autoByOrder.get(o.order_id);
+          const aid = o.automation_id ?? autoByOrder.get(o.order_db_id ?? o.order_id);
           return (
             <div
               key={o.id}
@@ -79,7 +96,11 @@ function OrdersPage() {
             >
               <div className="flex-1">
                 <div className="font-bold">
-                  {AUTOMATION_LABEL[o.automation_type ?? ""] ?? o.automation_slug}{" "}
+                  {automations.find(
+                    (item) =>
+                      item.slug === o.automation_slug ||
+                      item.slug === SLUG_BY_ENGINE_KIND[o.automation_slug as EngineKind],
+                  )?.name ?? o.automation_slug}{" "}
                   <span className="text-xs text-muted-foreground">{o.order_id}</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -103,7 +124,7 @@ function OrdersPage() {
         })}
         {orders.length === 0 && (
           <p className="rounded-2xl border border-dashed border-border p-8 text-center text-muted-foreground">
-            No orders yet.
+            No orders yet. Use an order button above to get started.
           </p>
         )}
       </div>
