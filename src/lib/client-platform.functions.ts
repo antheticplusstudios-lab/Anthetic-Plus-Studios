@@ -6,6 +6,7 @@ import { assertTenantActive } from "@/server/auth/tenant.server";
 import { db1Admin, db2Admin, db3Admin, db4Admin } from "@/server/db/clients.server";
 import { auditMutation } from "@/lib/platform-access.server";
 import { normalizeWidgetConfig } from "@/lib/widget-config";
+import { CONFIG_FIELDS, configVersion, engineKindOf, settingsFromConfig } from "@/lib/automation-config";
 import type { TenantContext } from "@/server/auth/tenant.server";
 import type { DB2Database, DB3Database, DB4Database } from "@/server/db/server-db.types";
 
@@ -367,73 +368,56 @@ export const getMyAutomationPortal = createServerFn({ method: "GET" })
   .validator((d: unknown) => automationIdSchema.parse(d))
   .handler(async ({ data, context }) => {
     const automation = await assertOwnAutomation(context, data.automationId);
-    const [subscription, usage, conversations, knowledge, crawlJobs, tasks, integrations] =
+    const [subscription, usage, conversations, knowledge, crawlJobs, tasks, integrations, leads, appointments, tickets] =
       await Promise.all([
         automation.subscription_id
-          ? db2Admin
-              .from("subscriptions")
-              .select("*")
-              .eq("id", automation.subscription_id)
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
-        db2Admin
-          .from("usage_meters")
-          .select("*")
-          .eq("automation_id", automation.id)
-          .eq("billing_period", new Date().toISOString().slice(0, 7))
-          .maybeSingle(),
-        db4Admin
-          .from("conversations")
-          .select("*")
-          .eq("automation_id", automation.id)
-          .order("created_at", { ascending: false })
-          .limit(100),
-        db3Admin
-          .from("kb_documents")
+          ? db2Admin.from("subscriptions").select("*").eq("id", automation.subscription_id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        db2Admin.from("usage_meters").select("*").eq("automation_id", automation.id)
+          .eq("billing_period", new Date().toISOString().slice(0, 7)).maybeSingle(),
+        db4Admin.from("conversations").select("*").eq("automation_id", automation.id)
+          .eq("client_id", context.tenant.clientId).order("created_at", { ascending: false }).limit(100),
+        db3Admin.from("kb_documents")
           .select("id, source_type, source_name, canonical_url, priority, status, created_at")
-          .eq("automation_id", automation.id)
+          .eq("automation_id", automation.id).eq("client_id", context.tenant.clientId)
           .order("created_at", { ascending: false }),
-        db3Admin
-          .from("crawl_jobs")
-          .select("*")
-          .eq("automation_id", automation.id)
-          .order("created_at", { ascending: false })
-          .limit(5),
-        db2Admin
-          .from("automation_tasks")
-          .select("*")
-          .eq("automation_id", automation.id)
-          .order("created_at"),
-        db2Admin
-          .from("integration_connections")
+        db3Admin.from("crawl_jobs").select("*").eq("automation_id", automation.id)
+          .eq("client_id", context.tenant.clientId).order("created_at", { ascending: false }).limit(10),
+        db2Admin.from("automation_tasks").select("*").eq("automation_id", automation.id).order("created_at"),
+        db2Admin.from("integration_connections")
           .select("provider,status,updated_at,last_verified_at,last_error")
           .eq("automation_id", automation.id),
+        db4Admin.from("leads")
+          .select("id,name,email,phone,intent,summary,source,lead_score,status,captured_at,created_at,assigned_user_id,metadata")
+          .eq("automation_id", automation.id).eq("client_id", context.tenant.clientId)
+          .order("created_at", { ascending: false }).limit(200),
+        db4Admin.from("appointments")
+          .select("id,starts_at,ends_at,timezone,status,visitor_name,visitor_email,visitor_phone,notes,created_at")
+          .eq("automation_id", automation.id).eq("client_id", context.tenant.clientId)
+          .order("starts_at", { ascending: true }).limit(100),
+        db4Admin.from("ticket_escalations")
+          .select("id,conversation_id,reason,sentiment,status,visitor_contact,transcript,created_at,resolved_at,assigned_user_id")
+          .eq("automation_id", automation.id).eq("client_id", context.tenant.clientId)
+          .order("created_at", { ascending: false }).limit(100),
       ]);
+    for (const result of [usage, conversations, knowledge, crawlJobs, tasks, integrations, leads, appointments, tickets]) {
+      if (result.error) throw new Error(result.error.message);
+    }
     const automationMetadata =
-      automation.metadata &&
-      typeof automation.metadata === "object" &&
-      !Array.isArray(automation.metadata)
-        ? automation.metadata
-        : {};
+      automation.metadata && typeof automation.metadata === "object" && !Array.isArray(automation.metadata)
+        ? automation.metadata : {};
     const portalAutomation = {
       ...automation,
       automation_type: automation.automation_type ?? automation.product_type,
       domain_url: automation.domain_url ?? automation.domain ?? "",
-      order_id:
-        "order_id" in automationMetadata && typeof automationMetadata["order_id"] === "string"
-          ? automationMetadata["order_id"]
-          : "",
-      assigned_phone_number:
-        "assigned_phone_number" in automationMetadata &&
+      order_id: "order_id" in automationMetadata && typeof automationMetadata["order_id"] === "string"
+        ? automationMetadata["order_id"] : "",
+      assigned_phone_number: "assigned_phone_number" in automationMetadata &&
         typeof automationMetadata["assigned_phone_number"] === "string"
-          ? automationMetadata["assigned_phone_number"]
-          : null,
-      widget_config:
-        automation.widget_config &&
-        typeof automation.widget_config === "object" &&
-        !Array.isArray(automation.widget_config)
-          ? automation.widget_config
-          : {},
+        ? automationMetadata["assigned_phone_number"] : null,
+      widget_config: automation.widget_config && typeof automation.widget_config === "object" &&
+        !Array.isArray(automation.widget_config) ? automation.widget_config : {},
+      settings: settingsFromConfig(automation.config),
     };
     return {
       automation: portalAutomation,
@@ -444,7 +428,115 @@ export const getMyAutomationPortal = createServerFn({ method: "GET" })
       crawlJobs: crawlJobs.data ?? [],
       tasks: tasks.data ?? [],
       integrations: integrations.data ?? [],
+      leads: leads.data ?? [],
+      appointments: appointments.data ?? [],
+      tickets: tickets.data ?? [],
     };
+  });
+
+export const saveMyAutomationSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) =>
+    z.object({
+      automationId: z.string().uuid(),
+      settings: z.record(z.string().max(80), z.string().max(8000)),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const automation = await assertOwnAutomation(context, data.automationId);
+    const kind = engineKindOf(automation);
+    if (!kind) throw new Error("This automation type does not support customer settings.");
+    const allowed = new Set(CONFIG_FIELDS[kind].map((field) => field.key));
+    for (const [key, value] of Object.entries(data.settings)) {
+      if (!allowed.has(key)) throw new Error(`Unsupported setting: ${key}`);
+      if (["hot_threshold", "warm_threshold", "confidence_threshold", "rate_limit_per_hour", "voice_rate"].includes(key)) {
+        const n = Number(value);
+        if (!Number.isFinite(n) || n < 0 || (key === "voice_rate" ? n < 0.5 || n > 2 : key === "confidence_threshold" ? n > 1 : n > 100)) {
+          throw new Error(`Invalid value for ${key}.`);
+        }
+      }
+      if (key === "notify_email" && value && !z.string().email().safeParse(value).success)
+        throw new Error("Enter a valid notification email.");
+      if (key === "webhook_url" && value) {
+        let url: URL;
+        try { url = new URL(value); } catch { throw new Error("Enter a valid webhook URL."); }
+        if (url.protocol !== "https:") throw new Error("Webhook URLs must use HTTPS.");
+      }
+      if (key === "channels") {
+        const channels = value.split(/[;,\s]+/).filter(Boolean);
+        if (!channels.length || channels.some((channel) => !["whatsapp", "instagram", "messenger"].includes(channel.toLowerCase())))
+          throw new Error("Choose at least one supported channel: WhatsApp, Instagram or Messenger.");
+      }
+    }
+    const nextSettings = { ...settingsFromConfig(automation.config), ...data.settings };
+    if (kind === "lead_capture" && Number(nextSettings["hot_threshold"] ?? 60) < Number(nextSettings["warm_threshold"] ?? 35))
+      throw new Error("Hot lead score must be greater than or equal to the warm score.");
+    const currentConfig = automation.config && typeof automation.config === "object" && !Array.isArray(automation.config)
+      ? automation.config as Record<string, unknown> : {};
+    const nextConfig = { ...currentConfig, settings: nextSettings };
+    const { error } = await db2Admin.from("client_automations")
+      .update({ config: nextConfig as import("@/integrations/supabase/types").Json, updated_at: new Date().toISOString() })
+      .eq("id", automation.id).eq("client_id", context.tenant.clientId);
+    if (error) throw new Error(error.message);
+    await auditMutation(context, {
+      action: "automation.settings.updated",
+      targetId: automation.id,
+      targetType: "automation",
+      after: { keys: Object.keys(data.settings), config_version: configVersion(nextSettings) },
+    });
+    return { ok: true, settings: nextSettings, configVersion: configVersion(nextSettings) };
+  });
+
+export const updateMyLeadStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({
+    automationId: z.string().uuid(), leadId: z.string().uuid(),
+    status: z.enum(["new", "qualified", "contacted", "won", "lost", "archived"]),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOwnAutomation(context, data.automationId);
+    const { error } = await db4Admin.from("leads")
+      .update({ status: data.status, updated_at: new Date().toISOString() })
+      .eq("id", data.leadId).eq("automation_id", data.automationId).eq("client_id", context.tenant.clientId);
+    if (error) throw new Error(error.message);
+    await auditMutation(context, { action: "automation.lead.status.updated", targetId: data.leadId,
+      targetType: "lead", after: { status: data.status } });
+    return { ok: true };
+  });
+
+export const updateMyTicketStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({
+    automationId: z.string().uuid(), ticketId: z.string().uuid(),
+    status: z.enum(["open", "assigned", "resolved", "closed"]),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOwnAutomation(context, data.automationId);
+    const { error } = await db4Admin.from("ticket_escalations")
+      .update({ status: data.status, resolved_at: ["resolved", "closed"].includes(data.status) ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString() })
+      .eq("id", data.ticketId).eq("automation_id", data.automationId).eq("client_id", context.tenant.clientId);
+    if (error) throw new Error(error.message);
+    await auditMutation(context, { action: "automation.ticket.status.updated", targetId: data.ticketId,
+      targetType: "ticket_escalation", after: { status: data.status } });
+    return { ok: true };
+  });
+
+export const updateMyAppointmentStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({
+    automationId: z.string().uuid(), appointmentId: z.string().uuid(),
+    status: z.enum(["booked", "completed", "canceled", "no_show", "rescheduled"]),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOwnAutomation(context, data.automationId);
+    const { error } = await db4Admin.from("appointments")
+      .update({ status: data.status, updated_at: new Date().toISOString() })
+      .eq("id", data.appointmentId).eq("automation_id", data.automationId).eq("client_id", context.tenant.clientId);
+    if (error) throw new Error(error.message);
+    await auditMutation(context, { action: "automation.appointment.status.updated", targetId: data.appointmentId,
+      targetType: "appointment", after: { status: data.status } });
+    return { ok: true };
   });
 
 export const getConversationMessages = createServerFn({ method: "GET" })
