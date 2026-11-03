@@ -874,12 +874,11 @@ export const adminSavePaymentMethod = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     assertAdmin(context);
     const row = {
-      method_type:
-        /card|stripe|paypal/i.test(`${data.method_name} ${data.provider_name}`)
-          ? "card"
-          : /wallet|mobile|bkash|nagad|rocket/i.test(`${data.method_name} ${data.provider_name}`)
-            ? "mobile_money"
-            : "bank_transfer",
+      method_type: /card|stripe|paypal/i.test(`${data.method_name} ${data.provider_name}`)
+        ? "card"
+        : /wallet|mobile|bkash|nagad|rocket/i.test(`${data.method_name} ${data.provider_name}`)
+          ? "mobile_money"
+          : "bank_transfer",
       provider_name: data.provider_name || "Manual",
       account_name: data.method_name,
       account_identifier: data.account_identifier || null,
