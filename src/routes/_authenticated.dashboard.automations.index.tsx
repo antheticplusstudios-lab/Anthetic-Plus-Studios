@@ -192,7 +192,7 @@ function Page() {
                     />
                   )}
                   <Button asChild>
-                    <Link to="/dashboard/automations/$id" params={{ id: item.id }}>
+                    <Link to="/dashboard/portal/$id" params={{ id: item.id }}>
                       Manage <ArrowUpRight />
                     </Link>
                   </Button>
