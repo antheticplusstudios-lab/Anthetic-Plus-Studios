@@ -30,6 +30,19 @@ async function assertOwnAutomation(context: { tenant: TenantContext }, automatio
   return data;
 }
 
+function assertAutomationProvider(automation: Awaited<ReturnType<typeof assertOwnAutomation>>, provider: string) {
+  const kind = engineKindOf(automation);
+  const providers = {
+    ai_receptionist: ["twilio", "google_calendar"],
+    lead_capture: [],
+    kb_support: [],
+    messaging_ai: ["whatsapp", "meta_page", "messenger", "instagram"],
+  } as const;
+  if (!kind || !(providers[kind] as readonly string[]).includes(provider)) {
+    throw new Error("This integration is not supported by the selected automation.");
+  }
+}
+
 export const getMyAccountContext = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => ({
@@ -1150,6 +1163,7 @@ export const saveAutomationIntegration = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const automation = await assertOwnAutomation(context, data.automationId);
+    assertAutomationProvider(automation, data.provider);
     const { verifyIntegrationCredentials } = await import("@/lib/integration-delivery.server");
     const verified = await verifyIntegrationCredentials(data.provider, data.credentials);
     const { encryptSecret } = await import("@/server/security/envelope.server");
@@ -1180,6 +1194,7 @@ export const removeAutomationIntegration = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const automation = await assertOwnAutomation(context, data.automationId);
+    assertAutomationProvider(automation, data.provider);
     const { error } = await db2Admin
       .from("integration_connections")
       .update({ status: "revoked", last_error: null, updated_at: new Date().toISOString() })
