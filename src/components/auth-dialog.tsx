@@ -80,7 +80,10 @@ export function AuthPanel({
       setMessage(
         error instanceof Error
           ? error.message
-          : t("Could not start authentication. Please try again.", "অথেন্টিকেশন শুরু করা যায়নি। আবার চেষ্টা করুন।"),
+          : t(
+              "Could not start authentication. Please try again.",
+              "অথেন্টিকেশন শুরু করা যায়নি। আবার চেষ্টা করুন।",
+            ),
       );
     }
   };
