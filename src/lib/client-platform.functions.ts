@@ -30,7 +30,10 @@ async function assertOwnAutomation(context: { tenant: TenantContext }, automatio
   return data;
 }
 
-function assertAutomationProvider(automation: Awaited<ReturnType<typeof assertOwnAutomation>>, provider: string) {
+function assertAutomationProvider(
+  automation: Awaited<ReturnType<typeof assertOwnAutomation>>,
+  provider: string,
+) {
   const kind = engineKindOf(automation);
   const providers = {
     ai_receptionist: ["twilio", "google_calendar"],
