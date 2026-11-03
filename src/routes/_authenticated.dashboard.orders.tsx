@@ -96,7 +96,8 @@ function OrdersPage() {
             >
               <div className="flex-1">
                 <div className="font-bold">
-                  {automations.find((item) => item.slug === o.automation_slug)?.name ?? o.automation_slug}{" "}
+                  {automations.find((item) => item.slug === o.automation_slug)?.name ??
+                    o.automation_slug}{" "}
                   <span className="text-xs text-muted-foreground">{o.order_id}</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
