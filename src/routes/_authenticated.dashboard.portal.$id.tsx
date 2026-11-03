@@ -50,7 +50,7 @@ const TABS_BY_KIND: Record<EngineKind, string[]> = {
   ai_receptionist: ["Overview", "Calls & Bookings", "Settings", "Phone & Calendar", "Installation"],
   lead_capture: ["Overview", "Leads CRM", "Settings", "Widget", "Installation"],
   kb_support: ["Overview", "Support Desk", "Knowledge Base", "Settings", "Widget", "Installation"],
-  messaging_ai: ["Overview", "Conversations", "Channels", "Settings", "Widget", "Installation"],
+  messaging_ai: ["Overview", "Conversations", "Channels", "Knowledge Base", "Settings", "Widget", "Installation"],
 };
 
 function copy(text: string) {
@@ -706,6 +706,13 @@ function Tickets({
                 <p className="mt-1 text-sm text-muted-foreground">
                   {row.reason.replace(/_/g, " ")}
                 </p>
+                {row.transcript && (
+                  <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">
+                    {typeof row.transcript === "string"
+                      ? row.transcript
+                      : JSON.stringify(row.transcript)}
+                  </p>
+                )}
                 <p className="mt-1 text-xs text-muted-foreground">
                   {new Date(row.created_at).toLocaleString()} · Sentiment{" "}
                   {Number(row.sentiment).toFixed(2)}
