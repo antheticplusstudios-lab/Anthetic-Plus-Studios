@@ -931,7 +931,7 @@ export const submitRenewalPayment = createServerFn({ method: "POST" })
     if (
       !method?.is_active ||
       !method.account_identifier?.trim() ||
-      method.account_identifier.toLowerCase().includes("configure in control center") ||
+      method.account_identifier?.toLowerCase().includes("configure in control center") ||
       method.method_type === "card" ||
       ["stripe", "paypal"].includes((method.provider_name ?? "").toLowerCase())
     ) {
@@ -997,7 +997,7 @@ export const submitOrder = createServerFn({ method: "POST" })
     if (
       !method?.is_active ||
       !method.account_identifier?.trim() ||
-      method.account_identifier.toLowerCase().includes("configure in control center") ||
+      method.account_identifier?.toLowerCase().includes("configure in control center") ||
       method.method_type === "card" ||
       ["stripe", "paypal"].includes((method.provider_name ?? "").toLowerCase())
     )
