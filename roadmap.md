@@ -66,7 +66,7 @@
 - [x] Safe Markdown email renderer (images and links) + tests.
 - [x] Migration SQL for key pools, service toggles, origin domains, ban/mute, contact inbox, campaigns, training jobs.
 - [x] Automations management pages (services + keys done; integrations, test, activity next).
-- [ ] Swap ElevenLabs for Inworld voice using the key pool.
+- [x] Standardize website/receptionist generated voice on Inworld key pools; remove the obsolete ElevenLabs runtime reference.
 - [x] Twilio option on the order form, plus a support request to turn it on later.
 - [ ] Contact inbox in admin, platform-split Resend keys, admin bulk email sender.
 - [ ] Users page (ban, mute, domains, badges) and simpler dashboards.
