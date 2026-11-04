@@ -14,7 +14,7 @@ What it currently does:
 Optional/client-level integrations:
 - **Twilio** for real phone numbers, inbound voice/SMS webhooks, SMS replies and call transfer. Website chat does not require Twilio.
 - **Google Calendar** for availability checks and appointment creation.
-- **Inworld** for generated spoken audio. Inworld voice keys are stored in DB2 `automation_key_pools` under the `ai_receptionist` scope; this is separate from the LLM provider pool.
+- **Twilio Voice** currently provides the telephone speech recognition and built-in speech output (`<Gather>` / `<Say>`). The receptionist does not currently call Inworld for phone audio.
 
 Twilio credentials accepted:
 - `accountSid`
@@ -85,4 +85,4 @@ Round Robin is a shared staff-assignment service, not an AI-provider rotation fe
 
 ## Security
 
-Client integration credentials are encrypted before storage and are not returned by portal status queries. Provider connection saves perform a live credential verification before marking the connection as connected. LLM provider keys are stored centrally in DB3; Inworld voice keys are stored in the per-automation DB2 key pool.
+Client integration credentials are encrypted before storage and are not returned by portal status queries. Provider connection saves perform a live credential verification before marking the connection as connected. LLM provider keys are stored centrally in DB3. Inworld TTS keys are stored in DB2 under the `website_assistant` scope and power the website assistant voice only.
