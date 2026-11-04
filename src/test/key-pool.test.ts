@@ -67,13 +67,14 @@ describe("key pool", () => {
 });
 
 describe("automation suite", () => {
-  it("has 4 automations and 10 receptionist services", () => {
+  it("has 4 automations and 6 receptionist capabilities", () => {
     expect(AUTOMATION_SUITE).toHaveLength(4);
-    expect(RECEPTIONIST_SERVICES).toHaveLength(7);
+    expect(RECEPTIONIST_SERVICES).toHaveLength(6);
     const rec = AUTOMATION_SUITE[0]!;
     expect(rec.pools).toEqual([]);
   });
-  it("maps the admin suite to executable products and only shows real voice pools", () => {\n    expect(AUTOMATION_SUITE.map((a) => a.scope)).toEqual([\n      "ai_receptionist",\n      "workflow_automation",\n      "ai_sales_agent",\n      "message_ai",\n    ]);\n    expect(AUTOMATION_SUITE.find((a) => a.scope === "message_ai")!.pools).toEqual([]);\n    expect(AUTOMATION_SUITE.find((a) => a.scope === "ai_sales_agent")!.pools).toEqual([]);\n    expect(AUTOMATION_SUITE.find((a) => a.scope === "workflow_automation")!.title).toBe("AI Customer Support Agent");\n  });\n  it("flags services needing a phone line", () => {
+  it("maps the admin suite to executable products and only shows real voice pools", () => {
+    expect(AUTOMATION_SUITE.map((a) => a.scope)).toEqual([\n      "ai_receptionist",\n      "workflow_automation",\n      "ai_sales_agent",\n      "message_ai",\n    ]);\n    expect(AUTOMATION_SUITE.find((a) => a.scope === "message_ai")!.pools).toEqual([]);\n    expect(AUTOMATION_SUITE.find((a) => a.scope === "ai_sales_agent")!.pools).toEqual([]);\n    expect(AUTOMATION_SUITE.find((a) => a.scope === "workflow_automation")!.title).toBe("AI Customer Support Agent");\n  });\n  it("flags services needing a phone line", () => {
     const s = readyServices(AUTOMATION_SUITE[0]!, new Set());
     expect(s.find((x) => x.id === "call_handling")!.missing).toEqual(["twilio"]);
     expect(s.find((x) => x.id === "faq")!.ready).toBe(true);
