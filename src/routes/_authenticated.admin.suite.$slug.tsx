@@ -117,21 +117,20 @@ function SuitePage() {
           ) : keys.data?.notConfigured ? (
             <p className="text-sm text-destructive">{keys.data.message}</p>
           ) : pools.length ? (
-              pools.map((p) => (
-                <PoolCard
-                  key={p.provider}
-                  scope={def.scope}
-                  pool={p}
-                  keys={scopeKeys.filter((k) => k.provider === p.provider)}
-                />
-              ))
-            ) : (
-              <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                {def.scope === "ai_sales_agent"
-                  ? "No provider key pool is required for this rule-based engine."
-                  : "No dedicated per-automation keys are required. Use the central AI Infrastructure and client Control Room settings."}
-              </p>
-            )
+            pools.map((p) => (
+              <PoolCard
+                key={p.provider}
+                scope={def.scope}
+                pool={p}
+                keys={scopeKeys.filter((k) => k.provider === p.provider)}
+              />
+            ))
+          ) : (
+            <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+              {def.scope === "ai_sales_agent"
+                ? "No provider key pool is required for this rule-based engine."
+                : "No dedicated per-automation keys are required. Use the central AI Infrastructure and client Control Room settings."}
+            </p>
           )}
         </TabsContent>
         <TabsContent value="integrations">
