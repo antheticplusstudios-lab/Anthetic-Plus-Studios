@@ -52,7 +52,8 @@ function poolsFor(scope: PoolScope) {
 const TITLES: Record<PoolScope, { title: string; tagline: string }> = {
   ai_receptionist: {
     title: "AI Receptionist",
-    tagline: "Telephone speech uses the connected Twilio line. Inworld voice keys are reserved for the website assistant.",
+    tagline:
+      "Telephone speech uses the connected Twilio line. Inworld voice keys are reserved for the website assistant.",
   },
   workflow_automation: {
     title: "AI Customer Support Agent",
@@ -60,11 +61,13 @@ const TITLES: Record<PoolScope, { title: string; tagline: string }> = {
   },
   ai_sales_agent: {
     title: "AI Lead Capture & Qualifier",
-    tagline: "Uses deterministic lead scoring and client-connected delivery integrations; no separate AI key pool is used.",
+    tagline:
+      "Uses deterministic lead scoring and client-connected delivery integrations; no separate AI key pool is used.",
   },
   message_ai: {
     title: "Social & Messaging AI",
-    tagline: "Uses central AI infrastructure and the client's Meta channel connection; no Twilio key pool is used.",
+    tagline:
+      "Uses central AI infrastructure and the client's Meta channel connection; no Twilio key pool is used.",
   },
   website_assistant: {
     title: "Website Assistant",
