@@ -36,7 +36,7 @@ export const AUTOMATION_SUITE: AutomationDef[] = [
     title: "AI Receptionist",
     tagline: "Handles inbound phone conversations, configured FAQs, appointment checks and staff escalation.",
     services: RECEPTIONIST_SERVICES,
-    pools: [{ provider: "inworld", label: "Inworld voice keys", maxKeys: 10 }],
+    pools: [],
   },
   {
     // The database scope is retained for backwards compatibility; this is the kb_support engine.
