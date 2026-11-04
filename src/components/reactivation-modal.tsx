@@ -135,10 +135,10 @@ export function ReactivationModal({
               <div className="mt-3 rounded-xl border border-primary/25 bg-primary/5 p-3 text-sm">
                 <p className="font-bold">{selectedMethod.method_name}</p>
                 {hasUsableDestination && (
-                    <p className="mt-1 break-all font-semibold">
-                      {selectedMethod.account_identifier}
-                    </p>
-                  )}
+                  <p className="mt-1 break-all font-semibold">
+                    {selectedMethod.account_identifier}
+                  </p>
+                )}
                 {selectedMethod.instructions && (
                   <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
                     {selectedMethod.instructions}
