@@ -1,68 +1,23 @@
-// The 4 core Anthetic Plus Studios automations + website assistant key-pool limits.
+// Admin catalog for the four executable customer automation engines.
+// LLM credentials are managed centrally in AI Infrastructure (DB3); only Inworld TTS
+// credentials belong in the per-automation voice key pool.
 import type { PoolProvider, PoolScope } from "./key-pool";
 
 export type ServiceDef = {
   id: string;
   title: string;
   summary: string;
-  needs?: ("twilio" | "calendar" | "payments")[];
+  needs?: ("twilio" | "calendar" | "payments" | "email" | "meta")[];
 };
 
 export const RECEPTIONIST_SERVICES: ServiceDef[] = [
-  {
-    id: "call_handling",
-    title: "Call Handling",
-    summary: "Answer 24/7, FAQs, pricing, hours, take messages, transfer to a human.",
-    needs: ["twilio"],
-  },
-  {
-    id: "scheduling",
-    title: "Appointment & Scheduling",
-    summary: "Book, reschedule, cancel, check availability, confirmations and reminders.",
-    needs: ["calendar"],
-  },
-  {
-    id: "bookings",
-    title: "Booking & Reservations",
-    summary: "Rooms, tables, events and tours — check, modify, cancel, confirm.",
-  },
-  {
-    id: "sales_qualification",
-    title: "Sales & Lead Qualification",
-    summary: "Qualifying questions, budget, location, urgency, hand off hot leads.",
-  },
-  {
-    id: "follow_up",
-    title: "Lead Follow-Up & Recovery",
-    summary: "Missed calls, unanswered inquiries, unfinished bookings, re-engagement.",
-  },
-  {
-    id: "support",
-    title: "Customer Support",
-    summary: "Policies, order info, basic complaints, escalation with context.",
-  },
-  {
-    id: "crm_capture",
-    title: "Data Collection & CRM",
-    summary: "Name, phone, email, needs, budget, status and summary after every chat.",
-  },
-  {
-    id: "payments",
-    title: "Payment & Transaction Assistance",
-    summary: "Payment links, options, deposits, status and receipts.",
-    needs: ["payments"],
-  },
-  {
-    id: "outbound",
-    title: "Outbound Calls & Reminders",
-    summary: "Reminder, confirmation, follow-up and satisfaction calls.",
-    needs: ["twilio"],
-  },
-  {
-    id: "recommendations",
-    title: "Personalized Recommendations",
-    summary: "Suggest services, packages, slots or properties from customer needs.",
-  },
+  { id: "call_handling", title: "Phone call handling", summary: "Receive calls, greet callers, answer configured FAQs and record the conversation.", needs: ["twilio"] },
+  { id: "faq", title: "Business information & FAQs", summary: "Answer from the business profile, hours, services and configured FAQs." },
+  { id: "appointments", title: "Appointment availability & booking", summary: "Check a requested time and create an appointment in the connected Google Calendar.", needs: ["calendar"] },
+  { id: "lead_capture", title: "Enquiry capture", summary: "Keep caller details and conversation history for staff follow-up." },
+  { id: "escalation", title: "Human escalation", summary: "Escalate configured phrases and assign the conversation to the client's Round Robin team." },
+  { id: "sms_replies", title: "SMS replies & follow-up", summary: "Send replies and follow-ups to callers by SMS.", needs: ["twilio"] },
+  { id: "outbound_calls", title: "Outbound reminder calls", summary: "Use the connected phone line for outbound calls when that workflow is configured.", needs: ["twilio"] },
 ];
 
 export type AutomationDef = {
@@ -79,75 +34,61 @@ export const AUTOMATION_SUITE: AutomationDef[] = [
     scope: "ai_receptionist",
     slug: "ai-receptionist",
     title: "AI Receptionist",
-    tagline: "Greets and assists customers across calls, chat and messages.",
+    tagline: "Handles inbound phone conversations, configured FAQs, appointment checks and staff escalation.",
     services: RECEPTIONIST_SERVICES,
-    pools: [
-      { provider: "llm", label: "AI model keys", maxKeys: 20 },
-      { provider: "inworld", label: "Inworld voice keys", maxKeys: 10 },
-    ],
+    pools: [{ provider: "inworld", label: "Inworld voice keys", maxKeys: 10 }],
   },
   {
+    // The database scope is retained for backwards compatibility; this is the kb_support engine.
     scope: "workflow_automation",
     slug: "workflow-automation",
-    title: "Workflow Automation",
-    tagline: "Automates notifications, CRM updates, lead assignment and reports.",
+    title: "AI Customer Support Agent",
+    tagline: "Answers from the client's approved knowledge base and creates a staff escalation when it cannot answer safely.",
     services: [
-      { id: "notifications", title: "Notifications", summary: "Send alerts when events happen." },
-      { id: "crm_sync", title: "CRM Updates", summary: "Create and update records automatically." },
-      {
-        id: "lead_routing",
-        title: "Lead Assignment",
-        summary: "Round-robin new leads to your team.",
-      },
-      { id: "reports", title: "Reports", summary: "Scheduled summaries delivered by email." },
+      { id: "knowledge_answers", title: "Knowledge-grounded answers", summary: "Retrieve approved client knowledge and answer using the configured AI model." },
+      { id: "source_citations", title: "Source citations", summary: "Include numbered source references when citation mode is enabled." },
+      { id: "knowledge_gap_escalation", title: "Knowledge-gap escalation", summary: "Create a support ticket when no sufficiently relevant knowledge is found." },
+      { id: "staff_assignment", title: "Staff assignment", summary: "Assign escalated support tickets to the client's Round Robin team." },
+      { id: "conversation_history", title: "Conversation history", summary: "Keep support conversation and message history for follow-up." },
     ],
-    pools: [{ provider: "llm", label: "AI model keys", maxKeys: 20 }],
+    pools: [],
   },
   {
+    // The database scope is retained for backwards compatibility; this is the lead_capture engine.
     scope: "ai_sales_agent",
     slug: "ai-sales-agent",
-    title: "AI Sales Agent",
-    tagline: "Engages, qualifies and follows up with prospects toward a purchase.",
+    title: "AI Lead Capture & Qualifier",
+    tagline: "Validates lead details, scores and tiers prospects, assigns qualified leads and triggers configured follow-up actions.",
     services: [
-      {
-        id: "engage",
-        title: "Prospect Engagement",
-        summary: "Start and continue sales conversations.",
-      },
-      {
-        id: "qualify",
-        title: "Lead Qualification",
-        summary: "Budget, need, timeline and fit scoring.",
-      },
-      {
-        id: "objections",
-        title: "Objection Handling",
-        summary: "Answers common doubts from your knowledge.",
-      },
-      { id: "follow_up", title: "Follow-Ups", summary: "Timed nudges until the prospect decides." },
+      { id: "lead_capture", title: "Lead capture & validation", summary: "Validate configured required fields and save the lead to the client's records." },
+      { id: "lead_scoring", title: "Lead scoring & qualification", summary: "Score contact completeness, company details and configured buying-intent keywords." },
+      { id: "lead_assignment", title: "Qualified lead assignment", summary: "Send hot leads to the client's Round Robin team." },
+      { id: "sms_followup", title: "SMS follow-up", summary: "Send the configured follow-up message to qualified leads with a phone number.", needs: ["twilio"] },
+      { id: "email_notifications", title: "Email notifications", summary: "Notify the configured business email about qualified leads.", needs: ["email"] },
+      { id: "lead_webhook", title: "Lead webhooks", summary: "POST lead.created events to the client's configured webhook URL." },
     ],
-    pools: [{ provider: "llm", label: "AI model keys", maxKeys: 20 }],
+    // Lead scoring currently uses deterministic rules, not an LLM call or a per-scope API key.
+    pools: [],
   },
   {
+    // The database scope is retained for backwards compatibility; this is the messaging_ai engine.
     scope: "message_ai",
     slug: "message-ai",
-    title: "Message AI Automation",
-    tagline: "Replies on WhatsApp, Messenger, Telegram and more.",
+    title: "Social & Messaging AI",
+    tagline: "Replies to supported WhatsApp, Messenger and Instagram direct messages using the client's business context.",
     services: [
-      { id: "auto_reply", title: "Auto Replies", summary: "Instant answers to incoming messages." },
-      { id: "faq", title: "FAQs", summary: "Answers from your trained knowledge." },
-      { id: "capture", title: "Lead Capture", summary: "Collects contact details in chat." },
-      { id: "handoff", title: "Human Handoff", summary: "Routes complex chats to staff." },
+      { id: "supported_channels", title: "WhatsApp, Messenger & Instagram", summary: "Receive and reply through connected Meta messaging channels.", needs: ["meta"] },
+      { id: "faq_replies", title: "Business FAQs & product answers", summary: "Answer using the configured business profile, products, FAQs and brand tone." },
+      { id: "conversation_records", title: "Conversation records", summary: "Store inbound messages, assistant replies and delivery status." },
+      { id: "contact_rate_limit", title: "Per-contact rate limits", summary: "Apply the configured maximum replies per contact per hour." },
+      { id: "human_handoff", title: "Human handoff", summary: "Escalate configured messages and assign the conversation to the client's Round Robin team." },
     ],
-    pools: [
-      { provider: "llm", label: "AI model keys", maxKeys: 20 },
-      { provider: "twilio", label: "Twilio messaging", maxKeys: 5 },
-    ],
+    // Messaging uses Meta's Graph API directly; Twilio is not its channel adapter.
+    pools: [],
   },
 ];
 
 export const WEBSITE_ASSISTANT_POOLS = [
-  { provider: "llm" as const, label: "AI model keys", maxKeys: 20 },
   { provider: "inworld" as const, label: "Inworld voice keys", maxKeys: 5 },
 ];
 
@@ -164,7 +105,7 @@ export function readyServices(def: AutomationDef, connected: Set<string>) {
   }));
 }
 
-/** Suite-wide default service switches are stored under a fixed id per automation. */
+/** Legacy DB rows are retained; these IDs are platform-level catalog identifiers. */
 export const SUITE_DEFAULTS_ID: Record<PoolScope, string> = {
   ai_receptionist: "00000000-0000-4000-8000-000000000001",
   workflow_automation: "00000000-0000-4000-8000-000000000002",
@@ -173,14 +114,10 @@ export const SUITE_DEFAULTS_ID: Record<PoolScope, string> = {
   website_assistant: "00000000-0000-4000-8000-000000000005",
 };
 
-/** Merge saved switches over defaults: a service is on unless explicitly switched off. */
 export function resolveServiceSwitches(
   def: AutomationDef,
   saved: { service_id: string; enabled: boolean }[],
 ) {
   const map = new Map(saved.map((r) => [r.service_id, r.enabled]));
-  return Object.fromEntries(def.services.map((s) => [s.id, map.get(s.id) ?? true])) as Record<
-    string,
-    boolean
-  >;
+  return Object.fromEntries(def.services.map((s) => [s.id, map.get(s.id) ?? true])) as Record<string, boolean>;
 }
