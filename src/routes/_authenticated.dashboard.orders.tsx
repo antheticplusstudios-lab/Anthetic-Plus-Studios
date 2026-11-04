@@ -72,7 +72,7 @@ function OrdersPage() {
               params={{ slug: "lead-capture-qualifier" }}
               search={{ plan: "monthly" }}
             >
-              Order AI Sales Agent
+              Order AI Lead Capture & Qualifier
             </Link>
           </Button>
           <Button asChild size="sm" variant="outline">
