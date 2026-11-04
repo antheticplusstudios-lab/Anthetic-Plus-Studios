@@ -97,7 +97,8 @@ function SuitePage() {
                   <div className="text-sm text-muted-foreground">{s.summary}</div>
                   {s.needs?.length ? (
                     <div className="mt-1 text-xs text-muted-foreground">
-                      Requires: {s.needs.map((n) => NEED_LABEL[n] ?? n).join(", ")}. This is a client-level connection, not a platform-wide key.
+                      Requires: {s.needs.map((n) => NEED_LABEL[n] ?? n).join(", ")}.
+                      This is a client-level connection, not a platform-wide key.
                     </div>
                   ) : null}
                 </li>
@@ -115,8 +116,7 @@ function SuitePage() {
             <Loading label="Loading keys…" />
           ) : keys.data?.notConfigured ? (
             <p className="text-sm text-destructive">{keys.data.message}</p>
-          ) : (
-            pools.length ? (
+          ) : pools.length ? (
               pools.map((p) => (
                 <PoolCard
                   key={p.provider}
