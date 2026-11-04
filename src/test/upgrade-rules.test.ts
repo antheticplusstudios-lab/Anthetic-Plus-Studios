@@ -168,7 +168,9 @@ describe("automation capability catalog", () => {
     const services = readyServices(receptionist, new Set(["twilio"]));
     expect(services.find((service) => service.id === "call_handling")?.ready).toBe(true);
     expect(services.find((service) => service.id === "appointments")?.ready).toBe(false);
-    expect(services.find((service) => service.id === "appointments")?.missing).toEqual(["calendar"]);
+    expect(services.find((service) => service.id === "appointments")?.missing).toEqual([
+      "calendar",
+    ]);
   });
 
   it("does not advertise per-automation provider key pools", () => {
