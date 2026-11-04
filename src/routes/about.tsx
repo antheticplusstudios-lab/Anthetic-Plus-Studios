@@ -132,7 +132,7 @@ function About() {
             [
               t("What we build", "আমরা কী বানাই"),
               t(
-                "AI Receptionist, Workflow Automation, AI Sales Agent and AI Chatbot — plus custom WhatsApp, lead follow-up and business workflows.",
+                "AI Receptionist, AI Lead Capture & Qualifier, AI Customer Support Agent and Social & Messaging AI — plus custom business workflows.",
                 "AI রিসেপশনিস্ট, ওয়ার্কফ্লো অটোমেশন, AI সেলস এজেন্ট ও AI চ্যাটবট — সাথে কাস্টম WhatsApp, লিড ফলো-আপ ও ব্যবসায়িক ওয়ার্কফ্লো।",
               ),
             ],
