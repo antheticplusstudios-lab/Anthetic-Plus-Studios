@@ -61,7 +61,8 @@ export const AUTOMATION_SUITE: AutomationDef[] = [
     scope: "ai_receptionist",
     slug: "ai-receptionist",
     title: "AI Receptionist",
-    tagline: "Handles inbound phone conversations, configured FAQs, appointment checks and staff escalation.",
+    tagline:
+      "Handles inbound phone conversations, configured FAQs, appointment checks and staff escalation.",
     services: RECEPTIONIST_SERVICES,
     pools: [],
   },
@@ -70,7 +71,8 @@ export const AUTOMATION_SUITE: AutomationDef[] = [
     scope: "workflow_automation",
     slug: "workflow-automation",
     title: "AI Customer Support Agent",
-    tagline: "Answers from the client's approved knowledge base and creates a staff escalation when it cannot answer safely.",
+    tagline:
+      "Answers from the client's approved knowledge base and creates a staff escalation when it cannot answer safely.",
     services: [
       {
         id: "knowledge_answers",
@@ -105,7 +107,8 @@ export const AUTOMATION_SUITE: AutomationDef[] = [
     scope: "ai_sales_agent",
     slug: "ai-sales-agent",
     title: "AI Lead Capture & Qualifier",
-    tagline: "Validates lead details, scores and tiers prospects, assigns qualified leads and triggers configured follow-up actions.",
+    tagline:
+      "Validates lead details, scores and tiers prospects, assigns qualified leads and triggers configured follow-up actions.",
     services: [
       {
         id: "lead_capture",
@@ -149,7 +152,8 @@ export const AUTOMATION_SUITE: AutomationDef[] = [
     scope: "message_ai",
     slug: "message-ai",
     title: "Social & Messaging AI",
-    tagline: "Replies to supported WhatsApp, Messenger and Instagram direct messages using the client's business context.",
+    tagline:
+      "Replies to supported WhatsApp, Messenger and Instagram direct messages using the client's business context.",
     services: [
       {
         id: "supported_channels",
@@ -218,5 +222,8 @@ export function resolveServiceSwitches(
   }[],
 ) {
   const map = new Map(saved.map((r) => [r.service_id, r.enabled]));
-  return Object.fromEntries(def.services.map((s) => [s.id, map.get(s.id) ?? true])) as Record<string, boolean>;
+  return Object.fromEntries(def.services.map((s) => [s.id, map.get(s.id) ?? true])) as Record<
+    string,
+    boolean
+  >;
 }
