@@ -52,7 +52,7 @@ function poolsFor(scope: PoolScope) {
 const TITLES: Record<PoolScope, { title: string; tagline: string }> = {
   ai_receptionist: {
     title: "AI Receptionist",
-    tagline: "Inworld voice keys are managed here; language-model keys are managed centrally in AI Infrastructure.",
+    tagline: "Telephone speech uses the connected Twilio line. Inworld voice keys are reserved for the website assistant.",
   },
   workflow_automation: {
     title: "AI Customer Support Agent",
