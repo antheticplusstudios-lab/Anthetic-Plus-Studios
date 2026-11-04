@@ -34,8 +34,11 @@ export function ReactivationModal({
   const [transaction, setTransaction] = useState("");
   const [sender, setSender] = useState("");
   const [senderPhone, setSenderPhone] = useState("");
-  const requiresSenderPhone =
-    selectedMethod?.required_fields.includes("sender_phone") ?? false;
+  const requiresSenderPhone = selectedMethod?.required_fields.includes("sender_phone") ?? false;
+  const accountIdentifier = selectedMethod?.account_identifier ?? "";
+  const hasUsableDestination =
+    Boolean(accountIdentifier.trim()) &&
+    !accountIdentifier.toLowerCase().includes("configure in control center");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -131,9 +134,7 @@ export function ReactivationModal({
             {selectedMethod && (
               <div className="mt-3 rounded-xl border border-primary/25 bg-primary/5 p-3 text-sm">
                 <p className="font-bold">{selectedMethod.method_name}</p>
-                {selectedMethod.account_identifier && !selectedMethod.account_identifier
-                    .toLowerCase()
-                    .includes("configure in control center") && (
+                {hasUsableDestination && (
                     <p className="mt-1 break-all font-semibold">
                       {selectedMethod.account_identifier}
                     </p>
