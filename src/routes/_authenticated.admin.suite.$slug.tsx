@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AdminPage, Panel, Loading } from "@/components/admin-ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -55,7 +55,6 @@ const NEED_LABEL: Record<string, string> = {
 function SuitePage() {
   const { slug } = Route.useParams();
   const def = automationBySlug(slug)!;
-  const qc = useQueryClient();
   const listKeys = useServerFn(adminListIntegrationKeys);
   const keys = useQuery({ queryKey: ["integration-keys"], queryFn: () => listKeys() });
   const pools = scopeGroup(def.scope)?.pools ?? [];
