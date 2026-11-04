@@ -73,10 +73,10 @@ describe("automation suite", () => {
     const rec = AUTOMATION_SUITE[0]!;
     expect(rec.pools.find((p) => p.provider === "inworld")!.maxKeys).toBe(10);
   });
-  it("flags services needing a phone line", () => {
+  it("maps the admin suite to executable products and only shows real voice pools", () => {\n    expect(AUTOMATION_SUITE.map((a) => a.scope)).toEqual([\n      "ai_receptionist",\n      "workflow_automation",\n      "ai_sales_agent",\n      "message_ai",\n    ]);\n    expect(AUTOMATION_SUITE.find((a) => a.scope === "message_ai")!.pools).toEqual([]);\n    expect(AUTOMATION_SUITE.find((a) => a.scope === "ai_sales_agent")!.pools).toEqual([]);\n    expect(AUTOMATION_SUITE.find((a) => a.scope === "workflow_automation")!.title).toBe("AI Customer Support Agent");\n  });\n  it("flags services needing a phone line", () => {
     const s = readyServices(AUTOMATION_SUITE[0]!, new Set());
     expect(s.find((x) => x.id === "call_handling")!.missing).toEqual(["twilio"]);
-    expect(s.find((x) => x.id === "support")!.ready).toBe(true);
+    expect(s.find((x) => x.id === "faq")!.ready).toBe(true);
   });
 });
 
