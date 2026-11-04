@@ -14,10 +14,9 @@ export const RECEPTIONIST_SERVICES: ServiceDef[] = [
   { id: "call_handling", title: "Phone call handling", summary: "Receive calls, greet callers, answer configured FAQs and record the conversation.", needs: ["twilio"] },
   { id: "faq", title: "Business information & FAQs", summary: "Answer from the business profile, hours, services and configured FAQs." },
   { id: "appointments", title: "Appointment availability & booking", summary: "Check a requested time and create an appointment in the connected Google Calendar.", needs: ["calendar"] },
-  { id: "lead_capture", title: "Enquiry capture", summary: "Keep caller details and conversation history for staff follow-up." },
+  { id: "conversation_logging", title: "Conversation logging", summary: "Store caller identity and conversation history for staff follow-up." },
   { id: "escalation", title: "Human escalation", summary: "Escalate configured phrases and assign the conversation to the client's Round Robin team." },
-  { id: "sms_replies", title: "SMS replies & follow-up", summary: "Send replies and follow-ups to callers by SMS.", needs: ["twilio"] },
-  { id: "outbound_calls", title: "Outbound reminder calls", summary: "Use the connected phone line for outbound calls when that workflow is configured.", needs: ["twilio"] },
+  { id: "sms_replies", title: "SMS responses", summary: "Send the receptionist response back to the caller by SMS.", needs: ["twilio"] },
 ];
 
 export type AutomationDef = {
