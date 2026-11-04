@@ -1,15 +1,13 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { AdminPage, Panel, Loading } from "@/components/admin-ui";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PoolCard } from "@/components/key-pool-card";
 import { AUTOMATION_SUITE, automationBySlug } from "@/lib/automation-suite";
 import { scopeGroup } from "@/lib/integration-keys";
 import { adminListIntegrationKeys } from "@/lib/integration-keys.functions";
-import { adminGetSuiteServices, adminSetSuiteService } from "@/lib/suite-services.functions";
 import { listAutomations, testAutomation } from "@/lib/command-center.functions";
 import { TrainingPanel } from "@/components/training-panel";
 import { StatusPill } from "@/components/admin-ui";
@@ -19,9 +17,9 @@ import { useState } from "react";
 
 const TYPES: Record<string, string[]> = {
   ai_receptionist: ["ai_receptionist"],
-  workflow_automation: ["kb_support", "workflow", "workflow_automation"],
-  ai_sales_agent: ["lead_capture", "ai_sales_agent"],
-  message_ai: ["messaging_ai", "message_ai"],
+  workflow_automation: ["kb_support"],
+  ai_sales_agent: ["lead_capture"],
+  message_ai: ["messaging_ai"],
 };
 
 export const Route = createFileRoute("/_authenticated/admin/suite/$slug")({
@@ -48,35 +46,21 @@ export const Route = createFileRoute("/_authenticated/admin/suite/$slug")({
 });
 
 const NEED_LABEL: Record<string, string> = {
-  twilio: "Twilio",
-  calendar: "Calendar",
-  payments: "Payments",
+  twilio: "Twilio phone / SMS connection",
+  calendar: "Google Calendar connection",
+  payments: "Payment provider connection",
+  email: "Resend email delivery",
+  meta: "Meta WhatsApp / Messenger / Instagram connection",
 };
 
 function SuitePage() {
   const { slug } = Route.useParams();
   const def = automationBySlug(slug)!;
-  const qc = useQueryClient();
-  const getServices = useServerFn(adminGetSuiteServices);
-  const setService = useServerFn(adminSetSuiteService);
   const listKeys = useServerFn(adminListIntegrationKeys);
-  const services = useQuery({
-    queryKey: ["suite-services", slug],
-    queryFn: () => getServices({ data: { slug } }),
-  });
   const keys = useQuery({ queryKey: ["integration-keys"], queryFn: () => listKeys() });
   const pools = scopeGroup(def.scope)?.pools ?? [];
   const scopeKeys =
     keys.data && !keys.data.notConfigured ? (keys.data.byScope[def.scope] ?? []) : [];
-
-  async function toggle(serviceId: string, enabled: boolean) {
-    try {
-      await setService({ data: { slug, serviceId, enabled } });
-      void qc.invalidateQueries({ queryKey: ["suite-services", slug] });
-    } catch (e) {
-      toast.error((e as Error).message);
-    }
-  }
 
   return (
     <AdminPage title={def.title} subtitle={def.tagline}>
@@ -103,53 +87,36 @@ function SuitePage() {
         </TabsList>
         <TabsContent value="services">
           <Panel
-            title={`${def.services.length} services`}
-            description="Switched-on services run for every client automatically. Clients do no setup."
+            title={`${def.services.length} implemented capabilities`}
+            description="This is the verified backend capability map, not a global on/off switch. Per-client permissions and activation are managed in each automation Control Room."
           >
-            {services.isLoading ? (
-              <Loading label="Loading services…" />
-            ) : (
-              <>
-                {services.data && !services.data.ok && (
-                  <p className="mb-3 text-sm text-destructive">
-                    Can't save yet: {services.data.message}
-                  </p>
-                )}
-                <ul className="divide-y">
-                  {def.services.map((s) => (
-                    <li key={s.id} className="flex items-start gap-4 py-3">
-                      <div className="flex-1">
-                        <div className="font-medium">{s.title}</div>
-                        <div className="text-sm text-muted-foreground">{s.summary}</div>
-                        {s.needs?.length ? (
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            Uses: {s.needs.map((n) => NEED_LABEL[n]).join(", ")} (only for clients
-                            who turned it on)
-                          </div>
-                        ) : null}
-                      </div>
-                      <Switch
-                        aria-label={s.title}
-                        checked={services.data?.switches[s.id] ?? true}
-                        onCheckedChange={(v) => void toggle(s.id, v)}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+            <ul className="divide-y">
+              {def.services.map((s) => (
+                <li key={s.id} className="py-3">
+                  <div className="font-medium">{s.title}</div>
+                  <div className="text-sm text-muted-foreground">{s.summary}</div>
+                  {s.needs?.length ? (
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Requires: {s.needs.map((n) => NEED_LABEL[n] ?? n).join(", ")}. This is a
+                      client-level connection, not a platform-wide key.
+                    </div>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
           </Panel>
         </TabsContent>
         <TabsContent value="keys" className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            This automation has its own key rotation. When one key hits a limit the next takes over
-            instantly and the conversation continues.
+            {def.scope === "ai_sales_agent"
+              ? "Lead scoring is rule-based and does not call an AI model. Configure optional SMS and email delivery in the client's integrations."
+              : "Language-model credentials are managed centrally in AI Infrastructure. Choose provider priority and fallback in each client's Control Room. Only dedicated voice keys are managed in this per-automation pool."}
           </p>
           {keys.isLoading ? (
             <Loading label="Loading keys…" />
           ) : keys.data?.notConfigured ? (
             <p className="text-sm text-destructive">{keys.data.message}</p>
-          ) : (
+          ) : pools.length ? (
             pools.map((p) => (
               <PoolCard
                 key={p.provider}
@@ -158,6 +125,12 @@ function SuitePage() {
                 keys={scopeKeys.filter((k) => k.provider === p.provider)}
               />
             ))
+          ) : (
+            <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+              {def.scope === "ai_sales_agent"
+                ? "No provider key pool is required for this rule-based engine."
+                : "No dedicated per-automation keys are required. Use the central AI Infrastructure and client Control Room settings."}
+            </p>
           )}
         </TabsContent>
         <TabsContent value="integrations">

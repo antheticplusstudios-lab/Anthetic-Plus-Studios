@@ -225,7 +225,7 @@ export function localeForLanguage(language: string | null | undefined) {
   return LOCALE_MAP[base] ?? "en-US";
 }
 
-/** Eleven v4 accepts ISO language-family hints in content; this is metadata only. */
+/** Normalize language-family hints for the configured voice provider; this is metadata only. */
 export function responseLanguageForReply(reply: string, requested?: SupportedVoiceLanguage | null) {
   const detected = languageMetadataFrom(reply, requested?.language, requested?.confidence ?? 0);
   if (requested && detected.confidence < 0.8 && requested.confidence >= 0.8) {

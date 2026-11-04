@@ -4,6 +4,7 @@ import { journeyStage } from "@/lib/order-journey";
 import { movePoolMember, orderKeys, poolShares, type ProviderPool } from "@/lib/provider-pool";
 import { evaluateRuntime } from "@/lib/runtime-gate";
 import { automations, ENGINE_KIND_BY_SLUG } from "@/lib/automations";
+import { AUTOMATION_SUITE, automationBySlug, readyServices } from "@/lib/automation-suite";
 
 const NOW = Date.parse("2026-10-07T00:00:00Z");
 
@@ -146,14 +147,33 @@ describe("config fingerprint", () => {
   });
 });
 
-import { describe as d2, it as i2, expect as e2 } from "vitest";
-import { automationBySlug as bySlug, resolveServiceSwitches } from "@/lib/automation-suite";
-d2("service switches", () => {
-  i2("services default on, saved off stays off", () => {
-    const def = bySlug("ai-receptionist")!;
-    const s = resolveServiceSwitches(def, [{ service_id: "payments", enabled: false }]);
-    e2(s["payments"]).toBe(false);
-    e2(s["call_handling"]).toBe(true);
-    e2(Object.keys(s)).toHaveLength(10);
+describe("automation capability catalog", () => {
+  it("uses the four current admin automation slugs", () => {
+    expect(AUTOMATION_SUITE.map((automation) => automation.slug)).toEqual([
+      "ai-receptionist",
+      "workflow-automation",
+      "ai-sales-agent",
+      "message-ai",
+    ]);
+    expect(automationBySlug("ai-receptionist")?.services.map((service) => service.id)).toContain(
+      "call_handling",
+    );
+    expect(automationBySlug("message-ai")?.services.map((service) => service.id)).toContain(
+      "supported_channels",
+    );
+  });
+
+  it("derives capability readiness from connected integrations", () => {
+    const receptionist = automationBySlug("ai-receptionist")!;
+    const services = readyServices(receptionist, new Set(["twilio"]));
+    expect(services.find((service) => service.id === "call_handling")?.ready).toBe(true);
+    expect(services.find((service) => service.id === "appointments")?.ready).toBe(false);
+    expect(services.find((service) => service.id === "appointments")?.missing).toEqual([
+      "calendar",
+    ]);
+  });
+
+  it("does not advertise per-automation provider key pools", () => {
+    expect(AUTOMATION_SUITE.every((automation) => automation.pools.length === 0)).toBe(true);
   });
 });

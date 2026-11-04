@@ -65,7 +65,7 @@ export const PRODUCTS: Record<ProductSlug, { name: string; tagline: string }> = 
     tagline: "24/7 voice and SMS front desk",
   },
   lead_capture: {
-    name: "AI Lead Capture & Smart Qualifier",
+    name: "AI Lead Capture & Qualifier",
     tagline: "Capture, qualify and route high-intent leads",
   },
   kb_support: {
@@ -80,7 +80,7 @@ export const PRODUCTS: Record<ProductSlug, { name: string; tagline: string }> = 
 
 export const AUTOMATION_LABEL: Record<string, string> = {
   ai_receptionist: "AI Voice & SMS Receptionist",
-  lead_capture: "AI Lead Capture & Smart Qualifier",
+  lead_capture: "AI Lead Capture & Qualifier",
   kb_support: "AI Knowledge Base Support Agent",
   messaging_ai: "AI Social DM & Messaging Assistant",
 };

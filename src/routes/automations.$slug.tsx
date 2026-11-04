@@ -20,7 +20,7 @@ export const Route = createFileRoute("/automations/$slug")({
       {
         name: "description",
         content:
-          "AI Receptionist, AI Sales Agent, AI Customer Support Agent and AI Chatbot solutions configured around your business.",
+          "AI Receptionist, AI Lead Capture & Qualifier, AI Customer Support Agent and Social & Messaging AI solutions configured around your business.",
       },
       { property: "og:title", content: "AI Automation Solutions — Autumic" },
       {

@@ -38,7 +38,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "AI Receptionist, Workflow Automation, AI Sales Agent and AI Chatbot solutions that help businesses serve customers, grow sales and automate operations.",
+          "AI Receptionist, AI Lead Capture & Qualifier, AI Customer Support Agent and Social & Messaging AI solutions for customer service, lead qualification and business operations.",
       },
       { property: "og:title", content: "Autumic — Build. Automate. Grow." },
       {

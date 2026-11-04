@@ -31,10 +31,10 @@ const services = [
   },
   {
     icon: Users,
-    title: ["AI Sales Agent", "AI সেলস এজেন্ট"],
+    title: ["AI Lead Capture & Qualifier", "AI লিড ক্যাপচার ও কোয়ালিফায়ার"],
     description: [
-      "Respond to enquiries, qualify potential buyers and support timely lead follow-up.",
-      "জিজ্ঞাসার উত্তর দিন, সম্ভাব্য ক্রেতা যাচাই করুন এবং সময়মতো লিড ফলো-আপ করুন।",
+      "Capture enquiries, validate contact details, score buying intent and route qualified leads for follow-up.",
+      "জিজ্ঞাসা সংগ্রহ করুন, যোগাযোগের তথ্য যাচাই করুন, আগ্রহের স্কোর নির্ধারণ করুন এবং যোগ্য লিড টিমের কাছে পাঠান।",
     ],
   },
   {
