@@ -131,8 +131,7 @@ export function ReactivationModal({
             {selectedMethod && (
               <div className="mt-3 rounded-xl border border-primary/25 bg-primary/5 p-3 text-sm">
                 <p className="font-bold">{selectedMethod.method_name}</p>
-                {selectedMethod.account_identifier &&
-                  !selectedMethod.account_identifier
+                {selectedMethod.account_identifier && !selectedMethod.account_identifier
                     .toLowerCase()
                     .includes("configure in control center") && (
                     <p className="mt-1 break-all font-semibold">
@@ -186,7 +185,11 @@ export function ReactivationModal({
           </Button>
           <Button
             disabled={
-              busy || !method || !transaction || !sender || (requiresSenderPhone && !senderPhone.trim())
+              busy ||
+              !method ||
+              !transaction ||
+              !sender ||
+              (requiresSenderPhone && !senderPhone.trim())
             }
             onClick={submit}
           >
