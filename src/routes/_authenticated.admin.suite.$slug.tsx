@@ -106,22 +106,31 @@ function SuitePage() {
         </TabsContent>
         <TabsContent value="keys" className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            This automation has its own key rotation. When one key hits a limit the next takes over
-            instantly and the conversation continues.
+            {def.scope === "ai_sales_agent"
+              ? "Lead scoring is rule-based and does not call an AI model. Configure optional SMS and email delivery in the client's integrations."
+              : "Language-model credentials are managed centrally in AI Infrastructure. Choose provider priority and fallback in each client's Control Room. Only dedicated voice keys are managed in this per-automation pool."}
           </p>
           {keys.isLoading ? (
             <Loading label="Loading keys…" />
           ) : keys.data?.notConfigured ? (
             <p className="text-sm text-destructive">{keys.data.message}</p>
           ) : (
-            pools.map((p) => (
-              <PoolCard
-                key={p.provider}
-                scope={def.scope}
-                pool={p}
-                keys={scopeKeys.filter((k) => k.provider === p.provider)}
-              />
-            ))
+            pools.length ? (
+              pools.map((p) => (
+                <PoolCard
+                  key={p.provider}
+                  scope={def.scope}
+                  pool={p}
+                  keys={scopeKeys.filter((k) => k.provider === p.provider)}
+                />
+              ))
+            ) : (
+              <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                {def.scope === "ai_sales_agent"
+                  ? "No provider key pool is required for this rule-based engine."
+                  : "No dedicated per-automation keys are required. Use the central AI Infrastructure and client Control Room settings."}
+              </p>
+            )
           )}
         </TabsContent>
         <TabsContent value="integrations">
