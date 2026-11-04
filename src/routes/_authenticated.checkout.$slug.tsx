@@ -115,6 +115,7 @@ function Checkout() {
     methodId: "",
     transaction: "",
     sender: "",
+    senderPhone: "",
   });
 
   useEffect(() => {
@@ -269,7 +270,12 @@ function Checkout() {
           paymentMethodId: selectedPaymentMethod.id,
           transactionId: form.transaction.trim(),
           senderName: form.sender.trim(),
-          proof: { transaction_id: form.transaction.trim(), sender_name: form.sender.trim() },
+          senderPhone: form.senderPhone.trim(),
+          proof: {
+            transaction_id: form.transaction.trim(),
+            sender_name: form.sender.trim(),
+            sender_phone: form.senderPhone.trim(),
+          },
           promoCode: promoOk ? promo.trim().toUpperCase() : undefined,
         },
       });
@@ -303,7 +309,13 @@ function Checkout() {
       return true;
     });
   const canContinue = step === 1 ? step1Ok : step === 2 ? step2Ok : prodOk;
-  const canSubmit = !!selectedPaymentMethod && !!form.transaction.trim() && !!form.sender.trim();
+  const requiresSenderPhone =
+    selectedPaymentMethod?.required_fields.includes("sender_phone") ?? false;
+  const canSubmit =
+    !!selectedPaymentMethod &&
+    !!form.transaction.trim() &&
+    !!form.sender.trim() &&
+    (!requiresSenderPhone || !!form.senderPhone.trim());
 
   const go = (next: number) => {
     setDirection(next > step ? 1 : -1);
@@ -684,6 +696,15 @@ function Checkout() {
             onChange={(v) => set("sender", v)}
             required={touched}
           />
+          {requiresSenderPhone && (
+            <Field
+              label="Sender phone number"
+              type="tel"
+              value={form.senderPhone}
+              onChange={(v) => set("senderPhone", v)}
+              required={touched}
+            />
+          )}
         </div>
       </div>
     );

@@ -33,6 +33,12 @@ export function ReactivationModal({
   }, [methodsQuery.data, method]);
   const [transaction, setTransaction] = useState("");
   const [sender, setSender] = useState("");
+  const [senderPhone, setSenderPhone] = useState("");
+  const requiresSenderPhone = selectedMethod?.required_fields.includes("sender_phone") ?? false;
+  const accountIdentifier = selectedMethod?.account_identifier ?? "";
+  const hasUsableDestination =
+    Boolean(accountIdentifier.trim()) &&
+    !accountIdentifier.toLowerCase().includes("configure in control center");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -46,6 +52,7 @@ export function ReactivationModal({
           paymentMethod: method,
           transactionId: transaction.trim(),
           senderName: sender.trim(),
+          senderPhone: senderPhone.trim(),
           amount,
         },
       });
@@ -127,14 +134,11 @@ export function ReactivationModal({
             {selectedMethod && (
               <div className="mt-3 rounded-xl border border-primary/25 bg-primary/5 p-3 text-sm">
                 <p className="font-bold">{selectedMethod.method_name}</p>
-                {selectedMethod.account_identifier &&
-                  !selectedMethod.account_identifier
-                    .toLowerCase()
-                    .includes("configure in control center") && (
-                    <p className="mt-1 break-all font-semibold">
-                      {selectedMethod.account_identifier}
-                    </p>
-                  )}
+                {hasUsableDestination && (
+                  <p className="mt-1 break-all font-semibold">
+                    {selectedMethod.account_identifier}
+                  </p>
+                )}
                 {selectedMethod.instructions && (
                   <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
                     {selectedMethod.instructions}
@@ -160,6 +164,18 @@ export function ReactivationModal({
               className="mt-2 h-12 rounded-xl"
             />
           </div>
+          {requiresSenderPhone && (
+            <div>
+              <Label>Sender phone number</Label>
+              <Input
+                type="tel"
+                value={senderPhone}
+                onChange={(e) => setSenderPhone(e.target.value)}
+                className="mt-2 h-12 rounded-xl"
+                placeholder="+8801XXXXXXXXX"
+              />
+            </div>
+          )}
         </div>
         {error && (
           <p className="mt-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>
@@ -168,7 +184,16 @@ export function ReactivationModal({
           <Button variant="ghost" onClick={onClose}>
             Later
           </Button>
-          <Button disabled={busy || !method || !transaction || !sender} onClick={submit}>
+          <Button
+            disabled={
+              busy ||
+              !method ||
+              !transaction ||
+              !sender ||
+              (requiresSenderPhone && !senderPhone.trim())
+            }
+            onClick={submit}
+          >
             {busy ? "Submitting…" : "Submit renewal"}
           </Button>
         </div>

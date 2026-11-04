@@ -129,7 +129,9 @@ export const getActivePaymentMethods = createServerFn({ method: "GET" })
       .filter(
         (row) =>
           row.method_type !== "card" &&
-          !["stripe", "paypal"].includes((row.provider_name ?? "").toLowerCase()),
+          !["stripe", "paypal"].includes((row.provider_name ?? "").toLowerCase()) &&
+          Boolean(row.account_identifier?.trim()) &&
+          !row.account_identifier!.toLowerCase().includes("configure in control center"),
       )
       .map((row) => {
         const meta =
@@ -906,6 +908,7 @@ export const submitRenewalPayment = createServerFn({ method: "POST" })
         paymentMethod: z.string().uuid(),
         transactionId: z.string().trim().min(3).max(200),
         senderName: z.string().trim().min(2).max(160),
+        senderPhone: z.string().trim().max(40).optional().default(""),
         amount: z.number().min(0).max(100000),
       })
       .parse(d),
@@ -922,12 +925,14 @@ export const submitRenewalPayment = createServerFn({ method: "POST" })
     if (!subscription?.order_id) throw new Error("Original order not found.");
     const { data: method, error: methodError } = await db2Admin
       .from("payment_methods")
-      .select("id,is_active,method_type,provider_name")
+      .select("id,is_active,method_type,provider_name,account_identifier,metadata")
       .eq("id", data.paymentMethod)
       .maybeSingle();
     if (methodError) throw new Error(methodError.message);
     if (
       !method?.is_active ||
+      !method.account_identifier?.trim() ||
+      method.account_identifier?.toLowerCase().includes("configure in control center") ||
       method.method_type === "card" ||
       ["stripe", "paypal"].includes((method.provider_name ?? "").toLowerCase())
     ) {
@@ -935,10 +940,19 @@ export const submitRenewalPayment = createServerFn({ method: "POST" })
         "Selected payment method is unavailable. Choose an active method and try again.",
       );
     }
+    const requiredFields =
+      method.metadata &&
+      typeof method.metadata === "object" &&
+      !Array.isArray(method.metadata) &&
+      Array.isArray(method.metadata["required_fields"])
+        ? method.metadata["required_fields"]
+        : [];
+    if (requiredFields.includes("sender_phone") && !data.senderPhone)
+      throw new Error("Enter the sender phone number required by this payment method.");
     const { error } = await db2Admin.from("payment_verifications").insert({
       order_id: subscription.order_id,
       payment_method_id: method.id,
-      sender_phone: null,
+      sender_phone: data.senderPhone || null,
       trx_id: data.transactionId,
       amount: data.amount,
       status: "pending",
@@ -970,6 +984,7 @@ export const submitOrder = createServerFn({ method: "POST" })
         paymentMethodId: z.string().uuid(),
         transactionId: z.string().trim().min(3).max(200),
         senderName: z.string().trim().min(2).max(160),
+        senderPhone: z.string().trim().max(40).optional().default(""),
         proof: z.record(z.string(), z.string()).default({}),
         promoCode: z.string().trim().max(80).optional(),
         configuration: z.record(z.string().max(80), z.string().max(8000)).default({}),
@@ -992,12 +1007,23 @@ export const submitOrder = createServerFn({ method: "POST" })
       throw new Error(`Could not verify the selected payment method: ${methodError.message}`);
     if (
       !method?.is_active ||
+      !method.account_identifier?.trim() ||
+      method.account_identifier?.toLowerCase().includes("configure in control center") ||
       method.method_type === "card" ||
       ["stripe", "paypal"].includes((method.provider_name ?? "").toLowerCase())
     )
       throw new Error(
         "This payment method is no longer available. Choose an active payment method and try again.",
       );
+    const requiredFields =
+      method.metadata &&
+      typeof method.metadata === "object" &&
+      !Array.isArray(method.metadata) &&
+      Array.isArray(method.metadata["required_fields"])
+        ? method.metadata["required_fields"]
+        : [];
+    if (requiredFields.includes("sender_phone") && !data.senderPhone)
+      throw new Error("Enter the sender phone number required by this payment method.");
     // Server-side duplicate guard: the same transaction ID cannot be submitted twice for verification.
     const { data: dupe } = await db2Admin
       .from("payment_verifications")
@@ -1103,7 +1129,7 @@ export const submitOrder = createServerFn({ method: "POST" })
     const { error: verifyError } = await db2Admin.from("payment_verifications").insert({
       order_id: order.id,
       payment_method_id: method.id,
-      sender_phone: null,
+      sender_phone: data.senderPhone || null,
       trx_id: data.transactionId,
       amount: total,
       status: "pending",

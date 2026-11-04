@@ -869,6 +869,10 @@ export const adminSavePaymentMethod = createServerFn({ method: "POST" })
         required_fields: z.array(z.string().max(100)).max(20),
         is_active: z.boolean().default(true),
       })
+      .refine((value) => !value.is_active || value.account_identifier.trim().length > 0, {
+        message: "Enter a payment destination before activating this method.",
+        path: ["account_identifier"],
+      })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
