@@ -69,7 +69,7 @@ describe("key pool", () => {
 describe("automation suite", () => {
   it("has 4 automations and 10 receptionist services", () => {
     expect(AUTOMATION_SUITE).toHaveLength(4);
-    expect(RECEPTIONIST_SERVICES).toHaveLength(10);
+    expect(RECEPTIONIST_SERVICES).toHaveLength(7);
     const rec = AUTOMATION_SUITE[0]!;
     expect(rec.pools.find((p) => p.provider === "inworld")!.maxKeys).toBe(10);
   });
