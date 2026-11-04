@@ -283,7 +283,11 @@ export const setDeploymentState = createServerFn({ method: "POST" })
           .eq("status", "connected")
           .maybeSingle();
         if (phoneError) throw new Error(phoneError.message);
-        if (!phone) throw new Error("Connect and verify a Twilio phone integration before activating the AI Receptionist.");
+        if (!phone) {
+          throw new Error(
+            "Connect and verify a Twilio phone integration before activating the AI Receptionist.",
+          );
+        }
       }
       if (kind === "messaging_ai") {
         const { data: channel, error: channelError } = await db2Admin
@@ -295,7 +299,11 @@ export const setDeploymentState = createServerFn({ method: "POST" })
           .limit(1)
           .maybeSingle();
         if (channelError) throw new Error(channelError.message);
-        if (!channel) throw new Error("Connect and verify at least one WhatsApp, Messenger or Instagram channel before activating Social & Messaging AI.");
+        if (!channel) {
+          throw new Error(
+            "Connect and verify at least one WhatsApp, Messenger or Instagram channel before activating Social & Messaging AI.",
+          );
+        }
       }
     }
     const { data: row, error } = await db2Admin
