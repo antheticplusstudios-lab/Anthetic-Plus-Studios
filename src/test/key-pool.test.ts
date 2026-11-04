@@ -82,7 +82,9 @@ describe("automation suite", () => {
     ]);
     expect(AUTOMATION_SUITE.find((a) => a.scope === "message_ai")!.pools).toEqual([]);
     expect(AUTOMATION_SUITE.find((a) => a.scope === "ai_sales_agent")!.pools).toEqual([]);
-    expect(AUTOMATION_SUITE.find((a) => a.scope === "workflow_automation")!.title).toBe("AI Customer Support Agent");
+    expect(AUTOMATION_SUITE.find((a) => a.scope === "workflow_automation")!.title).toBe(
+      "AI Customer Support Agent",
+    );
   });
   it("flags services needing a phone line", () => {
     const s = readyServices(AUTOMATION_SUITE[0]!, new Set());
