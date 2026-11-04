@@ -97,8 +97,8 @@ function SuitePage() {
                   <div className="text-sm text-muted-foreground">{s.summary}</div>
                   {s.needs?.length ? (
                     <div className="mt-1 text-xs text-muted-foreground">
-                      Requires: {s.needs.map((n) => NEED_LABEL[n] ?? n).join(", ")}.
-                      This is a client-level connection, not a platform-wide key.
+                      Requires: {s.needs.map((n) => NEED_LABEL[n] ?? n).join(", ")}. This is a
+                      client-level connection, not a platform-wide key.
                     </div>
                   ) : null}
                 </li>
