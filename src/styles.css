@@ -986,3 +986,79 @@ html {
 .customer-workspace main :where(.grid) > * {
   min-width: 0;
 }
+
+
+/*
+ * Admin workspace theme isolation.
+ * The authenticated shell may be mounted under a global .dark theme class.
+ * Keep the control center on the site's pearl/light palette by defining every
+ * semantic token locally, rather than overriding background alone.
+ */
+.admin-workspace {
+  color-scheme: light;
+  --background: oklch(0.965 0 0);
+  --foreground: oklch(0.16 0 0);
+  --surface: oklch(0.955 0 0);
+  --body: oklch(0.42 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.16 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0 0);
+  --primary: oklch(0.18 0 0);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.93 0 0);
+  --secondary-foreground: oklch(0.2 0 0);
+  --muted: oklch(0.94 0 0);
+  --muted-foreground: oklch(0.43 0 0);
+  --accent: oklch(0.91 0 0);
+  --accent-foreground: oklch(0.18 0 0);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.48 0.12 160);
+  --warning: oklch(0.52 0.12 65);
+  --border: oklch(0.55 0 0 / 22%);
+  --input: oklch(0.55 0 0 / 34%);
+  --ring: oklch(0.28 0 0 / 58%);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.16 0 0);
+  --sidebar-primary: oklch(0.18 0 0);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.92 0 0);
+  --sidebar-accent-foreground: oklch(0.18 0 0);
+  --sidebar-border: oklch(0.55 0 0 / 18%);
+  --sidebar-ring: oklch(0.28 0 0 / 58%);
+  --workspace: oklch(0.965 0 0);
+  --workspace-accent: oklch(0.18 0 0);
+  --workspace-accent-foreground: oklch(0.99 0 0);
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.admin-workspace :where(input, textarea, select) {
+  color: var(--foreground);
+  background-color: var(--card);
+}
+
+.admin-workspace :where(input, textarea)::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
+.admin-workspace :where(option) {
+  color: var(--foreground);
+  background-color: var(--card);
+}
+
+.admin-workspace .workspace-header {
+  color: var(--foreground);
+  background-color: color-mix(in oklab, var(--card) 92%, transparent);
+}
+
+.admin-workspace .line-nav-item[data-active="true"] {
+  color: var(--foreground);
+  background-color: color-mix(in oklab, var(--primary) 10%, transparent);
+}
+
+.admin-workspace :where(button, a, input, textarea, select, [role="switch"]):focus-visible {
+  outline-color: var(--ring);
+}
