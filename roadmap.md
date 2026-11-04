@@ -62,7 +62,7 @@
 
 - [x] Project imported; 4 external databases kept.
 - [x] Per-automation key rotation engine with instant failover that keeps the conversation (src/lib/key-pool.ts) + tests.
-- [x] 4-automation catalog with the 10 AI Receptionist services, Inworld limits of 10 for the receptionist and 5 for the website assistant + tests.
+- [x] Align admin automation catalog with the four executable engines; expose only the website-assistant Inworld TTS key pool.
 - [x] Safe Markdown email renderer (images and links) + tests.
 - [x] Migration SQL for key pools, service toggles, origin domains, ban/mute, contact inbox, campaigns, training jobs.
 - [x] Automations management pages (services + keys done; integrations, test, activity next).
