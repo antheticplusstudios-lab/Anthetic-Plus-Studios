@@ -286,8 +286,8 @@ export function HomeHero() {
                     {config?.welcomeMessage ||
                       (enabled
                         ? t(
-                            "Hi! Ask me about our AI Receptionist, Workflow Automation, AI Sales Agent or AI Chatbot — in English or বাংলা.",
-                            "হ্যালো! AI Receptionist, Workflow Automation, AI Sales Agent বা AI Chatbot সম্পর্কে জিজ্ঞাসা করুন — বাংলা বা English-এ।",
+                            "Hi! Ask me about our AI Receptionist, AI Lead Capture & Qualifier, AI Customer Support Agent or Social & Messaging AI — in English or বাংলা.",
+                            "হ্যালো! AI Receptionist, AI Lead Capture & Qualifier, AI Customer Support Agent বা Social & Messaging AI সম্পর্কে জিজ্ঞাসা করুন — বাংলা বা English-এ।",
                           )
                         : t(
                             "The assistant is currently unavailable. You can still explore our automation solutions or book a free consultation.",
