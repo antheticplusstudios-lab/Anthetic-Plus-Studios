@@ -19,10 +19,10 @@ export type AssistantSettings = {
 };
 
 const DEFAULT_WELCOME =
-  "Hi! I'm the Autumic assistant. Ask me about AI Receptionist, Workflow Automation, AI Sales Agent, AI Chatbot or book a free consultation.";
+  "Hi! I'm the Autumic assistant. Ask me about AI Receptionist, AI Lead Capture & Qualifier, AI Customer Support Agent, Social & Messaging AI or book a free consultation.";
 
 const DEFAULT_PUBLIC_CONTEXT =
-  "Autumic is an AI automation company serving Bangladesh and international markets. We build AI Receptionists, Workflow Automation, AI Sales Agents, AI Chatbots, WhatsApp AI automation, lead follow-up, appointment booking, email automation and custom workflows. We work with real estate, healthcare, ecommerce, education, hotels, finance and professional services. Packages are custom-scoped; public fixed pricing is not available. The primary next step is a free consultation through /contact. Contact: info@autumic.com, +880 1915-349394, Baridhara, Dhaka-1212, Bangladesh. Security and tenant-isolation practices are described at /security.";
+  "Autumic is an AI automation company serving Bangladesh and international markets. We build AI Receptionists, Workflow Automation, AI Lead Capture & Qualification, AI Customer Support and Social Messaging, WhatsApp AI automation, lead follow-up, appointment booking, email automation and custom workflows. We work with real estate, healthcare, ecommerce, education, hotels, finance and professional services. Packages are custom-scoped; public fixed pricing is not available. The primary next step is a free consultation through /contact. Contact: info@autumic.com, +880 1915-349394, Baridhara, Dhaka-1212, Bangladesh. Security and tenant-isolation practices are described at /security.";
 
 function rec(v: unknown): Record<string, unknown> {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
@@ -51,7 +51,7 @@ export async function loadAssistantSettings(): Promise<AssistantSettings> {
         .replace(/AntheticPlus/gi, "Autumic")
         .replace(/antheticplusstudios@gmail.com/gi, "info@autumic.com")
         .replace(/AI Voice & SMS Receptionist/gi, "AI Receptionist")
-        .replace(/AI Lead Capture & Smart Qualifier/gi, "AI Sales Agent")
+        .replace(/AI Lead Capture & Smart Qualifier/gi, "AI Lead Capture & Qualifier")
         .replace(/AI Knowledge Base Support Agent/gi, "AI Customer Support Agent")
         .replace(/AI Social DM & Messaging Assistant/gi, "AI Chatbot")
         .slice(0, 600) || DEFAULT_WELCOME,
