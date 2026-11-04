@@ -24,18 +24,18 @@ export const automations = [
   },
   {
     slug: "lead-capture-qualifier",
-    name: "AI Sales Agent",
-    shortName: "Sales Agent",
+    name: "AI Lead Capture & Qualifier",
+    shortName: "Lead Qualifier",
     price: 299,
     icon: Bot,
     badge: "Lead generation",
     description:
-      "Respond to new enquiries, qualify potential buyers, capture lead details and route opportunities for timely follow-up.",
+      "Capture enquiry details, validate required contact fields, score buying intent, assign qualified leads to your team and trigger configured follow-up notifications.",
     features: [
-      "Proactive website conversations",
-      "Lead qualification using your criteria",
-      "Contact capture and CRM routing",
-      "Follow-up and hot-lead notifications",
+      "Configurable lead fields and validation",
+      "Rule-based lead scoring and hot/warm/cold tiers",
+      "Round-robin assignment for qualified leads",
+      "Optional SMS, email and webhook notifications",
     ],
     useCases: [
       "Professional services",
