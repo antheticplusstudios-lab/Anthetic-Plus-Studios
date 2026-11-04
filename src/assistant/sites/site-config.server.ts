@@ -30,8 +30,9 @@ const DEFAULTS: Record<SiteId, SiteConfig> = {
       "Autumic is an AI automation company serving Bangladesh and international markets. We build AI Receptionists, Workflow Automation, AI Lead Capture & Qualification, AI Customer Support and Social Messaging, WhatsApp AI automation, lead follow-up, appointment booking, email automation and custom workflows. We work with real estate, healthcare, ecommerce, education, hotels, finance and professional services. Packages are custom-scoped; public fixed pricing is not available. The primary next step is a free consultation at /contact. Contact: info@autumic.com, +880 1915-349394, Baridhara, Dhaka-1212, Bangladesh.",
     services: `AI Receptionist
 Workflow Automation
-AI Sales Agent
-AI Chatbot
+AI Lead Capture & Qualifier
+AI Customer Support Agent
+Social & Messaging AI
 WhatsApp AI Automation
 Lead Follow-up
 Appointment Booking
