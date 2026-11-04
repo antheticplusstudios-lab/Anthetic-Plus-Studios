@@ -274,10 +274,28 @@ export const setDeploymentState = createServerFn({ method: "POST" })
         throw new Error("Activation requires at least one successful test execution.");
       }
       const kind = String(current.automation_type || current.product_type || "");
-      if (kind === "ai_receptionist" || kind === "messaging_ai") {
-        throw new Error(
-          "This automation cannot be marked fully active until its outbound channel adapter is implemented and verified.",
-        );
+      if (kind === "ai_receptionist") {
+        const { data: phone, error: phoneError } = await db2Admin
+          .from("integration_connections")
+          .select("id")
+          .eq("automation_id", data.automationId)
+          .eq("provider", "twilio")
+          .eq("status", "connected")
+          .maybeSingle();
+        if (phoneError) throw new Error(phoneError.message);
+        if (!phone) throw new Error("Connect and verify a Twilio phone integration before activating the AI Receptionist.");
+      }
+      if (kind === "messaging_ai") {
+        const { data: channel, error: channelError } = await db2Admin
+          .from("integration_connections")
+          .select("id")
+          .eq("automation_id", data.automationId)
+          .in("provider", ["whatsapp", "meta_page", "messenger", "instagram"])
+          .eq("status", "connected")
+          .limit(1)
+          .maybeSingle();
+        if (channelError) throw new Error(channelError.message);
+        if (!channel) throw new Error("Connect and verify at least one WhatsApp, Messenger or Instagram channel before activating Social & Messaging AI.");
       }
     }
     const { data: row, error } = await db2Admin
