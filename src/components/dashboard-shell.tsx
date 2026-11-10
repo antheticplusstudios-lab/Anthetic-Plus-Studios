@@ -43,7 +43,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           variant="ghost"
           size="icon"
           aria-label="Close navigation"
-          className="lg:hidden"
+          className="xl:hidden"
           onClick={() => setOpen(false)}
         >
           <ChevronLeft />
@@ -84,7 +84,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   );
   return (
     <div className="customer-workspace min-h-screen bg-muted/25">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 overflow-y-auto border-r border-border bg-sidebar p-4 pb-24 lg:block">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 overflow-y-auto border-r border-border bg-sidebar p-4 pb-24 xl:block">
         {navigation}
       </aside>
       <Sheet open={open} onOpenChange={setOpen}>
@@ -94,7 +94,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           {navigation}
         </SheetContent>
       </Sheet>
-      <div className="lg:pl-72">
+      <div className="xl:pl-72">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border workspace-header px-4 sm:px-8">
           <Button
             variant="ghost"

@@ -49,8 +49,8 @@ export function LanguagePicker({ className }: { className?: string }) {
         )}
       >
         <Globe className="h-4 w-4" />
-        {current.short}
-        <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+        <span className="max-[380px]:hidden">{current.short}</span>
+        <ChevronDown className="h-3.5 w-3.5 opacity-60 max-[380px]:hidden" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-36">
         {LANGS.map((l) => (
@@ -69,7 +69,7 @@ export function LanguagePicker({ className }: { className?: string }) {
 }
 
 const linkCls =
-  "relative rounded-lg px-3 py-2 text-sm font-semibold text-body transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[status=active]:text-primary";
+  "relative rounded-lg px-2 py-2 text-sm font-semibold text-body transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[status=active]:text-primary";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -106,10 +106,16 @@ export function SiteHeader() {
         className="floating-navigation fixed inset-x-3 z-50 mx-auto max-w-7xl rounded-2xl glass-navigation border transition-[background-color,box-shadow,border-color] duration-300 ease-[var(--ease-m3-emphasized)] sm:inset-x-5"
         data-scrolled={scrolled || open || undefined}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-3 sm:px-5">
-          <HomeBrand className="mr-auto lg:mr-0" onNavigate={() => setOpen(false)} />
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:px-5">
+          <HomeBrand
+            className="mr-auto shrink-0 min-[1280px]:mr-0"
+            onNavigate={() => setOpen(false)}
+          />
 
-          <nav aria-label="Main" className="mx-auto hidden items-center gap-0.5 lg:flex">
+          <nav
+            aria-label="Main"
+            className="mx-0 hidden min-w-0 flex-1 items-center justify-center gap-0 min-[1280px]:flex"
+          >
             {NAV.map((item) => (
               <Link
                 key={item.to}
@@ -127,7 +133,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-            <LanguagePicker />
+            <LanguagePicker className="max-[380px]:px-1" />
             <ThemeToggle />
             {!isLoading &&
               (signedIn ? (
@@ -135,7 +141,7 @@ export function SiteHeader() {
                   asChild
                   variant="hero"
                   size="sm"
-                  className="hidden h-10 px-5 sm:inline-flex"
+                  className="hidden h-10 px-5 min-[1280px]:inline-flex"
                 >
                   <Link to="/dashboard">
                     <LayoutDashboard /> {t("Dashboard", "ড্যাশবোর্ড")}
@@ -158,7 +164,7 @@ export function SiteHeader() {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full lg:hidden"
+              className="shrink-0 rounded-full min-[1280px]:hidden"
               onClick={() => setOpen(!open)}
               aria-label={open ? t("Close menu", "মেনু বন্ধ করুন") : t("Open menu", "মেনু খুলুন")}
               aria-expanded={open}
@@ -178,7 +184,7 @@ export function SiteHeader() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: reduced ? 0 : -8 }}
               transition={{ duration: reduced ? 0 : 0.25, ease: glide }}
-              className="mx-3 mb-3 grid max-h-[calc(100dvh-8rem)] gap-1 overflow-y-auto rounded-xl border border-border bg-card p-3 shadow-elevated lg:hidden"
+              className="mx-3 mb-3 grid max-h-[calc(100dvh-7rem)] gap-1 overflow-y-auto rounded-xl border border-border bg-card p-3 shadow-elevated min-[1280px]:hidden"
             >
               {NAV.map((item) => (
                 <Link
