@@ -108,13 +108,13 @@ export function SiteHeader() {
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:px-5">
           <HomeBrand
-            className="mr-auto shrink-0 min-[1440px]:mr-0"
+            className="mr-auto shrink-0 min-[1280px]:mr-0"
             onNavigate={() => setOpen(false)}
           />
 
           <nav
             aria-label="Main"
-            className="mx-0 hidden min-w-0 flex-1 items-center justify-center gap-0 min-[1440px]:flex"
+            className="mx-0 hidden min-w-0 flex-1 items-center justify-center gap-0 min-[1280px]:flex"
           >
             {NAV.map((item) => (
               <Link
@@ -141,7 +141,7 @@ export function SiteHeader() {
                   asChild
                   variant="hero"
                   size="sm"
-                  className="hidden h-10 px-5 min-[1440px]:inline-flex"
+                  className="hidden h-10 px-5 min-[1280px]:inline-flex"
                 >
                   <Link to="/dashboard">
                     <LayoutDashboard /> {t("Dashboard", "ড্যাশবোর্ড")}
@@ -164,7 +164,7 @@ export function SiteHeader() {
             <Button
               variant="ghost"
               size="icon"
-              className="shrink-0 rounded-full min-[1440px]:hidden"
+              className="shrink-0 rounded-full min-[1280px]:hidden"
               onClick={() => setOpen(!open)}
               aria-label={open ? t("Close menu", "মেনু বন্ধ করুন") : t("Open menu", "মেনু খুলুন")}
               aria-expanded={open}
@@ -184,7 +184,7 @@ export function SiteHeader() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: reduced ? 0 : -8 }}
               transition={{ duration: reduced ? 0 : 0.25, ease: glide }}
-              className="mx-3 mb-3 grid max-h-[calc(100dvh-7rem)] gap-1 overflow-y-auto rounded-xl border border-border bg-card p-3 shadow-elevated min-[1440px]:hidden"
+              className="mx-3 mb-3 grid max-h-[calc(100dvh-7rem)] gap-1 overflow-y-auto rounded-xl border border-border bg-card p-3 shadow-elevated min-[1280px]:hidden"
             >
               {NAV.map((item) => (
                 <Link
