@@ -188,20 +188,6 @@ export function SiteFooter() {
               Instagram
             </a>
             <a
-              href="https://www.facebook.com/profile.php?id=61594363408424&rdid=s35JYQRvfs4X1m27&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F19f32W6RZQ%2F#"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Facebook
-            </a>
-            <a
-              href="https://www.youtube.com/channel/UC0vT8TOozzm4pTHAhdYESYg"
-              target="_blank"
-              rel="noreferrer"
-            >
-              YouTube
-            </a>
-            <a
               href="https://api.whatsapp.com/send/?phone=8801915349394&text=Hello+Autumic%2C+I%27d+like+to+learn+more+about+your+AI+automation+solutions.&type=phone_number&app_absent=0"
               target="_blank"
               rel="noreferrer"
