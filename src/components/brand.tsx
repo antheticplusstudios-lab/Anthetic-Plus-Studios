@@ -2,11 +2,7 @@
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <span
-      className={
-        compact
-          ? "inline-flex items-center"
-          : "inline-flex min-w-0 items-center gap-2.5"
-      }
+      className={compact ? "inline-flex items-center" : "inline-flex min-w-0 items-center gap-2.5"}
     >
       <img
         src="/brand/autumics-symbol.svg"
