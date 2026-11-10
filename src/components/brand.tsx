@@ -3,8 +3,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <span
       className={
-        compact
-          ? "inline-flex items-center"
+        compact ? "inline-flex items-center"
           : "inline-flex min-w-0 items-center gap-1.5 sm:gap-2"
       }
     >
