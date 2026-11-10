@@ -49,8 +49,8 @@ export function LanguagePicker({ className }: { className?: string }) {
         )}
       >
         <Globe className="h-4 w-4" />
-        {current.short}
-        <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+        <span className="max-[380px]:hidden">{current.short}</span>
+        <ChevronDown className="h-3.5 w-3.5 opacity-60 max-[380px]:hidden" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-36">
         {LANGS.map((l) => (
@@ -107,9 +107,15 @@ export function SiteHeader() {
         data-scrolled={scrolled || open || undefined}
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:px-5">
-          <HomeBrand className="mr-auto shrink-0 min-[1440px]:mr-0" onNavigate={() => setOpen(false)} />
+          <HomeBrand
+            className="mr-auto shrink-0 min-[1440px]:mr-0"
+            onNavigate={() => setOpen(false)}
+          />
 
-          <nav aria-label="Main" className="mx-0 hidden min-w-0 flex-1 items-center justify-center gap-0 min-[1440px]:flex">
+          <nav
+            aria-label="Main"
+            className="mx-0 hidden min-w-0 flex-1 items-center justify-center gap-0 min-[1440px]:flex"
+          >
             {NAV.map((item) => (
               <Link
                 key={item.to}
@@ -127,7 +133,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-            <LanguagePicker />
+            <LanguagePicker className="max-[380px]:px-1" />
             <ThemeToggle />
             {!isLoading &&
               (signedIn ? (
@@ -135,7 +141,7 @@ export function SiteHeader() {
                   asChild
                   variant="hero"
                   size="sm"
-                  className="hidden h-10 px-5 sm:inline-flex"
+                  className="hidden h-10 px-5 min-[1440px]:inline-flex"
                 >
                   <Link to="/dashboard">
                     <LayoutDashboard /> {t("Dashboard", "ড্যাশবোর্ড")}
