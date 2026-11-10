@@ -1062,3 +1062,28 @@ html {
 .admin-workspace :where(button, a, input, textarea, select, [role="switch"]):focus-visible {
   outline-color: var(--ring);
 }
+
+
+/* Landscape/tablet refinements: preserve breathing room when viewport height is constrained. */
+@media (orientation: landscape) and (max-height: 600px) {
+  .floating-navigation {
+    top: calc(var(--banner-h, 0px) + 0.5rem + env(safe-area-inset-top, 0px));
+  }
+
+  .home-hero .ai-orb {
+    --orb-responsive-size: min(220px, 38vw);
+  }
+
+  .home-hero .container-page {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+    row-gap: 1.5rem;
+  }
+
+  .whatsapp-float {
+    width: 2.75rem;
+    height: 2.75rem;
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+}
