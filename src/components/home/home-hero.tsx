@@ -164,7 +164,7 @@ export function HomeHero() {
       </div>
       <div className="hero-atmosphere pointer-events-none absolute inset-0 z-0" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-40 bg-gradient-to-b from-transparent to-background" />
-      <div className="container-page relative z-10 grid items-center gap-10 pb-14 pt-10 lg:grid-cols-[1.05fr_1fr_0.95fr] lg:gap-6 lg:pb-20 lg:pt-16">
+      <div className="container-page relative z-10 grid items-center gap-10 pb-14 pt-10 lg:grid-cols-2 lg:gap-8 lg:pb-20 lg:pt-16 2xl:grid-cols-[1.05fr_1fr_0.95fr] 2xl:gap-6">
         {/* Copy */}
         <Entrance className="order-1 text-center lg:text-left">
           <span className="eyebrow">
@@ -210,7 +210,7 @@ export function HomeHero() {
         </Entrance>
 
         {/* Orb */}
-        <div className="order-2 flex flex-col items-center">
+        <div className="order-2 flex min-w-0 flex-col items-center">
           <Button
             variant="ghost"
             type="button"
@@ -250,7 +250,7 @@ export function HomeHero() {
         </div>
 
         {/* Chat widget */}
-        <Entrance className="order-3 mx-auto w-full max-w-md" delay={0.12}>
+        <Entrance className="order-3 mx-auto w-full max-w-md lg:col-span-2 lg:max-w-2xl 2xl:col-span-1 2xl:max-w-md" delay={0.12}>
           <div className="surface-card home-chat flex h-[440px] flex-col overflow-hidden shadow-elevated">
             <header className="flex items-center gap-3 border-b border-border px-4 py-3.5">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent text-primary">
