@@ -396,7 +396,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   );
   return (
     <div className="admin-workspace min-h-screen bg-background">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border bg-sidebar p-4 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border bg-sidebar p-4 xl:flex">
         {navigation}
       </aside>
       <Sheet open={open} onOpenChange={setOpen}>
@@ -406,13 +406,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
           {navigation}
         </SheetContent>
       </Sheet>
-      <div className="min-w-0 lg:pl-64">
+      <div className="min-w-0 xl:pl-64">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border workspace-header px-4 sm:px-8">
           <Button
             variant="ghost"
             size="icon"
             aria-label="Open navigation"
-            className="lg:hidden"
+            className="xl:hidden"
             onClick={() => setOpen(true)}
           >
             <Menu />
