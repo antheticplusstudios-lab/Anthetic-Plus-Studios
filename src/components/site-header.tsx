@@ -149,7 +149,7 @@ export function SiteHeader() {
                     </Button>
                   </AuthDialog>
                   <AuthDialog mode="signup">
-                    <Button variant="hero" size="sm" className="hidden h-10 px-5 sm:inline-flex">
+                    <Button variant="hero" size="sm" className="hidden h-10 px-3 xl:inline-flex">
                       {t("Get Started", "শুরু করুন")} <ArrowRight />
                     </Button>
                   </AuthDialog>
