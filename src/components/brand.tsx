@@ -1,19 +1,27 @@
-/** Autumic wordmark. The official logo asset can replace this monogram when supplied. */
+/** Official Autumic symbol and wordmark assets. */
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <span className={compact ? "inline-flex" : "flex min-w-0 items-center gap-2.5"}>
-      <span
+    <span
+      className={
+        compact
+          ? "inline-flex items-center"
+          : "flex min-w-0 items-center gap-2.5"
+      }
+    >
+      <img
+        src="/brand/autumics-symbol.svg"
+        alt=""
         aria-hidden="true"
-        className="grid size-9 shrink-0 place-items-center rounded-xl border border-white/15 bg-black text-lg font-semibold tracking-tight text-white shadow-sm"
-      >
-        A
-      </span>
+        className="h-9 w-auto shrink-0 object-contain"
+      />
       {!compact && (
         <span className="min-w-0 leading-none">
-          <span className="block truncate text-[15px] font-semibold tracking-tight text-foreground">
-            Autumic
-          </span>
-          <span className="mt-1 block truncate text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+          <img
+            src="/brand/autumics-wordmark.svg"
+            alt="Autumic"
+            className="h-[15px] w-auto max-w-[124px] object-contain object-left"
+          />
+          <span className="mt-1.5 block truncate text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
             Build To Automate
           </span>
         </span>
