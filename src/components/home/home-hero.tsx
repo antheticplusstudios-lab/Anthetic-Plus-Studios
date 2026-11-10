@@ -250,7 +250,10 @@ export function HomeHero() {
         </div>
 
         {/* Chat widget */}
-        <Entrance className="order-3 mx-auto w-full max-w-md lg:col-span-2 lg:max-w-2xl 2xl:col-span-1 2xl:max-w-md" delay={0.12}>
+        <Entrance
+          className="order-3 mx-auto w-full max-w-md lg:col-span-2 lg:max-w-2xl 2xl:col-span-1 2xl:max-w-md"
+          delay={0.12}
+        >
           <div className="surface-card home-chat flex h-[440px] flex-col overflow-hidden shadow-elevated">
             <header className="flex items-center gap-3 border-b border-border px-4 py-3.5">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent text-primary">
