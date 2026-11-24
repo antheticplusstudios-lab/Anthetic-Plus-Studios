@@ -1,10 +1,11 @@
-import { useEffect, useRef, type RefObject } from "react";
-import { approach, stateEnergy, type OrbState } from "@/components/assistant/pulse-orb";
-import { advanceOrbit } from "./orb-motion";
+import { lazy, Suspense, useEffect, useRef, useState, type RefObject } from "react";
+import { AUTUMIC_MARK_PATH, AUTUMIC_MARK_VIEWBOX as VB } from "./autumic-mark-path";
 import "./ai-orb.css";
 
 /** Visual states of the signature orb. Every value is derived from real assistant/voice state. */
 export type AiOrbState = "idle" | "listening" | "processing" | "speaking" | "success" | "error";
+
+const AiOrbScene = lazy(() => import("./ai-orb-scene"));
 
 const LABEL: Record<AiOrbState, string> = {
   idle: "Assistant ready",
@@ -15,9 +16,23 @@ const LABEL: Record<AiOrbState, string> = {
   error: "Assistant hit a problem",
 };
 
-const toPulse = (s: AiOrbState): OrbState =>
-  s === "processing" ? "thinking" : s === "success" ? "idle" : s;
+function canUseWebGL() {
+  try {
+    const c = document.createElement("canvas");
+    const ctx = c.getContext("webgl2") ?? c.getContext("webgl");
+    // Release the probe context right away; browsers cap live WebGL contexts (~16).
+    ctx?.getExtension("WEBGL_lose_context")?.loseContext();
+    return Boolean(ctx);
+  } catch {
+    return false;
+  }
+}
 
+/**
+ * Crystal-glass Autumic orb. A CSS glass sphere renders on the server and under reduced motion;
+ * on capable clients a lazily loaded React Three Fiber scene fades in over it and reacts to the
+ * live voice level (`levelRef`) and assistant state. Rendering pauses while off-screen.
+ */
 export function AiOrb({
   state,
   size,
@@ -34,77 +49,30 @@ export function AiOrb({
   const el = useRef<HTMLDivElement>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
+  const [gl, setGl] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [pageShown, setPageShown] = useState(true);
 
   useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setGl(!mq.matches && canUseWebGL());
+    update();
+    mq.addEventListener("change", update);
     const node = el.current;
-    if (!node) return;
-    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let visible = false;
-    let raf = 0;
-    let last = performance.now();
-    let level = 0;
-    let angle = 0;
-    let velocity = 22.5;
-    let floatTime = 0;
-    let previousLevel = -1;
-    const loop = (now: number) => {
-      raf = 0;
-      const dt = Math.min(0.1, (now - last) / 1000);
-      last = now;
-      if (visible && !document.hidden && !motionPreference.matches) {
-        const s = stateRef.current;
-        const live = levelRef?.current ?? -1;
-        const target =
-          s === "listening" || s === "speaking"
-            ? live >= 0
-              ? live
-              : stateEnergy(toPulse(s), now / 1000)
-            : stateEnergy(toPulse(s), now / 1000);
-        level = approach(level, target, 8, dt);
-        if (Math.abs(level - previousLevel) > 0.002) {
-          node.style.setProperty("--orb-level", level.toFixed(3));
-          previousLevel = level;
-        }
-        node.style.setProperty(
-          "--mouth",
-          s === "speaking" ? Math.min(1, level * 1.6).toFixed(3) : "0",
-        );
-        ({ angle, velocity } = advanceOrbit(angle, velocity, s, dt));
-        floatTime += Math.min(dt, 0.05);
-        node.style.setProperty("--orbit-angle", `${angle.toFixed(3)}deg`);
-        node.style.setProperty("--orbit-angle-secondary", `${(-angle / 1.4 + 120).toFixed(3)}deg`);
-        node.style.setProperty(
-          "--orb-float",
-          `${(-5 + 5 * Math.cos((floatTime * Math.PI) / 3)).toFixed(3)}px`,
-        );
-        raf = requestAnimationFrame(loop);
-      }
-    };
-    const sync = () => {
-      const active = visible && !document.hidden && !motionPreference.matches;
-      node.dataset["motion"] = active ? "running" : "paused";
-      if (active && !raf) {
-        last = performance.now();
-        raf = requestAnimationFrame(loop);
-      } else if (!active) {
-        cancelAnimationFrame(raf);
-        raf = 0;
-      }
-    };
-    const io = new IntersectionObserver(([e]) => {
-      visible = Boolean(e?.isIntersecting);
-      sync();
-    });
-    io.observe(node);
-    document.addEventListener("visibilitychange", sync);
-    motionPreference.addEventListener("change", sync);
+    const io = node
+      ? new IntersectionObserver(([e]) => setVisible(Boolean(e?.isIntersecting)))
+      : null;
+    if (node) io?.observe(node);
+    const onVis = () => setPageShown(document.visibilityState !== "hidden");
+    onVis();
+    document.addEventListener("visibilitychange", onVis);
     return () => {
-      cancelAnimationFrame(raf);
-      io.disconnect();
-      document.removeEventListener("visibilitychange", sync);
-      motionPreference.removeEventListener("change", sync);
+      document.removeEventListener("visibilitychange", onVis);
+      mq.removeEventListener("change", update);
+      io?.disconnect();
     };
-  }, [levelRef]);
+  }, []);
 
   return (
     <div
@@ -112,44 +80,32 @@ export function AiOrb({
       className={`ai-orb ${className}`}
       data-state={state}
       data-unavailable={unavailable}
+      data-gl={gl && ready ? "ready" : "off"}
       style={size === undefined ? undefined : ({ "--size": `${size}px` } as React.CSSProperties)}
     >
       <span className="ai-orb__halo" aria-hidden />
-      <span className="ai-orb__floor" aria-hidden />
-      <span className="ai-orb__ripple" aria-hidden />
-      <span className="ai-orb__ripple ai-orb__ripple--2" aria-hidden />
-      <div className="ai-orb__body" aria-hidden>
-        <Orbit layer="back" />
-        <Orbit layer="back" second />
-        <span className="ai-orb__core" />
-        <div className="ai-orb__face">
-          <div className="ai-orb__eyes">
-            <span className="ai-orb__eye" />
-            <span className="ai-orb__eye" />
-          </div>
-          <span className="ai-orb__mouth" />
-        </div>
-        <Orbit layer="front" />
-        <Orbit layer="front" second />
-      </div>
-      <span className="ai-orb__bars" aria-hidden>
-        {[0.5, 0.85, 1, 0.75, 0.45].map((k, i) => (
-          <i key={i} style={{ "--k": k } as React.CSSProperties} />
-        ))}
+      <span className="ai-orb__ring" aria-hidden />
+      <span className="ai-orb__ring ai-orb__ring--2" aria-hidden />
+      <span className="ai-orb__glass" aria-hidden>
+        <svg viewBox={`${VB.x} ${VB.y} ${VB.w} ${VB.h}`}>
+          <path d={AUTUMIC_MARK_PATH} fillRule="evenodd" />
+        </svg>
       </span>
+      {gl && (
+        <div className="ai-orb__canvas" aria-hidden>
+          <Suspense fallback={null}>
+            <AiOrbScene
+              stateRef={stateRef}
+              levelRef={levelRef}
+              active={visible && pageShown}
+              onReady={() => setReady(true)}
+            />
+          </Suspense>
+        </div>
+      )}
       <span className="sr-only" role="status" aria-live="polite">
         {unavailable ? "Assistant unavailable" : LABEL[state]}
       </span>
     </div>
-  );
-}
-
-function Orbit({ layer, second = false }: { layer: "back" | "front"; second?: boolean }) {
-  return (
-    <span className={`ai-orb__orbit ai-orb__orbit--${layer}${second ? " ai-orb__orbit--2" : ""}`}>
-      <span className="ai-orb__spin">
-        <span className="ai-orb__sat" />
-      </span>
-    </span>
   );
 }
