@@ -1,3 +1,4 @@
+import { safeInternalRedirect } from "@/lib/safe-redirect";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { AuthPanel } from "@/components/auth-dialog";
@@ -42,17 +43,12 @@ function AuthPage() {
         >
           <AuthPanel
             initialMode={mode ?? "signin"}
+            {...(redirect ? { redirect } : {})}
             onDone={() => {
-              if (redirect) {
-                try {
-                  const target = new URL(redirect, window.location.origin);
-                  if (target.origin === window.location.origin) {
-                    window.location.replace(`${target.pathname}${target.search}${target.hash}`);
-                    return;
-                  }
-                } catch {
-                  // Fall through to the dashboard for malformed/external redirects.
-                }
+              const next = safeInternalRedirect(redirect, window.location.origin);
+              if (next) {
+                window.location.replace(next);
+                return;
               }
               void navigate({ to: "/dashboard" });
             }}
