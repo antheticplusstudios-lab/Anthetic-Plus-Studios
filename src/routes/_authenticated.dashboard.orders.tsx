@@ -1,0 +1,133 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { StatusPill, money, shortDate } from "@/components/admin-ui";
+import { useMyPayments, useInstances } from "@/hooks/use-portal";
+import { automations, SLUG_BY_ENGINE_KIND, type EngineKind } from "@/lib/automations";
+
+export const Route = createFileRoute("/_authenticated/dashboard/orders")({
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Dashboard Orders in the Autumic AI automation platform.",
+      },
+      { property: "og:title", content: "Dashboard Orders — Autumic" },
+      {
+        property: "og:description",
+        content: "Dashboard Orders in the Autumic AI automation platform.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "My Orders — Autumic" },
+    ],
+  }),
+  component: OrdersPage,
+});
+
+const STATUS_TEXT: Record<string, string> = {
+  pending_verification: "Pending Payment Verification",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
+function OrdersPage() {
+  const { data: orders = [], isLoading: ordersLoading } = useMyPayments();
+  const { data: autos = [], isLoading: autosLoading } = useInstances();
+  const autoByOrder = new Map((autos ?? []).map((a) => [a.order_id, a.id]));
+
+  if (ordersLoading || autosLoading)
+    return <p className="text-muted-foreground">Loading orders…</p>;
+
+  return (
+    <div className="grid gap-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold">My Orders</h1>
+          <p className="text-sm text-muted-foreground">
+            Track payment verification and open your live automations.
+          </p>
+        </div>
+        <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-2">
+          <Button asChild size="sm">
+            <Link
+              to="/checkout/$slug"
+              params={{ slug: "voice-sms-receptionist" }}
+              search={{ plan: "monthly" }}
+            >
+              Order AI Receptionist
+            </Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link
+              to="/checkout/$slug"
+              params={{ slug: "social-dm-assistant" }}
+              search={{ plan: "monthly" }}
+            >
+              Order AI Chatbot
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link
+              to="/checkout/$slug"
+              params={{ slug: "lead-capture-qualifier" }}
+              search={{ plan: "monthly" }}
+            >
+              Order AI Lead Capture & Qualifier
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link
+              to="/checkout/$slug"
+              params={{ slug: "knowledge-base-support" }}
+              search={{ plan: "monthly" }}
+            >
+              Order AI Support Agent
+            </Link>
+          </Button>
+        </div>
+      </div>
+      <div className="grid gap-3">
+        {orders.map((o) => {
+          const aid = o.automation_id ?? autoByOrder.get(o.order_db_id ?? o.order_id);
+          return (
+            <div
+              key={o.id}
+              className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-4"
+            >
+              <div className="flex-1">
+                <div className="font-bold">
+                  {automations.find(
+                    (item) =>
+                      item.slug === o.automation_slug ||
+                      item.slug === SLUG_BY_ENGINE_KIND[o.automation_slug as EngineKind],
+                  )?.name ?? o.automation_slug}{" "}
+                  <span className="text-xs text-muted-foreground">{o.order_id}</span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {o.target_domain_url} · {money(o.total_amount ?? o.amount)}/mo ·{" "}
+                  {shortDate(o.created_at)}
+                </div>
+                {o.rejection_reason && (
+                  <div className="mt-1 text-sm text-destructive">Reason: {o.rejection_reason}</div>
+                )}
+              </div>
+              <StatusPill status={STATUS_TEXT[o.status] ?? o.payment_status ?? o.status} />
+              {aid && (
+                <Button asChild size="sm">
+                  <Link to="/dashboard/portal/$id" params={{ id: aid }}>
+                    Open
+                  </Link>
+                </Button>
+              )}
+            </div>
+          );
+        })}
+        {orders.length === 0 && (
+          <p className="rounded-2xl border border-dashed border-border p-8 text-center text-muted-foreground">
+            No orders yet. Use an order button above to get started.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}

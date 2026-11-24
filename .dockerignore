@@ -1,0 +1,11 @@
+.git
+node_modules
+.output
+dist
+coverage
+.env
+.env.*
+!.env.example
+backend/__pycache__
+**/__pycache__
+*.pyc

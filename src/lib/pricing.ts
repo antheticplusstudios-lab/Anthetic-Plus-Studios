@@ -1,0 +1,84 @@
+import { queryOptions, useQuery } from "@tanstack/react-query";
+import { automations, type Automation } from "@/lib/automations";
+import { getLivePricing, type LivePlan } from "@/lib/pricing.functions";
+import { isListedProduct } from "@/lib/storefront";
+
+export const livePricingQueryOptions = queryOptions({
+  queryKey: ["live-pricing"],
+  queryFn: () => getLivePricing(),
+  staleTime: 60_000,
+});
+
+/** Authenticated checkout price matrix. Public product pages do not load this data. */
+export function useLivePricing() {
+  return useQuery(livePricingQueryOptions);
+}
+
+export type PricedAutomation = {
+  slug: string;
+  name: string;
+  shortName: string;
+  icon: Automation["icon"];
+  badge: Automation["badge"];
+  description: string;
+  features: readonly string[];
+  useCases: readonly string[];
+  price: number;
+  setupFee: number;
+  yearlyDiscountPct: number;
+  yearlyPrice: number;
+  monthlyOf(yearly: boolean): number;
+  listed: boolean;
+};
+
+export function priceOf(plan: LivePlan) {
+  const yearlyDiscountPct = plan.yearly_discount_pct ?? 0;
+  const monthlyBase = Number(plan.monthly_price);
+  const monthlyWhenYearly = Math.round(monthlyBase * (1 - yearlyDiscountPct / 100));
+  return {
+    monthlyBase,
+    yearlyDiscountPct,
+    monthlyWhenYearly,
+    yearlyTotal: monthlyWhenYearly * 12,
+  };
+}
+
+/** Merge the marketing catalog (copy, icons, features) with the live database prices. */
+export function withLivePricing(plans: LivePlan[] | undefined): PricedAutomation[] {
+  const bySlug = new Map((plans ?? []).map((plan) => [plan.slug, plan]));
+  return automations.map((item) => {
+    const plan = bySlug.get(item.slug);
+    const monthlyBase = plan ? Number(plan.monthly_price) : item.price;
+    const yearlyDiscountPct = plan ? plan.yearly_discount_pct : 20;
+    const monthlyWhenYearly = Math.round(monthlyBase * (1 - yearlyDiscountPct / 100));
+    return {
+      ...item,
+      price: monthlyBase,
+      setupFee: plan ? Number(plan.setup_fee ?? monthlyBase) : monthlyBase,
+      yearlyDiscountPct,
+      yearlyPrice: monthlyWhenYearly * 12,
+      monthlyOf: (yearly: boolean) => (yearly ? monthlyWhenYearly : monthlyBase),
+      listed: isListedProduct(item.slug, plans),
+    };
+  });
+}
+
+export function findPriced(slug: string, plans: LivePlan[] | undefined) {
+  const livePlan = plans?.find(
+    (plan) => plan.slug === slug && plan.active && plan.listed !== false,
+  );
+  if (!livePlan) return undefined;
+  return withLivePricing([livePlan]).find((item) => item.slug === slug);
+}
+
+/** Apply an approved promo percentage to a total. */
+export function withDiscount(amount: number, percentOff: number | null) {
+  if (!percentOff) return { amount, saved: 0 };
+  const next = Math.round(amount * (1 - percentOff / 100));
+  return { amount: next, saved: amount - next };
+}
+
+/** The four canonical Autumic products shown in the public catalog. */
+export function storefrontItems(plans: LivePlan[] | undefined) {
+  return withLivePricing(plans).filter((i) => i.listed);
+}

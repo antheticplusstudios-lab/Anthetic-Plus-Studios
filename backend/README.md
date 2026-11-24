@@ -1,0 +1,59 @@
+# Autumic FastAPI Runtime
+
+This service is the server-side gateway/runtime for the four-database architecture. Browser code never receives service-role keys or provider secrets.
+
+## Local runtime
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+Run the workers in separate processes after Redis is available:
+
+```bash
+python -m app.outbox_worker
+python -m app.workflows
+```
+
+## Production endpoints
+
+- `GET /health` — DB1/DB2/DB3/DB4 connectivity probe.
+- `POST /v1/runtime/{automation_id}/eligibility` — authenticated runtime eligibility.
+- `POST /v1/health/automation/{automation_id}` — authenticated automation health view.
+- `GET /v1/widget/config` — public widget configuration after token/domain/subscription/runtime checks.
+- `POST /v1/widget/resolve` — public installation resolution after validation.
+- `POST /v1/widget/chat` — public widget chat with Redis rate limiting and DB4 persistence.
+- `POST /v1/workflows/webhook/{endpoint_key}` — signed workflow webhook ingestion.
+- `POST /v1/knowledge/documents` — authenticated RAG document ingestion/embedding.
+- `WS /ws/chat/{conversation_id}` — authenticated-by-installation widget WebSocket channel.
+
+## Encryption key configuration
+
+Set `AUTUMIC_DB3_MASTER_KEY` to the existing base64-encoded 32-byte AES-256 key used to encrypt provider credentials and webhook secrets. The legacy `ANTHETICPLUS_DB3_MASTER_KEY` name remains a fallback so current deployments continue working while environment settings are migrated.
+
+## Webhook signing
+
+Workflow webhooks use an endpoint key plus an HMAC SHA-256 signature. The caller sends:
+
+```text
+X-AntheticPlus-Timestamp: <unix timestamp>
+X-AntheticPlus-Signature: sha256=<hex hmac>
+X-AntheticPlus-Event-ID: <provider event id>
+```
+
+The signature covers `<timestamp>.<raw request body>`. Requests older than five minutes are rejected. Send `X-AntheticPlus-Event-ID` when your provider has a stable event ID so webhook retries are idempotent; otherwise Autumic falls back to a hash of the raw payload. The three legacy `X-AntheticPlus-*` headers remain accepted for existing webhook integrations.
+
+## Production topology
+
+- Vercel: TanStack Start web application
+- FastAPI: configured API host for the gateway/runtime/webhooks/WebSocket
+- Redis: rate limiting, schedule locks and transient runtime state
+- Workers: DB outbox processing and durable workflow execution
+- DB1: auth/identity
+- DB2: billing + automation runtime
+- DB3: AI + RAG
+- DB4: CRM + conversations + Round-Robin + workflows

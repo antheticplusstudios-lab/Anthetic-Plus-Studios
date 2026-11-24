@@ -1,0 +1,122 @@
+/* Autumic AI Orb: translucent blue crystal sphere. The WebGL scene paints over this CSS glass,
+   which doubles as the SSR / reduced-motion / no-WebGL fallback. No facial features by design. */
+.ai-orb {
+  --size: var(--orb-responsive-size, 320px);
+  --orb-level: 0;
+  --orb-tint: var(--electric);
+  --orb-glow: var(--cyan);
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  max-width: 100%;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+.ai-orb[data-state="success"] {
+  --orb-glow: oklch(0.86 0.12 205);
+}
+.ai-orb[data-state="error"] {
+  --orb-tint: oklch(0.62 0.19 22);
+  --orb-glow: oklch(0.78 0.13 30);
+}
+.ai-orb[data-unavailable="true"] {
+  filter: saturate(0.45);
+  opacity: 0.85;
+}
+.ai-orb__halo {
+  position: absolute;
+  inset: -6%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--orb-tint) 38%, transparent) 0%,
+    color-mix(in oklab, var(--orb-glow) 14%, transparent) 42%,
+    transparent 68%
+  );
+  filter: blur(18px);
+  opacity: calc(0.65 + 0.35 * var(--orb-level));
+  transform: scale(calc(1 + 0.08 * var(--orb-level)));
+  transition: background 0.6s ease;
+  z-index: -1;
+}
+.ai-orb__glass {
+  position: absolute;
+  inset: 17%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 26%, oklch(1 0 0 / 78%) 0 5%, transparent 20%),
+    radial-gradient(
+      circle at 50% 54%,
+      color-mix(in oklab, var(--orb-glow) 70%, white) 0 7%,
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 50% 60%,
+      color-mix(in oklab, var(--orb-tint) 70%, transparent) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      oklch(0.32 0.14 264 / 55%) 40%,
+      oklch(0.2 0.09 265 / 85%) 100%
+    );
+  box-shadow:
+    inset 0 0 0 1px oklch(1 0 0 / 30%),
+    inset -14px -20px 40px oklch(0.15 0.08 265 / 55%),
+    inset 10px 14px 30px oklch(0.95 0.04 230 / 25%),
+    0 30px 60px -30px color-mix(in oklab, var(--orb-tint) 70%, transparent);
+  transition: opacity 0.6s ease;
+}
+.ai-orb__glass svg {
+  position: absolute;
+  inset: 34% 22%;
+  width: 56%;
+  height: 32%;
+  fill: oklch(0.97 0.03 220);
+  filter: drop-shadow(0 0 6px var(--orb-glow)) drop-shadow(0 0 14px var(--orb-tint));
+}
+.ai-orb__ring {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  border: 1px solid color-mix(in oklab, var(--orb-glow) 55%, transparent);
+  transform: rotateX(72deg) rotateZ(-14deg);
+}
+.ai-orb__ring--2 {
+  inset: 2%;
+  opacity: 0.5;
+  transform: rotateX(68deg) rotateY(18deg) rotateZ(24deg);
+}
+.ai-orb__canvas {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.ai-orb[data-gl="ready"] .ai-orb__canvas {
+  opacity: 1;
+}
+.ai-orb[data-gl="ready"] .ai-orb__glass,
+.ai-orb[data-gl="ready"] .ai-orb__ring {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ai-orb:not([data-gl="ready"])[data-state="listening"] .ai-orb__glass,
+  .ai-orb:not([data-gl="ready"])[data-state="speaking"] .ai-orb__glass {
+    animation: ai-orb-breathe 1.6s ease-in-out infinite;
+  }
+  .ai-orb:not([data-gl="ready"])[data-state="processing"] .ai-orb__ring {
+    animation: ai-orb-spin 2.4s linear infinite;
+  }
+}
+@keyframes ai-orb-breathe {
+  50% {
+    transform: scale(1.03);
+  }
+}
+@keyframes ai-orb-spin {
+  to {
+    transform: rotateX(72deg) rotateZ(346deg);
+  }
+}

@@ -1,0 +1,273 @@
+import { useT } from "@/lib/i18n";
+import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useMemo, useState } from "react";
+import { CheckCircle2, Clock, Loader2, Mail, Send, ShieldCheck, Sparkles } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { Hero3D } from "@/components/hero-3d";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { CONTACT_TOPICS, contactSchema } from "@/lib/contact-schema";
+import { submitContact, type ContactResult } from "@/lib/contact.functions";
+
+export const Route = createFileRoute("/contact")({
+  head: () => ({
+    meta: [
+      { title: "Contact — Autumic" },
+      {
+        name: "description",
+        content: "Book a free consultation about AI automation for your business.",
+      },
+      { property: "og:title", content: "Contact — Autumic" },
+      {
+        property: "og:description",
+        content: "Talk to Autumic about AI automations, support, billing or partnerships.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: ContactPage,
+});
+
+const topicLabel: Record<(typeof CONTACT_TOPICS)[number], readonly [string, string]> = {
+  sales: ["Sales & automations", "বিক্রয় ও অটোমেশন"],
+  support: ["Technical support", "প্রযুক্তিগত সহায়তা"],
+  partnership: ["Partnership", "অংশীদারিত্ব"],
+  billing: ["Billing & payments", "বিলিং ও পেমেন্ট"],
+  other: ["Something else", "অন্য বিষয়"],
+};
+
+function ContactPage() {
+  const t = useT();
+  const send = useServerFn(submitContact);
+  const startedAt = useMemo(() => Date.now(), []);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    company: "",
+    topic: "sales",
+    message: "",
+    website: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<ContactResult | null>(null);
+  const set = (k: keyof typeof form) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const parsed = contactSchema.safeParse({ ...form, startedAt });
+    if (!parsed.success) {
+      const errs: Record<string, string> = {};
+      for (const i of parsed.error.issues) errs[String(i.path[0])] ??= i.message;
+      setErrors(errs);
+      return;
+    }
+    setErrors({});
+    setBusy(true);
+    try {
+      setResult(await send({ data: parsed.data }));
+    } catch {
+      setResult({
+        status: "failed",
+        message: t(
+          "Something went wrong. Please try again.",
+          "কিছু সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
+        ),
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      <main className="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:gap-12">
+        <section className="relative">
+          <Hero3D />
+          <h1 className="relative text-4xl font-extrabold tracking-tight md:text-5xl">
+            {t("Let's talk", "আসুন কথা বলি")}
+          </h1>
+          <p className="relative mt-3 text-muted-foreground">
+            {t(
+              "Tell us what takes too much time in your business. We’ll discuss where AI automation can help and recommend a practical next step.",
+              "আপনার ব্যবসায় কোন কাজ বেশি সময় নেয় তা আমাদের জানান। কোথায় AI অটোমেশন সহায়তা করতে পারে তা নিয়ে আলোচনা করে বাস্তবসম্মত পরবর্তী পদক্ষেপ সাজাব।",
+            )}
+          </p>
+          <ul className="relative mt-8 space-y-4">
+            {[
+              {
+                icon: Clock,
+                title: t("A personal response", "ব্যক্তিগত উত্তর"),
+                body: t(
+                  "A member of the Autumic team reviews every enquiry.",
+                  "Autumic টিমের একজন সদস্য প্রতিটি অনুরোধ পর্যালোচনা করেন।",
+                ),
+              },
+              {
+                icon: Sparkles,
+                title: t("Free automation advice", "বিনামূল্যে অটোমেশন পরামর্শ"),
+                body: t(
+                  "Share the repetitive work or customer bottleneck you want to improve.",
+                  "কোথায় সম্ভাব্য গ্রাহক হারাচ্ছেন জানান—আমরা ন্যূনতম প্রয়োজনীয় সমাধান দেব।",
+                ),
+              },
+              {
+                icon: ShieldCheck,
+                title: t("Private by default", "গোপনীয়তা নিশ্চিত"),
+                body: t(
+                  "Your details are only used to answer you.",
+                  "আপনার তথ্য শুধু আপনাকে উত্তর দেওয়ার জন্য ব্যবহার করা হয়।",
+                ),
+              },
+            ].map((i) => (
+              <li key={i.title} className="flex gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <i.icon className="h-4 w-4" />
+                </span>
+                <div>
+                  <div className="text-sm font-bold">{i.title}</div>
+                  <div className="text-sm text-muted-foreground">{i.body}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="relative mt-8 space-y-2 text-sm text-muted-foreground">
+            <p className="inline-flex items-center gap-2">
+              <Mail className="h-4 w-4" /> info@autumic.com
+            </p>
+            <p>+880 1915-349394</p>
+            <p>Baridhara, Dhaka-1212, Bangladesh</p>
+            <p>
+              <a
+                className="text-primary underline"
+                href="https://api.whatsapp.com/send/?phone=8801915349394&text=Hello+Autumic%2C+I%27d+like+to+learn+more+about+your+AI+automation+solutions.&type=phone_number&app_absent=0"
+              >
+                Chat with Autumic on WhatsApp
+              </a>
+            </p>
+          </div>
+        </section>
+
+        <section className="contact-form surface-card p-6 sm:p-8">
+          {result?.status === "sent" ? (
+            <div className="flex flex-col items-center py-10 text-center">
+              <CheckCircle2 className="contact-success-check h-10 w-10 text-primary" />
+              <h2 className="mt-3 text-xl font-bold">
+                {t("Message sent", "বার্তা পাঠানো হয়েছে")}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t(
+                  "Thanks — we'll get back to you by email.",
+                  "ধন্যবাদ—আমরা ইমেইলে আপনার সঙ্গে যোগাযোগ করব।",
+                )}
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={onSubmit} noValidate className="space-y-4">
+              <h2 className="mb-5 text-xl font-semibold">{t("Send a message", "বার্তা পাঠান")}</h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FieldBox id="name" label={t("Name", "নাম")} error={errors["name"]}>
+                  <Input id="name" value={form.name} onChange={set("name")} autoComplete="name" />
+                </FieldBox>
+                <FieldBox id="email" label={t("Email", "ইমেইল")} error={errors["email"]}>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={form.email}
+                    onChange={set("email")}
+                    autoComplete="email"
+                  />
+                </FieldBox>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FieldBox
+                  id="company"
+                  label={t("Company (optional)", "প্রতিষ্ঠান (ঐচ্ছিক)")}
+                  error={errors["company"]}
+                >
+                  <Input
+                    id="company"
+                    value={form.company}
+                    onChange={set("company")}
+                    autoComplete="organization"
+                  />
+                </FieldBox>
+                <FieldBox id="topic" label={t("Topic", "বিষয়")} error={errors["topic"]}>
+                  <select
+                    id="topic"
+                    value={form.topic}
+                    onChange={set("topic")}
+                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    {CONTACT_TOPICS.map((topic) => (
+                      <option key={topic} value={topic}>
+                        {t(...topicLabel[topic])}
+                      </option>
+                    ))}
+                  </select>
+                </FieldBox>
+              </div>
+              <FieldBox id="message" label={t("Message", "বার্তা")} error={errors["message"]}>
+                <Textarea id="message" rows={6} value={form.message} onChange={set("message")} />
+              </FieldBox>
+              <input
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="hidden"
+                value={form.website}
+                onChange={set("website")}
+                name="website"
+              />
+              {result?.status === "not_configured" && (
+                <p className="rounded-md bg-muted p-3 text-sm">
+                  Online messages aren't connected yet. Please email us directly at{" "}
+                  <a className="font-semibold text-primary" href={`mailto:${result.inbox}`}>
+                    {result.inbox}
+                  </a>
+                  .
+                </p>
+              )}
+              {result?.status === "failed" && (
+                <p className="text-sm text-destructive">{result.message}</p>
+              )}
+              <Button type="submit" disabled={busy} className="w-full rounded-full">
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {busy ? t("Sending…", "পাঠানো হচ্ছে…") : t("Send message", "বার্তা পাঠান")}
+              </Button>
+            </form>
+          )}
+        </section>
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}
+
+function FieldBox({
+  id,
+  label,
+  error,
+  children,
+}: {
+  id: string;
+  label: string;
+  error?: string | undefined;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>{label}</Label>
+      {children}
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}

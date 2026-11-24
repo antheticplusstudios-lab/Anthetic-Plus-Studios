@@ -1,0 +1,10 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.34,<1
+httpx>=0.28,<1
+pydantic>=2.10,<3
+pydantic-settings>=2.7,<3
+python-multipart>=0.0.20,<1
+redis>=6,<7
+cryptography>=44,<47
+PyJWT>=2.10,<3
+croniter>=6,<7
