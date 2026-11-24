@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { safeInternalRedirect } from "@/lib/safe-redirect";
 
 export const Route = createFileRoute("/auth/callback")({
   head: () => ({
@@ -16,11 +17,14 @@ export const Route = createFileRoute("/auth/callback")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): { next?: string } =>
+    typeof search["next"] === "string" ? { next: search["next"] as string } : {},
   component: AuthCallbackPage,
 });
 
 function AuthCallbackPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [message, setMessage] = useState("Finishing sign in…");
 
   useEffect(() => {
@@ -35,6 +39,12 @@ function AuthCallbackPage() {
         setMessage(error?.message ?? "We could not complete sign in. Please try again.");
         return;
       }
+      const target = safeInternalRedirect(next, window.location.origin);
+      if (target) {
+        // Full replace so arbitrary validated paths (incl. search/hash) resolve.
+        window.location.replace(target);
+        return;
+      }
       await navigate({ to: "/dashboard", replace: true });
     };
 
@@ -42,7 +52,7 @@ function AuthCallbackPage() {
     return () => {
       active = false;
     };
-  }, [navigate]);
+  }, [navigate, next]);
 
   return (
     <main className="grid min-h-screen place-items-center bg-muted/30 px-6">
