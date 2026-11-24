@@ -19,11 +19,16 @@ import { useCurrentUser, useRole } from "@/hooks/use-portal";
 import { supabase } from "@/integrations/supabase/client";
 
 const clientNav = [
-  { label: "Overview", to: "/dashboard", icon: LayoutDashboard },
-  { label: "My Automations", to: "/dashboard/automations", icon: Bot },
-  { label: "My Orders", to: "/dashboard/orders", icon: CreditCard },
-  { label: "Subscription Payments", to: "/dashboard/payments", icon: CreditCard },
-  { label: "Profile Settings", to: "/dashboard/profile", icon: UserRound },
+  { label: "Overview", short: "Home", to: "/dashboard", icon: LayoutDashboard },
+  { label: "My Automations", short: "Automations", to: "/dashboard/automations", icon: Bot },
+  { label: "My Orders", short: "Orders", to: "/dashboard/orders", icon: CreditCard },
+  {
+    label: "Subscription Payments",
+    short: "Payments",
+    to: "/dashboard/payments",
+    icon: CreditCard,
+  },
+  { label: "Profile Settings", short: "Profile", to: "/dashboard/profile", icon: UserRound },
 ] as const;
 
 export function DashboardShell({ children }: { children: ReactNode }) {
@@ -32,6 +37,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { data: role } = useRole();
   const { data: user } = useCurrentUser();
   const staff = !!role && role !== "client";
+  const isActive = (to: string) => path === to || (to !== "/dashboard" && path.startsWith(to));
+  const activeLabel = clientNav.find((item) => isActive(item.to))?.label ?? "Overview";
   const initial = (user?.email ?? "S").charAt(0).toUpperCase();
 
   const navigation = (
@@ -84,7 +91,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   );
   return (
     <div className="customer-workspace min-h-screen bg-muted/25">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 overflow-y-auto border-r border-border bg-sidebar p-4 pb-24 xl:block">
+      <aside className="fixed inset-y-4 left-4 z-40 hidden w-72 overflow-y-auto rounded-2xl border border-border bg-sidebar p-4 pb-24 shadow-soft xl:block">
         {navigation}
       </aside>
       <Sheet open={open} onOpenChange={setOpen}>
@@ -94,17 +101,24 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           {navigation}
         </SheetContent>
       </Sheet>
-      <div className="xl:pl-72">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border workspace-header px-4 sm:px-8">
+      <div className="xl:pl-80">
+        <header className="workspace-header sticky z-30 flex items-center justify-between px-3 sm:px-5">
           <Button
             variant="ghost"
             size="icon"
             aria-label="Open navigation"
-            className="lg:hidden"
+            className="xl:hidden"
             onClick={() => setOpen(true)}
           >
             <Menu />
           </Button>
+          <div className="hidden min-w-0 flex-1 items-center gap-2 px-4 sm:flex">
+            <span className="text-xs font-medium text-muted-foreground">Workspace</span>
+            <span aria-hidden="true" className="text-muted-foreground">
+              /
+            </span>
+            <span className="truncate text-sm font-semibold">{activeLabel}</span>
+          </div>
           <div className="ml-auto flex items-center gap-2">
             <Button asChild size="sm">
               <Link to="/dashboard/orders">
@@ -113,7 +127,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 <span className="sm:hidden">Order</span>
               </Link>
             </Button>
-            <LanguagePicker />
+            <span className="hidden sm:inline-flex">
+              <LanguagePicker />
+            </span>
             <Button
               variant="ghost"
               size="icon"
@@ -128,7 +144,34 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="mx-auto max-w-7xl p-4 sm:p-8">{children}</main>
+        <div className="px-4 pt-4 sm:hidden">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Workspace
+          </p>
+          <p className="truncate text-lg font-bold">{activeLabel}</p>
+        </div>
+        <main className="mx-auto max-w-7xl px-4 pb-28 pt-4 sm:px-8 sm:pb-10 sm:pt-7 xl:pb-10">
+          {children}
+        </main>
+        <nav
+          aria-label="Quick dashboard navigation"
+          className="workspace-tabbar fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 gap-1 rounded-2xl border border-border bg-sidebar/95 p-1.5 shadow-soft xl:hidden"
+        >
+          {clientNav.map((item) => {
+            const active = isActive(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                aria-current={active ? "page" : undefined}
+                className={`flex min-h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold transition-colors active:scale-95 ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span className="w-full truncate text-center">{item.short}</span>
+              </Link>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );
