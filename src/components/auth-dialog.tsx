@@ -9,20 +9,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AnimatePresence, motion } from "@/components/motion";
 import { supabase } from "@/integrations/supabase/client";
+import { buildAuthCallbackUrl } from "@/lib/safe-redirect";
 
-function getAuthRedirectUrl() {
+function getAuthRedirectUrl(redirect?: string) {
   // Keep OAuth and email-confirmation flows on the exact origin where the
-  // visitor started. This avoids preview builds sending users to production
-  // and supports the canonical custom domain once Supabase allows it.
-  return new URL("/auth/callback", window.location.origin).toString();
+  // visitor started, and carry the validated destination as ?next=.
+  return buildAuthCallbackUrl(window.location.origin, redirect);
 }
 
 export function AuthPanel({
   initialMode = "signin",
   onDone,
+  redirect,
 }: {
   initialMode?: "signin" | "signup";
   onDone?: () => void;
+  /** Internal destination to return to after OAuth / email confirmation. */
+  redirect?: string;
 }) {
   const t = useT();
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
@@ -45,7 +48,7 @@ export function AuthPanel({
           : await supabase.auth.signUp({
               email: email.trim(),
               password,
-              options: { emailRedirectTo: getAuthRedirectUrl() },
+              options: { emailRedirectTo: getAuthRedirectUrl(redirect) },
             });
       if (result.error) {
         setMessage(result.error.message);
@@ -73,7 +76,7 @@ export function AuthPanel({
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: getAuthRedirectUrl() },
+        options: { redirectTo: getAuthRedirectUrl(redirect) },
       });
       if (error) setMessage(error.message);
     } catch (error) {
