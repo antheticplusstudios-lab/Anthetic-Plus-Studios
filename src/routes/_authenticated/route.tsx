@@ -1,4 +1,5 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -13,12 +14,34 @@ export const Route = createFileRoute("/_authenticated")({
     ],
   }),
   ssr: false,
-  beforeLoad: async ({ location }) => {
+  // Signed-out visitors are sent to sign-in from the component rather than by throwing
+  // redirect() in beforeLoad: with ssr:false, a beforeLoad redirect during the first
+  // client hydration crashes TanStack's match tree (React #520/#422, "reading routeId").
+  beforeLoad: async () => {
     const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) {
-      throw redirect({ to: "/auth", search: { redirect: location.href, mode: "signin" } });
-    }
-    return { user: data.user };
+    return { user: error ? null : (data.user ?? null) };
   },
-  component: () => <Outlet />,
+  component: AuthenticatedLayout,
 });
+
+function AuthenticatedLayout() {
+  const { user } = Route.useRouteContext();
+  const navigate = useNavigate();
+  // Capture the protected URL once: this layout can stay mounted while the
+  // navigation to /auth settles, and re-reading the location would chain redirects.
+  const location = useLocation();
+  const target = useRef(location.href);
+  const sent = useRef(false);
+  const onAuthPage = location.pathname.startsWith("/auth");
+  useEffect(() => {
+    if (user || sent.current || onAuthPage) return;
+    sent.current = true;
+    void navigate({
+      to: "/auth",
+      search: { redirect: target.current, mode: "signin" },
+      replace: true,
+    });
+  }, [user, navigate, onAuthPage]);
+  if (!user) return null;
+  return <Outlet />;
+}
